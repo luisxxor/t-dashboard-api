@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "metal-celerity-196600",
+  "private_key_id": "80295fbef80cc7a921eecd962608dc1fb25d2d8d",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDF7jVr857RCTu0\n9Byc5GZncYSKU4f8aOVoC1Kaisupty3Ejr6gq0kSC+hd6tUyTfr15a/uQZTOyhzS\nJnsendYDKHyWyjyJ7kHcqFozE3UQJpOUdzCB9hkoE4ND5aOr52vxmG1Y029bXfns\nJsNj00QNI6hqGqjMtLh8jAYpyvgBmfCJ3CcN3VSPsOO2l6s4ptVf216EWwkor6OW\nhUMo9JVzTKCBc0ZAeu7FmIIkXvbPuvqQZ+y+oYCtvR4E7g0c/KLC4BLYO2sMqoON\nm7la+4bBdAZDOFGvdZY+XmjsTogZlFe0pqd6eZxB2ic/YWZUT8e4/HTGeLcbZM2a\n+Pw0nZV3AgMBAAECgf9Hq+CsUAtL2YwSE+yu4zj+b2l1ejBDth6PDldbBRqHQICe\n+RF0gvgMRBBgWCin9Ps33EDyHwB2rbkoX8bPAouV/5Md0+pLOxTRhVfw85q88aF/\nB6nVy/q2bsDMu6eiSxDk6wBHEEj1syt/17y1teQ7RC431zxIfY62vf19V+hDEfF6\nGcrxg/1Xamr5Vja2ifDMjkUv65jPqILEF5zVVSQ/grdIdN7UtzNUrXRZw7M5ZuoJ\ndoprbmrDmv4o5KES22bS90plWznSRJKpv/rO4lO0CGsoorYDIUS+2BTyYnNSW8DD\nQCKcXk4HfrZ+Q3Qy14OrQf8JeQRMhag6ZmGT+jkCgYEA7XDdKSPoOmFS4yBX2SsD\nhNi40OrUa5ucM/YGRicsqlPBDJ1V1+dx1tyxfuXfGiepeZcvXWWGnUt539QLReSP\nMsosDp22K48RqfwHYu0rVJtjhkb44LrW5vCUzNbw8KSqX1OUgc7Ac8E35MRN873G\nsSHJ3BwvLFNQFQV2l1K9vdkCgYEA1WbAYyR68s8T0+CpWPUw1hWktYY4gZJyX9Gk\n4Zi3JFd2IvWWyywPW7eHxz1Xrb2aX3NYp/la2xybu6nh+vRBCzmwqXovBqnMyKMw\nzUsd+djZwpAeqW+si79BHIXa+cCOoZtUtRq6xaTPtawFgm8OcAlUG5RHvJGR8VWP\nEl8Wy88CgYEAymj4X+XYRkxJGI2t1dexPEJz6sUFKGaTFkiYuJ0Umm6jl1lYoKEQ\njpW8Se0z71v4QUr8eaXex6Bb2M8ufPqGiEmInT0c2q0v5bSPp2l/ErUUdpdx+kHM\niTp13tkstDfrdTAO3UmfDg6c00v1F9+jzcR8DEOKg0LSddkea4mBbqECgYAslKGe\nVJGmxeHTgnx+TAKexri4/0gwsWJZaBd01Y109xyD4yBUY2j19RpVYhg+AH0Oca9U\nr//uBET4aF4AKiSobq3cSd0nHDPeulDIomepuUaMocT2CpFWRGcayU/cmwBw/F0u\n1F2uSmbmAgDIpeCzQQ+kD08JMrP1YbVY1iqR+wKBgQCuBHhAguL0yJYFg6qhy7+i\n+p9REVuSLwnZ0qsOLJ5C/v+ixUONqiJxGMApLD/gcTfoW2JUYW16CSuWT7mAihDG\nCFzISotn5Fb7KG28zgZxEAJz1x0l2kkecGpLGAiaaj8citjC/Ewi3nhOhGG04UfH\n6SGoxLvVoYFU8zGbeLs2Gw==\n-----END PRIVATE KEY-----\n",
+  "client_email": "tasingvault-owner@metal-celerity-196600.iam.gserviceaccount.com",
+  "client_id": "106017692250313422472",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/tasingvault-owner%40metal-celerity-196600.iam.gserviceaccount.com"
+}
