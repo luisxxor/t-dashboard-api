@@ -1,4 +1,4 @@
-runtime: php73
+runtime: php72
 service: t-dashboard-api
 
 instance_class: F1
