@@ -1,7 +1,6 @@
 runtime: php72
 service: t-dashboard-api
-
-instance_class: F1
+env: flex
 
 automatic_scaling:
   target_cpu_utilization: 0.7
@@ -10,9 +9,17 @@ automatic_scaling:
   max_pending_latency: automatic
   max_concurrent_requests: 80
 
+runtime_config:
+  document_root: public
+
+# Ensure we skip ".env", which is only for local development
+skip_files:
+  - .env
+
 env_variables:
   ## Put production environment variables here.
   APP_KEY: base64:AbASrVbYtKZcq2udG+kdc3zUt0TvlQBQl4VoTFDIau4=
+  APP_LOG: errorlog
   APP_STORAGE: /tmp
   VIEW_COMPILED_PATH: /tmp
   SESSION_DRIVER: cookie
