@@ -1,6 +1,7 @@
-runtime: php
+runtime: php72
 service: t-dashboard-api
-env: flex
+
+instance_class: F1
 
 automatic_scaling:
   target_cpu_utilization: 0.7
