@@ -14,13 +14,13 @@ class CreatePurchasesTable extends Migration
     public function up()
     {
         Schema::create('purchases', function (Blueprint $table) {
-            $table->increments('id');
+            $table->bigIncrements('id');
 
             // code (for MP external_reference)
             $table->string('code', 100)->nullable()->default(null);
 
             // User reference
-            $table->unsignedInteger('user_id')->nullable()->default(null);
+            $table->unsignedBigInteger('user_id')->nullable()->default(null);
             $table->foreign('user_id')->references('id')->on('users');
 
             // amounts

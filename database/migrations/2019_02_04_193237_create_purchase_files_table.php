@@ -14,10 +14,10 @@ class CreatePurchaseFilesTable extends Migration
     public function up()
     {
         Schema::create('purchase_files', function (Blueprint $table) {
-            $table->increments('id');
+            $table->bigIncrements('id');
 
             // Purchase reference
-            $table->unsignedInteger('purchase_id')->nullable()->default(null);
+            $table->unsignedBigInteger('purchase_id')->nullable()->default(null);
             $table->foreign('purchase_id')->references('id')->on('purchases');
 
             // Google Storage file path

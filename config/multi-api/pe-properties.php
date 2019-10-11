@@ -38,6 +38,16 @@ return [
         'mapMarkers' => [
             'visible' => true,
             'perpage' => 500,
+            'settings' => [
+                'initialState' => [
+                    'coordinates' => [
+                        -9.189966999999998, // lat
+                        75.015152 // lng
+                    ],
+                    'baseZoom' => 5,
+                    'searchZoom' => 15,
+                ]
+            ]
         ],
 
         'containerItems' => [

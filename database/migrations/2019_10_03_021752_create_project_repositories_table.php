@@ -16,7 +16,7 @@ class CreateProjectRepositoriesTable extends Migration
 	public function up()
 	{
 		Schema::create('project_repositories', function(Blueprint $table) {
-            $table->increments('id');
+            $table->bigIncrements('id');
 
             $table->timestamps();
 		});

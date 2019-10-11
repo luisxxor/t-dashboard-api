@@ -4,6 +4,7 @@ use App\Models\Dashboard\User;
 use Caffeinated\Shinobi\Models\Permission;
 use Caffeinated\Shinobi\Models\Role;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class UsersTableSeeder extends Seeder
 {
@@ -18,13 +19,13 @@ class UsersTableSeeder extends Seeder
 
         $permission1 = new Permission();
         $permission1->name = 'Search Properties';
-        $permission1->slug = str_slug( 'properties' );
+        $permission1->slug = Str::slug( 'properties' );
         $permission1->description = null;
         $permission1->save();
 
         $permission2 = new Permission();
         $permission2->name = 'Export Properties';
-        $permission2->slug = str_slug( 'export' );
+        $permission2->slug = Str::slug( 'export' );
         $permission2->description = null;
         $permission2->save();
 
@@ -32,14 +33,14 @@ class UsersTableSeeder extends Seeder
 
         $role1 = new Role();
         $role1->name = 'Admin';
-        $role1->slug = str_slug( 'Admin' );
+        $role1->slug = Str::slug( 'Admin' );
         $role1->description = null;
         $role1->special = 'all-access';
         $role1->save();
 
         $role2 = new Role();
         $role2->name = 'Regular User';
-        $role2->slug = str_slug( 'Regular User' );
+        $role2->slug = Str::slug( 'Regular User' );
         $role2->description = null;
         $role2->special = null;
         $role2->save();
