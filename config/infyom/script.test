@@ -1,0 +1,16 @@
+
+## EXAMPLE
+# php artisan infyom:api_scaffold PermissionUser      --prefix=admin --fromTable --tableName=permission_user      --skip=migration,model,repository,api_controller,scaffold_controller,api_requests,scaffold_requests,api_routes,scaffold_routes,views,tests,menu,dump-autoload
+
+## Purchase
+php artisan infyom:api_scaffold Purchase            --prefix=admin --fromTable --tableName=purchases            --skip=migration,controllers,api_controller,scaffold_controller,api_requests,scaffold_requests,routes,api_routes,scaffold_routes,views,tests,menu,dump-autoload
+
+## PurchaseFile
+php artisan infyom:api_scaffold PurchaseFile        --prefix=admin --fromTable --tableName=purchase_files       --skip=migration,controllers,api_controller,scaffold_controller,api_requests,scaffold_requests,routes,api_routes,scaffold_routes,tests,menu,dump-autoload
+
+## Profile
+php artisan infyom:api_scaffold Profile              --prefix=admin --fromTable --tableName=users                --skip=migration,model,api_controller,api_requests,api_routes,tests,menu,dump-autoload
+
+
+## Para probar swagger
+php artisan infyom:api_scaffold Profile --prefix=admin --fromTable --tableName=users --skip=migration,repository,scaffold_controller,api_requests,scaffold_requests,api_routes,scaffold_routes,views,tests,menu,dump-autoload

@@ -1,0 +1,11 @@
+runtime: php73
+service: t-dashboard-api
+
+instance_class: F1
+
+automatic_scaling:
+  target_cpu_utilization: 0.7
+  max_instances: 10
+  min_pending_latency: 30ms # default value
+  max_pending_latency: automatic
+  max_concurrent_requests: 80

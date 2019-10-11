@@ -1,0 +1,58 @@
+{
+
+        "box/spout": "^2.7",
+        "caffeinated/shinobi": "^3.3",
+        "mongodb/mongodb": "^1.5",
+        "jenssegers/mongodb": "^3.6",
+        "laravel/passport": "^7.5",
+        "mercadopago/dx-php": "dev-master",
+        "rap2hpoutre/laravel-log-viewer": "^1.3.2",
+        "darkaonline/l5-swagger": "^5.8",
+
+
+
+
+        "hayageek/oauth2-yahoo": "*.*",
+        "league/oauth2-client": "*,*",
+        "league/oauth2-google": "*,*",
+        "stevenmaguire/oauth2-microsoft": "*.*",
+        "wapmorgan/unified-archive": "*.*",
+
+
+
+        "laravel/socialite": "^4.1",
+
+
+
+
+        "google/cloud-storage": "^1.3",
+}
+
+// cambios front
+
+    * vue-app/password/reset ahora va a recibir los parametros (de query):
+        - token y email
+        - se debe tomar el email y colocarlo por defecto en el campo del form
+
+    * vue-app/email/verify/{user_id} ahora va a recibir los parametros (de ruta):
+        - user_id y hash, es decir la ruta quedaria -> vue-app/email/verify/{user_id}/{hash}
+        - se deben enviar ambos parametros a la API, que ahora tambien recibe los dos
+          parametros de ruta -> api/email/verify/{user_id}/{hash} (metodo GET)
+        - y se deben seguir enviando los mismos parametros de query que se envian actualmente
+
+// corregido el orden descendente por fecha
+    tanto en busqueda como en excel
+
+
+// modificar clase juliorafaelr\GoogleStorage\GoogleStorage
+    para retornar $object->info()
+    para no hacer printf
+
+
+// dependiencias necesarias?
+
+    "hayageek/oauth2-yahoo": "*.*",
+    "league/oauth2-client": "*,*",
+    "league/oauth2-google": "*,*",
+    "stevenmaguire/oauth2-microsoft": "*.*",
+    "wapmorgan/unified-archive": "*.*",
