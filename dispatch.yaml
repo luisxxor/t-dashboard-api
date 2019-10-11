@@ -1,3 +1,0 @@
-dispatch:
-  - url: "api.tasing.pe/*"
-    service: api
