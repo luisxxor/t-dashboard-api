@@ -9,3 +9,10 @@ automatic_scaling:
   min_pending_latency: 30ms # default value
   max_pending_latency: automatic
   max_concurrent_requests: 80
+
+env_variables:
+  ## Put production environment variables here.
+  APP_KEY: base64:AbASrVbYtKZcq2udG+kdc3zUt0TvlQBQl4VoTFDIau4=
+  APP_STORAGE: /tmp
+  VIEW_COMPILED_PATH: /tmp
+  SESSION_DRIVER: cookie
