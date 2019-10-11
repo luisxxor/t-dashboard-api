@@ -24,7 +24,7 @@
         "laravel/tinker": "^1.0",
         "laravelcollective/html": "^6.0",
         "mercadopago/dx-php": "dev-master",
-        "mongodb/mongodb": "^1.5",
+        "mongodb/mongodb": "^1.4",
         "rap2hpoutre/laravel-log-viewer": "^1.3",
         "juliorafaelr/googlestorage": "*.*"
     },
