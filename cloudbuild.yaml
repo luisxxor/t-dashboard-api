@@ -1,4 +1,5 @@
 steps:
   - name: "gcr.io/cloud-builders/gcloud"
-    args: ['beta', 'app', 'deploy', '--no-cache', './']
+    entrypoint: 'gcloud'
+    args: ['beta', 'app', 'deploy', '--no-cache']
 timeout: "600s"
