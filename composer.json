@@ -78,6 +78,7 @@
             "php artisan key:generate --ansi"
         ],
         "post-install-cmd": [
+            "mkdir bootstrap/cache",
             "php artisan cache:clear",
             "ls -la bootstrap",
             "chmod -R 755 bootstrap/cache",
