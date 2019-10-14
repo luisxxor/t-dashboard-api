@@ -72,7 +72,7 @@
             "php artisan package:discover --ansi"
         ],
         "post-dependencies-solving": [
-            "ls -la",
+            "ls -la bootstrap",
             "chmod -R 755 bootstrap/cache"
         ],
         "post-root-package-install": [
