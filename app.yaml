@@ -19,5 +19,5 @@ env_variables:
   APP_LOG: errorlog
   APP_STORAGE: /tmp
   VIEW_COMPILED_PATH: /tmp
-  SESSION_DRIVER: array
-  CACHE_DRIVER: array
+  SESSION_DRIVER: file
+  CACHE_DRIVER: file
