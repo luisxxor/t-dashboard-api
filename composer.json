@@ -71,9 +71,6 @@
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "php artisan package:discover --ansi"
         ],
-        "post-dependencies-solving": [
-            "chmod -R 755 bootstrap/cache"
-        ],
         "post-root-package-install": [
             "php -r \"file_exists('.env') || copy('.env.example', '.env');\""
         ],
@@ -81,6 +78,7 @@
             "php artisan key:generate --ansi"
         ],
         "post-install-cmd": [
+            "mkdir bootstrap/cache",
             "chmod -R 755 bootstrap\/cache",
             "php artisan cache:clear"
         ]
