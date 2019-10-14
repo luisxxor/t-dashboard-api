@@ -81,7 +81,7 @@
             "mkdir bootstrap/cache",
             "php artisan cache:clear",
             "ls -la bootstrap",
-            "chmod -R 755 bootstrap/cache",
+            "chmod -R 755 bootstrap/cache"
         ]
     }
 }
