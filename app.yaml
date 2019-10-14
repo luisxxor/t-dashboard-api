@@ -17,6 +17,7 @@ env_variables:
   LOG_CHANNEL: stackdriver
   APP_KEY: base64:AbASrVbYtKZcq2udG+kdc3zUt0TvlQBQl4VoTFDIau4=
   APP_LOG: errorlog
-  APP_STORAGE: /srv
-  VIEW_COMPILED_PATH: /srv
-  SESSION_DRIVER: database
+  APP_STORAGE: /tmp
+  VIEW_COMPILED_PATH: /tmp
+  SESSION_DRIVER: cookie
+  CACHE_DRIVER: cookie
