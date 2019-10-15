@@ -12,9 +12,8 @@ automatic_scaling:
 
 env_variables:
   ## Put production environment variables here.
-  APP_ENV: production
-  APP_DEBUG: false
-  LOG_CHANNEL: stackdriver
+  APP_ENV: develop
+  APP_DEBUG: true
   APP_KEY: base64:AbASrVbYtKZcq2udG+kdc3zUt0TvlQBQl4VoTFDIau4=
   APP_LOG: errorlog
   APP_STORAGE: /tmp
