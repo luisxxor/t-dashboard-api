@@ -13,10 +13,41 @@ automatic_scaling:
 env_variables:
   ## Put production environment variables here.
   APP_ENV: production
-  APP_DEBUG: false
+  APP_DEBUG: true
   LOG_CHANNEL: stackdriver
   APP_KEY: base64:AbASrVbYtKZcq2udG+kdc3zUt0TvlQBQl4VoTFDIau4=
   APP_LOG: errorlog
   APP_STORAGE: /tmp
   VIEW_COMPILED_PATH: /tmp
-  SESSION_DRIVER: cookie
+  APP_SERVICES_CACHE: /tmp/services.php
+  APP_PACKAGES_CACHE: /tmp/packages.php
+  APP_CONFIG_CACHE: /tmp/config.php
+  APP_ROUTES_CACHE: /tmp/routes.php
+  CACHE_DRIVER: array
+  SESSION_DRIVER: array
+  DB_CONNECTION: pgsql
+  DB_HOST: 192.99.70.12
+  DB_PORT: 5432
+  DB_DATABASE: db_pe_properties
+  DB_USERNAME: u_pe_properties
+  DB_PASSWORD: '%t4s1ng_321**'
+  DB_PERU_PROPERTIES_HOST: 54.39.97.248
+  DB_PERU_PROPERTIES_PORT: 27017
+  DB_PERU_PROPERTIES_DATABASE: dataDB
+  DB_PERU_PROPERTIES_USERNAME: tasing
+  DB_PERU_PROPERTIES_PASSWORD: 20758c30cfeca14b455306446035fef8
+  FACEBOOK_CLIENT_ID: 2102598299863504
+  FACEBOOK_CLIENT_SECRET: da576fefad22e490296c1b406673fe8a
+  FACEBOOK_URL: https://panel.tasing.pe/login/facebook/callback
+
+  GOOGLE_CLIENT_ID: 59630033008-bva2srkcq1r90f672rie0vh6h1u5jket.apps.googleusercontent.com
+  GOOGLE_CLIENT_SECRET: SnIw-dT2p8iUaooWeKL4pSwe
+  GOOGLE_URL: https://panel.tasing.pe/login/google/callback
+  MAIL_DRIVER: smtp
+  MAIL_HOST: vps167803.vps.ovh.ca
+  MAIL_PORT: 587
+  MAIL_USERNAME: soporte@tasing.pe
+  MAIL_PASSWORD: '0zkBOzbCK5'
+  MAIL_ENCRYPTION: tls
+  MAIL_FROM_ADDRESS: soporte@tasing.pe
+  MAIL_FROM_NAME: 'Grupo Tasing!'

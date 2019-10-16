@@ -55,6 +55,19 @@ $app->useStoragePath( env( 'APP_STORAGE', base_path() . '/storage' ) );
 
 /*
 |--------------------------------------------------------------------------
+| Set Cors to all
+|--------------------------------------------------------------------------
+|
+| This sets cors to all
+|
+*/
+
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: *');
+header('Access-Control-Allow-Headers: *');
+
+/*
+|--------------------------------------------------------------------------
 | Return The Application
 |--------------------------------------------------------------------------
 |

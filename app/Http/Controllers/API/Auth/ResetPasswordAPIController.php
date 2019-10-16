@@ -159,10 +159,6 @@ class ResetPasswordAPIController extends AppBaseController
             $errors[ 'email' ] = [ trans( $response ) ];
         }
 
-        if ( $response === Password::INVALID_PASSWORD ) {
-            $errors[ 'password' ] = [ trans( $response ) ];
-        }
-
         if ( $response === Password::INVALID_TOKEN ) {
             $errors[ 'token' ] = [ trans( $response ) ];
         }
