@@ -39,7 +39,8 @@ env_variables:
   FACEBOOK_CLIENT_ID: 2102598299863504
   FACEBOOK_CLIENT_SECRET: da576fefad22e490296c1b406673fe8a
   FACEBOOK_URL: https://panel.tasing.pe/login/facebook/callback
-
+  PASSPORT_PRIVATE_KEY: /tmp/oauth-private.key 
+  PASSPORT_PUBLIC_KEY: /tmp/oauth-public.key
   GOOGLE_CLIENT_ID: 59630033008-bva2srkcq1r90f672rie0vh6h1u5jket.apps.googleusercontent.com
   GOOGLE_CLIENT_SECRET: SnIw-dT2p8iUaooWeKL4pSwe
   GOOGLE_URL: https://panel.tasing.pe/login/google/callback
