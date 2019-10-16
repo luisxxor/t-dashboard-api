@@ -83,7 +83,8 @@
             "php artisan cache:clear",
             "php artisan view:clear",
             "php artisan route:clear",
-            "php artisan passport:install --no-interaction"
+            "php artisan passport:install --no-interaction",
+            "ls -la /tmp"
         ]
     }
 }
