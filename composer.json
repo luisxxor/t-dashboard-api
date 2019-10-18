@@ -10,7 +10,7 @@
     "require": {
         "php": "^7.2",
         "box/spout": "^3.0",
-        "caffeinated/shinobi": "^5.0",
+        "caffeinated/shinobi": "5.0.0",
         "darkaonline/l5-swagger": "^6.0",
         "doctrine/dbal": "~2.3",
         "fideloper/proxy": "^4.0",
