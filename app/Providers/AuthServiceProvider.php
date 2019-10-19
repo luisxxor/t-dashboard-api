@@ -28,7 +28,7 @@ class AuthServiceProvider extends ServiceProvider
 
         Passport::routes();
 
-        Passport::loadKeysFrom(env( 'APP_STORAGE', base_path() . '/storage' ));
+        Passport::loadKeysFrom( '/' );
 
         // tokens expires in an hour
         Passport::tokensExpireIn( now()->addHour() );

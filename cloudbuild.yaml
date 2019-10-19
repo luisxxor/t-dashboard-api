@@ -8,8 +8,26 @@ steps:
     - --location=global
     - --keyring=tasing_keyring
     - --key=api_app_yaml_key
+- name: gcr.io/cloud-builders/gcloud
+  args:
+    - kms
+    - decrypt
+    - --ciphertext-file=oauth-private.key.enc
+    - --plaintext-file=oauth-private.key
+    - --location=global
+    - --keyring=tasing_keyring
+    - --key=api_app_yaml_key
+- name: gcr.io/cloud-builders/gcloud
+  args:
+    - kms
+    - decrypt
+    - --ciphertext-file=oauth-public.key.enc
+    - --plaintext-file=oauth-public.key
+    - --location=global
+    - --keyring=tasing_keyring
+    - --key=api_app_yaml_key
 - name: "gcr.io/cloud-builders/gcloud"
   args: ["app", "deploy"]
 - name: "alpine"
-  args: ["ls", "-la", "/tmp"]
+  args: ["ls", "-la", "/"]
 timeout: "600s"
