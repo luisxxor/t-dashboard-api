@@ -29,5 +29,5 @@ steps:
 - name: "gcr.io/cloud-builders/gcloud"
   args: ["app", "deploy"]
 - name: "alpine"
-  args: ["ls", "-la", "/"]
+  args: ["ls", "-la", "/workspace"]
 timeout: "600s"
