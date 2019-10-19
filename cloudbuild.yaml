@@ -10,4 +10,6 @@ steps:
     - --key=api_app_yaml_key
 - name: "gcr.io/cloud-builders/gcloud"
   args: ["app", "deploy"]
+- name: "alpine"
+  args: ["ls", "-la", "/"]
 timeout: "600s"
