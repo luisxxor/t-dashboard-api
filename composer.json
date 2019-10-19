@@ -77,9 +77,6 @@
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi"
         ],
-        "pre-install-cmd": [
-            "php artisan passport:keys --force --no-interaction"
-        ],
         "post-install-cmd": [
             "chmod -R 755 bootstrap/cache",
             "php artisan config:clear",
