@@ -17,8 +17,8 @@ Route::get( 'vue-app/{any}', function() {
 
 Route::get( 'logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index' );
 
-Route::get('login/{provider}', 'SocialController@redirect');
-Route::get('login/{provider}/callback','SocialController@Callback');
+// Route::get('login/{provider}', 'SocialController@redirect');
+// Route::get('login/{provider}/callback','SocialController@Callback');
 
 // Download files
 Route::name( 'downloadFiles' )
