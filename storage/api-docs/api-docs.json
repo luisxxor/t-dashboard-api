@@ -432,7 +432,7 @@
                 ]
             }
         },
-        "/api/email/verify/{id}": {
+        "/api/email/verify/{id}/{hash}": {
             "get": {
                 "tags": [
                     "Auth"
@@ -446,6 +446,14 @@
                         "required": true,
                         "schema": {
                             "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "hash",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     {
