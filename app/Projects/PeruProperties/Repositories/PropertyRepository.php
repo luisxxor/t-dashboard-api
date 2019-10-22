@@ -67,28 +67,15 @@ class PropertyRepository
     ];
 
     /**
-     * Field to sort for export files.
+     * Fields and its order to sort the properties.
      *
      * @var string
      */
-    protected $fieldSort = 'publication_date';
-
-    /**
-     * Order to sort for export files.
-     *
-     * @var string
-     */
-    protected $orderSort = -1;
-
-    /**
-     * @var string
-     */
-    protected $imagesDirectoryPath = '/app/public/images_properties/';
-
-    /**
-     * @var string
-     */
-    protected $imagesDirectoryPublicPath = '/storage/images_properties/';
+    protected $sortFields = [
+        'publication_date' => -1,
+        'distance' => -1,
+        '_id' => -1,
+    ];
 
     /**
      * Return the filters to the query.
@@ -393,28 +380,25 @@ class PropertyRepository
      */
     public function getTempProperties( string $searchId, array $pagination ): array
     {
-        // extract
-        extract( $pagination );
-
         // select count of temp collection
         $total = DB::connection( 'peru_properties' )->collection( $searchId )->count();
 
         // calculo la cantidad de paginas del resultado a partir de la cantidad
-        // de registros '$total' y la cantidad de registros por pagina '$perpage'
-        $pages = ceil( $total / $perpage );
+        // de registros '$total' y la cantidad de registros por pagina '$pagination[ 'perpage' ]'
+        $pages = ceil( $total / $pagination[ 'perpage' ] );
 
         // valido que la ultima pagina no este fuera de rango
-        $page = ( $page > $pages ) ? $pages : $page;
+        $page = $pagination[ 'page' ] > $pages ? $pages : $pagination[ 'page' ];
 
         // validacion cero
         $page = $page === 0.0 ? 1 : $page;
 
         // limit y offset para paginar, define el número 0 para empezar
         // a paginar multiplicado por la cantidad de registros por pagina 'perpage'
-        $offset = ( $page - 1 ) * $perpage;
+        $offset = ( $page - 1 ) * $pagination[ 'perpage' ];
 
         // pipeline
-        $pipeline = $this->pipelinePropertiesFromTemp( $perpage, $offset, $field, $sort );
+        $pipeline = $this->pipelinePropertiesFromTemp( $pagination[ 'perpage' ], $offset, $pagination[ 'field' ], $pagination[ 'sort' ] );
 
         // select paginated
         $pagitatedItems = DB::connection( 'peru_properties' )
@@ -424,7 +408,7 @@ class PropertyRepository
             } ) )->toArray();
 
         // new instance of LengthAwarePaginator
-        $paginator = new LengthAwarePaginator( $pagitatedItems, $total, $perpage, $page );
+        $paginator = new LengthAwarePaginator( $pagitatedItems, $total, $pagination[ 'perpage' ], $page );
 
         // cast to array
         $paginator = $paginator->toArray();
@@ -557,17 +541,27 @@ class PropertyRepository
      *
      * @param int|null $limit
      * @param int|null $offset
+     * @param string $offset
+     * @param int $offset
      *
      * @return array
      */
-    protected function pipelinePropertiesFromTemp( $limit = null, $offset = null, $field = null, $sort = -1 ): array
+    protected function pipelinePropertiesFromTemp( $limit = null, $offset = null, string $field, int $sort ): array
     {
         // pipeline
         $pipeline = [];
 
+        // sort array
+        if ( array_key_exists( $field, $this->sortFields ) ) {
+            $sortFields = array_merge( $this->sortFields, [ $field => $sort ] );
+        }
+        else {
+            $sortFields = array_merge( [ $field => $sort ], $this->sortFields );
+        }
+
         // order by ($sort)
         $pipeline[] = [
-            '$sort' => [ $field => $sort ]
+            '$sort' => $sortFields
         ];
 
         // geo fields ($project)
@@ -634,7 +628,7 @@ class PropertyRepository
 
         // order by ($sort)
         $pipeline[] = [
-            '$sort' => [ $this->fieldSort => $this->orderSort ]
+            '$sort' => $this->sortFields
         ];
 
         // fields ($project)

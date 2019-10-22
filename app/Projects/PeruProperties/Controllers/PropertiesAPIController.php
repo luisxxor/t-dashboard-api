@@ -238,12 +238,12 @@ class PropertiesAPIController extends AppBaseController
     public function searchProperties( Request $request )
     {
         $request->validate( [
-            'vertices'  => 'required|array|filled',
-            'filters'   => 'nullable|array',
-            'lat'       => 'required|numeric',
-            'lng'       => 'required|numeric',
-            'address'   => 'required|string',
-            'perpage'   => 'required|integer|min:10|max:500', #
+            'vertices'  => [ 'required', 'array', 'filled' ],
+            'filters'   => [ 'nullable', 'array' ],
+            'lat'       => [ 'required', 'numeric' ],
+            'lng'       => [ 'required', 'numeric' ],
+            'address'   => [ 'required', 'string' ],
+            'perpage'   => [ 'required', 'integer', 'min:10', 'max:500'], #
         ] );
 
         // input
@@ -380,11 +380,11 @@ class PropertiesAPIController extends AppBaseController
     public function paginateProperties( Request $request )
     {
         $request->validate( [
-            'searchId'  => 'required|string',
-            'page'      => 'required|integer|min:1',
-            'perpage'   => 'required|integer|min:1|max:500', #
-            'field'     => 'nullable|string',
-            'sort'      => 'nullable|integer|in:1,-1',
+            'searchId'  => [ 'required', 'string' ],
+            'page'      => [ 'required', 'integer', 'min:1' ],
+            'perpage'   => [ 'required', 'integer', 'min:1', 'max:500'], #
+            'field'     => [ 'nullable', 'string', Rule::notIn( [ 'distance', '_id' ] ) ],
+            'sort'      => [ 'nullable', 'integer', 'in:1,-1' ],
         ] );
 
         // input
@@ -478,7 +478,7 @@ class PropertiesAPIController extends AppBaseController
     public function processPurchase( Request $request )
     {
         $request->validate( [
-            'searchId' => 'required|string',
+            'searchId' => [ 'required', 'string' ],
             'ids' => [ 'nullable', 'array', Rule::requiredIf( function () use ( $request ) {
                 return $request->has( 'selectAll' ) === false;
             } ) ],
@@ -614,7 +614,7 @@ class PropertiesAPIController extends AppBaseController
     public function generatePropertiesFile( Request $request )
     {
         $request->validate( [
-            'purchaseId'  => 'required|numeric',
+            'purchaseId'  => [ 'required', 'numeric' ],
         ] );
 
         // input
@@ -712,7 +712,7 @@ class PropertiesAPIController extends AppBaseController
     public function exportPurchasedFile( $id, Request $request )
     {
         $request->validate( [
-            'format' => 'required|string|in:csv,xlsx,ods',
+            'format' => [ 'required', 'string', 'in:csv,xlsx,ods' ],
         ] );
 
         $purchaseFile = $this->purchaseFileRepository->find( $id );

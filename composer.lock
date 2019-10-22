@@ -12,7 +12,7 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/box/spout.git",
-                "reference": "6c4086cf97b36f0ca87d19f051902ce8004ee6b0"
+                "reference": "022e32c55c99473ee3824cdc5b555c5f"
             },
             "dist": {
                 "type": "zip",

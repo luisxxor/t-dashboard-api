@@ -75,7 +75,7 @@ class VerificationAPIController extends AppBaseController
      * @throws \Illuminate\Auth\Access\AuthorizationException
      *
      * @OA\Get(
-     *     path="/api/email/verify/{id}",
+     *     path="/api/email/verify/{id}/{hash}",
      *     operationId="verify",
      *     tags={"Auth"},
      *     summary="Mark the authenticated user's email address as verified",
@@ -85,6 +85,14 @@ class VerificationAPIController extends AppBaseController
      *         in="path",
      *         @OA\Schema(
      *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="hash",
+     *         required=true,
+     *         in="path",
+     *         @OA\Schema(
+     *             type="string"
      *         )
      *     ),
      *     @OA\Parameter(
