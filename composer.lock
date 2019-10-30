@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ce1016f9351a71d162e34b853d2482c2",
+    "content-hash": "a667176326ef63441aca4311ae557a1d",
     "packages": [
         {
             "name": "box/spout",
@@ -16,8 +16,8 @@
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/box/spout/zipball/6c4086cf97b36f0ca87d19f051902ce8004ee6b0",
-                "reference": "6c4086cf97b36f0ca87d19f051902ce8004ee6b0",
+                "url": "https://api.github.com/repos/box/spout/zipball/022e32c55c99473ee3824cdc5b555c5f",
+                "reference": "022e32c55c99473ee3824cdc5b555c5f",
                 "shasum": ""
             },
             "require": {
