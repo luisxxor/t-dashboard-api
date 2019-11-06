@@ -130,13 +130,7 @@ class PropertiesAPIController extends AppBaseController
         // sort
         sort( $propertyTypes );
 
-        $response = [
-            'filters' => [
-                'property_types' => $propertyTypes,
-            ]
-        ];
-
-        return $this->sendResponse( $response, 'Filters data retrived.' );
+        return $this->sendResponse( $propertyTypes, 'Filters data retrived.' );
     }
 
     /**

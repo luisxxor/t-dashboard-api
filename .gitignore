@@ -4,6 +4,8 @@
 /storage/*.key
 /vendor
 .env
+.env.prod
+.env.dev
 /.idea
 /.vscode
 /.vagrant

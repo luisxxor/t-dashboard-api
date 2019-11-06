@@ -59,7 +59,7 @@ return [
             'visible' => true,
             'fields' => [
                 [
-                    'field' => 'property_type',
+                    'field' => 'property_type_id',
                     'label' => 'Tipo',
                     'type' => 'dropdown',
                     'placeholder' => 'Seleccione el tipo de propiedad',
@@ -71,8 +71,9 @@ return [
                     'type' => 'date',
                     'placeholder' => 'Seleccione el tipo de propiedad',
                 ],
+
                 [
-                    'field' => 'bedrooms',
+                    'field' => 'bedrooms_interval',
                     'label' => 'Habitaciones',
                     'type' => 'slider',
                     'values' => [
@@ -103,7 +104,7 @@ return [
                     ],
                 ],
                 [
-                    'field' => 'bathrooms',
+                    'field' => 'bathrooms_interval',
                     'label' => 'Baños',
                     'type' => 'slider',
                     'values' => [
@@ -134,7 +135,7 @@ return [
                     ],
                 ],
                 [
-                    'field' => 'parkings',
+                    'field' => 'parkings_interval',
                     'label' => 'Cocheras',
                     'type' => 'slider',
                     'values' => [
@@ -164,6 +165,7 @@ return [
                         ],
                     ],
                 ],
+
                 [
                     'field' => 'antiquity_years',
                     'label' => 'Antigüedad (años)',
@@ -173,7 +175,7 @@ return [
                     'maxValue' => null,
                 ],
                 [
-                    'field' => 'build_area',
+                    'field' => 'build_area_m2',
                     'label' => 'Área exclusiva (m2)',
                     'type' => 'numerical_range',
                     'step' => 0.01,
@@ -181,11 +183,11 @@ return [
                     'maxValue' => null,
                 ],
                 [
-                    'field' => 'total_area',
+                    'field' => 'total_area_m2',
                     'label' => 'Área Techada (m2)',
                     'type' => 'numerical_range',
-                    'step' => 0.00,
-                    'minValue' => 0.01,
+                    'step' => 0.01,
+                    'minValue' => 0.00,
                     'maxValue' => null,
                 ],
                 [

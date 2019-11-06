@@ -15,6 +15,9 @@ use App\Routers\AuthAPI;
 
 AuthAPI::routes( [ 'verify' => true ] );
 
+Route::get( 'login/{provider}', 'API\OAuth\SocialiteAPIController@redirect' );
+Route::get( 'login/{provider}/callback','API\OAuth\SocialiteAPIController@callback' );
+
 Route::middleware( 'auth:api', 'verified' )->group( function () {
     // profile
     Route::get( 'dashboard/profile', 'API\Dashboard\ProfileAPIController@show' )->name( 'dashboard.profile.show' );
