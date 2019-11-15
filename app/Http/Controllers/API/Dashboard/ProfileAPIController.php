@@ -9,6 +9,7 @@ use App\Repositories\Dashboard\ProfileRepository;
 use App\Rules\CurrentPassword;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Response;
 
 /**
@@ -200,16 +201,23 @@ class ProfileAPIController extends AppBaseController
     {
         $input = $request->only( [ 'name', 'lastname', 'phone_number1', 'address_line1', 'address_line2', 'old_password' ] );
 
+        $user = auth()->user();
+
         Validator::make( $input, [
             'name' => [ 'required', 'string', 'min:2', 'max:30' ],
             'lastname' => [ 'required', 'string', 'min:2', 'max:30' ],
             'phone_number1' => [ 'nullable', 'string' ],
             'address_line1' => [ 'nullable', 'string', 'min:5', 'max:50' ],
             'address_line2' => [ 'nullable', 'string', 'min:5', 'max:50' ],
-            'old_password' => [ 'bail', 'required', 'string', new CurrentPassword ],
+            'old_password' => [
+                'bail',
+                Rule::requiredIf( function () use ( $user ) {
+                    return empty( $user->password ) === false;
+                } ),
+                'string',
+                new CurrentPassword
+            ],
         ] )->validate();
-
-        $user = auth()->user();
 
         $profile = $this->profileRepository->update( $input, $user->id );
 

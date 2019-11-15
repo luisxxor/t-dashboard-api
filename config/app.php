@@ -262,13 +262,15 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Google Key File Path
+    | Google Info
     |--------------------------------------------------------------------------
     |
-    | The Google Key File Path.
+    | Service accounts, bucket names, etc.
     |
     */
 
     'google_key_file_path' => env( 'GOOGLE_KEY_FILE_PATH', null ),
+
+    'pe_export_file_bucket' => env( 'PE_EXPORT_FILE_BUCKET', null ),
 
 ];
