@@ -258,17 +258,19 @@ return [
     |
     */
 
-    'front_url' => env( 'FRONT_APP_URL', 'http://front-app-not-registered-at.env' ),
+    'front_url' => env( 'APP_URL_FRONT', 'http://app-url-front-not-registered-at.env' ),
 
     /*
     |--------------------------------------------------------------------------
-    | Google Key File Path
+    | Google Info
     |--------------------------------------------------------------------------
     |
-    | The Google Key File Path.
+    | Service accounts, bucket names, etc.
     |
     */
 
     'google_key_file_path' => env( 'GOOGLE_KEY_FILE_PATH', null ),
+
+    'pe_export_file_bucket' => env( 'PE_EXPORT_FILE_BUCKET', null ),
 
 ];

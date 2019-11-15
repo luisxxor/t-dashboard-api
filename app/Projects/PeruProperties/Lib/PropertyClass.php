@@ -95,7 +95,7 @@ class PropertyClass
         $googleStorage = new GoogleStorage( Config::get( 'app.google_key_file_path' ) );
 
         // upload to google storage
-        $uploadedObject = $googleStorage->uploadObject( 'tasing_exported_files', $purchase->code . '.' . $extension, $jsonFilePath );
+        $uploadedObject = $googleStorage->uploadObject( Config::get( 'app.pe_export_file_bucket' ), $purchase->code . '.' . $extension, $jsonFilePath );
 
         // file info
         $fileName = $uploadedObject[ 'name' ];
