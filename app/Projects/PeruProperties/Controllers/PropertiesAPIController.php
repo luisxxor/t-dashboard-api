@@ -236,8 +236,8 @@ class PropertiesAPIController extends AppBaseController
             'filters'   => [ 'nullable', 'array' ],
             'lat'       => [ 'required', 'numeric' ],
             'lng'       => [ 'required', 'numeric' ],
-            'address'   => [ 'required', 'string' ],
-            'perpage'   => [ 'required', 'integer', 'min:10', 'max:500'], #
+            'address'   => [ 'nullable', 'string' ],
+            'perpage'   => [ 'required', 'integer', 'min:10', 'max:500'],
         ] );
 
         // input

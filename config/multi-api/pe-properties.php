@@ -42,7 +42,7 @@ return [
                 'initialState' => [
                     'coordinates' => [
                         -9.189966999999998, // lat
-                        75.015152 // lng
+                        -75.015152 // lng
                     ],
                     'baseZoom' => 5,
                     'searchZoom' => 15,
@@ -70,6 +70,8 @@ return [
                     'label' => 'Fecha',
                     'type' => 'date',
                     'placeholder' => 'Seleccione el tipo de propiedad',
+                    'minDate' => null,
+                    'maxDate' => now()->toDateString(),
                 ],
 
                 [
