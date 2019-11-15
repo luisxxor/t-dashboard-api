@@ -258,7 +258,7 @@ return [
     |
     */
 
-    'front_url' => env( 'FRONT_APP_URL', 'http://front-app-not-registered-at.env' ),
+    'front_url' => env( 'APP_URL_FRONT', 'http://app-url-front-not-registered-at.env' ),
 
     /*
     |--------------------------------------------------------------------------
