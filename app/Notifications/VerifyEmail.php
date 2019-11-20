@@ -87,7 +87,7 @@ class VerifyEmail extends Notification
 
         $parameters = str_replace( route( 'api.verification.verify', $routeParameters ), '', $verificationUrlAPI );
 
-        return Config::get( 'app.front_url' ) . 'email/verify/' . $routeParameters[ 'id' ] . '/' . $routeParameters[ 'hash' ] . '/' . $parameters;
+        return Config::get( 'app.front_url' ) . '/email/verify/' . $routeParameters[ 'id' ] . '/' . $routeParameters[ 'hash' ] . '/' . $parameters;
     }
 
     /**

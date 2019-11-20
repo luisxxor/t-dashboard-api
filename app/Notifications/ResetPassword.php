@@ -83,7 +83,7 @@ class ResetPassword extends Notification
             'email' => $notifiable->getEmailForPasswordReset(),
         ];
 
-        return Config::get( 'app.front_url' ) . 'password/reset/?token=' . $queryParameters[ 'token' ] . '&email=' . $queryParameters[ 'email' ];
+        return Config::get( 'app.front_url' ) . '/password/reset/?token=' . $queryParameters[ 'token' ] . '&email=' . $queryParameters[ 'email' ];
     }
 
     /**
