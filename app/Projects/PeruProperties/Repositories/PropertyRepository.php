@@ -20,6 +20,11 @@ class PropertyRepository
     /**
      * @var array
      */
+    protected $constants;
+
+    /**
+     * @var array
+     */
     protected $outputFields = [
         'id',
         'dollars_price',
@@ -77,6 +82,10 @@ class PropertyRepository
         '_id' => -1,
     ];
 
+    public function __construct() {
+        $this->constants = config( 'multi-api.pe-properties.constants' );
+    }
+
     /**
      * Return the filters to the query.
      *
@@ -88,19 +97,19 @@ class PropertyRepository
         $filterFields = [
             'slidersFields' => [
                 'bedrooms' => [
-                    'name' => 'bedrooms_interval',
+                    'name' => $this->constants[ 'FILTER_FIELD_BEDROOMS' ],
                     'clousure' => function ( $field ) {
                         return ( $field === '5' ) ? 5.1 : (float)$field;
                     }
                 ],
                 'bathrooms' => [
-                    'name' => 'bathrooms_interval',
+                    'name' => $this->constants[ 'FILTER_FIELD_BATHROOMS' ],
                     'clousure' => function ( $field ) {
                         return ( $field === '5' ) ? 5.1 : (float)$field;
                     }
                 ],
                 'parkings' => [
-                    'name' => 'parkings_interval',
+                    'name' => $this->constants[ 'FILTER_FIELD_PARKINGS' ],
                     'clousure' => function ( $field ) {
                         return ( $field === '5' ) ? 5.1 : (float)$field;
                     }
@@ -108,25 +117,25 @@ class PropertyRepository
             ],
             'numericFields' => [
                 'antiquity_years' => [
-                    'name' => 'antiquity_interval',
+                    'name' => $this->constants[ 'FILTER_FIELD_ANTIQUITY_YEARS' ],
                     'clousure' => function ( $field ) {
                         return (int)$field;
                     }
                 ],
                 'total_area_m2' => [
-                    'name' => 'total_area_interval',
+                    'name' => $this->constants[ 'FILTER_FIELD_TOTAL_AREA_M2' ],
                     'clousure' => function ( $field ) {
                         return (float)$field;
                     }
                 ],
                 'build_area_m2' => [
-                    'name' => 'build_area_interval',
+                    'name' => $this->constants[ 'FILTER_FIELD_BUILD_AREA_M2' ],
                     'clousure' => function ( $field ) {
                         return (float)$field;
                     }
                 ],
                 'publication_date' => [
-                    'name' => 'publication_date',
+                    'name' => $this->constants[ 'FILTER_FIELD_PUBLICATION_DATE' ],
                     'clousure' => function ( $field ) {
                         $carbonDate = Carbon::createFromFormat( 'd/m/Y', trim( $field ) );
 
@@ -136,14 +145,8 @@ class PropertyRepository
                 ]
             ],
             'combosFields' => [
-                'region_id' => [
-                    'name' => 'region_id',
-                    'clousure' => function ( $field ) {
-                        return (int)$field;
-                    },
-                ],
                 'property_type_id' => [
-                    'name' => 'property_type_id',
+                    'name' => $this->constants[ 'FILTER_FIELD_PROPERTY_TYPE' ],
                     'clousure' => function ( $field ) {
                         // select
                         $results = PropertyType::where( 'owner_name', $field )->get();
@@ -152,10 +155,10 @@ class PropertyRepository
                     },
                 ],
                 'publication_type' => [
-                    'name' => 'publication_type',
+                    'name' => $this->constants[ 'FILTER_FIELD_PUBLICATION_TYPE' ],
                 ],
                 'property_new' => [
-                    'name' => 'property_new',
+                    'name' => $this->constants[ 'FILTER_FIELD_PROPERTY_NEW' ],
                     'clousure' => function ( $field ) {
                         return (bool)$field;
                     },
