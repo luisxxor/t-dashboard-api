@@ -1,6 +1,7 @@
 <?php
 
 use App\Routers\AuthAPI;
+use Illuminate\Support\Facades\Config;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,7 +48,7 @@ Route::middleware( 'auth:api', 'verified' )->group( function () {
 } );
 
 // generate peru properties profile
-Route::get( 'peru_properties/generate_file', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@generatePropertiesFile' )->name( config( 'multi-api.pe-properties.backend-info.generate_file_url' ) );
+Route::get( 'peru_properties/generate_file', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@generatePropertiesFile' )->name( Config::get( 'multi-api.pe-properties.backend-info.generate_file_url' ) );
 
 
 
