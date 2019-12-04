@@ -325,7 +325,7 @@ class PropertyRepository
             ],
             'spherical' => true,
             'distanceField' => 'distance',
-            'num' => 100000 # pendiente definir este limite
+            '$limit' => 100000 # pendiente definir este limite
         ];
 
         return $geoNear;
