@@ -274,6 +274,9 @@ class PropertiesAPIController extends AppBaseController
         // and store in the matched properties
         $this->propertyRepository->storeTempProperties( $search );
 
+        // select the search with updates
+        $search = $this->searchRepository->find( $search->_id );
+
         // paginate data (default)
         $page   = 1;
         $field  = 'publication_date';
@@ -486,36 +489,27 @@ class PropertiesAPIController extends AppBaseController
         $ids        = $request->get( 'ids' ) ?? [];
         $selectAll  = $request->get( 'selectAll' );
 
-        // get user id
+        // get user
         $user = auth()->user();
-
-        // get user rol
-        $isAdmin = $user->hasRole( 'admin' );
 
         // get selected ids by user
         if ( $selectAll === true ) {
-            $searchUpdate = [
-                'selected_properties' => [ '*' ]
-            ];
+            $ids = [ '*' ];
 
-            $total = DB::connection( 'peru_properties' )->collection( $searchId )->count();
+            $total = $this->propertyRepository->getCountSearchedProperties( $searchId );
         }
         else {
-            $searchUpdate = [
-                'selected_properties' => $ids
-            ];
-
             $total = count( $ids );
         }
 
         // update the search to save selected ids by user
-        $search = $this->searchRepository->update( $searchUpdate, $searchId );
+        $update = $this->propertyRepository->updateSelectedSearchedProperties( $searchId, $ids );
 
         // save purchase
         $purchase = $this->purchaseRepository->generate( [
             'user_id'   => $user->id,
             'status'    => 1,
-            'search_id' => $search->_id,
+            'search_id' => $searchId,
             'project'   => config( 'multi-api.pe-properties.backend-info.code' ),
             'files' => [
                 [
@@ -526,7 +520,7 @@ class PropertiesAPIController extends AppBaseController
         ] );
 
         // if admin generate file, else return mercadopago link
-        if ( $isAdmin === true ) {
+        if ( $user->hasRole( 'admin' ) === true ) {
             $generateFileUrl = route( config( 'multi-api.pe-properties.backend-info.generate_file_url_full' ), [], false );
 
             // guzzle client
@@ -624,7 +618,11 @@ class PropertiesAPIController extends AppBaseController
         }
 
         // create purchase json
-        $this->propertyClass->createPurchaseJson( $purchase );
+        try {
+            $this->propertyClass->createPurchaseJson( $purchase );
+        } catch ( \Exception $e ) {
+            return $this->sendError( $e->getMessage() );
+        }
 
         // response OK
         return $this->sendResponse( 'OK', 'Properties\' file generated successfully.' );

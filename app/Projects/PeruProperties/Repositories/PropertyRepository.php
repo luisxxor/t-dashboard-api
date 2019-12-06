@@ -8,6 +8,7 @@ use App\Projects\PeruProperties\Models\Search;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Pagination\LengthAwarePaginator;
+use MongoDB\BSON\ObjectID;
 use MongoDB\BSON\UTCDateTime;
 
 /**
@@ -331,8 +332,9 @@ class PropertyRepository
         return $geoNear;
     }
 
+
     /**
-     * Store matched properties in a temp collection.
+     * Store matched properties in given search of searches collection.
      *
      * @param Search $search The search model to store the matched properties.
      *
@@ -349,16 +351,14 @@ class PropertyRepository
         // get distance (parameters)
         $distance = $this->getDistanceToQuery( $search[ 'metadata' ][ 'initPoint' ][ 'lat' ], $search[ 'metadata' ][ 'initPoint' ][ 'lng' ] );
 
-        // pipeline
-        $pipeline = $this->pipelinePropertiesToTemp( $propertiesWithin, $filters, $distance );
+        // metadata
+        $metadata = compact( 'propertiesWithin', 'filters', 'distance' );
 
-        // insert into select ($out)
-        $pipeline[] = [
-            '$out' => $search->_id
-        ];
+        // pipeline
+        $pipeline = $this->pipelinePropertiesToSearch( $metadata, $search->_id );
 
         // exec query
-        $toTemp = Property::raw( ( function( $collection ) use ( $pipeline ) {
+        $toTemp = Property::raw( ( function ( $collection ) use ( $pipeline ) {
             return $collection->aggregate( $pipeline );
         } ) );
 
@@ -366,10 +366,10 @@ class PropertyRepository
     }
 
     /**
-     * Return (paginated) 'properties' in the temp collection
-     * specified by $searchId.
+     * Return (paginated) 'properties' from the given search of
+     * searches collection.
      *
-     * @param string $searchId The collection name to get the properties.
+     * @param string $searchId The id of the current search.
      * @param array $pagination {
      *     The values of the pagination
      *
@@ -383,8 +383,8 @@ class PropertyRepository
      */
     public function getTempProperties( string $searchId, array $pagination ): array
     {
-        // select count of temp collection
-        $total = DB::connection( 'peru_properties' )->collection( $searchId )->count();
+        // get total searched properties
+        $total = $this->getCountSearchedProperties( $searchId );
 
         // calculo la cantidad de paginas del resultado a partir de la cantidad
         // de registros '$total' y la cantidad de registros por pagina '$pagination[ 'perpage' ]'
@@ -400,15 +400,16 @@ class PropertyRepository
         // a paginar multiplicado por la cantidad de registros por pagina 'perpage'
         $offset = ( $page - 1 ) * $pagination[ 'perpage' ];
 
+        // agrego offset al pagination
+        $pagination[ 'offset' ] = $offset;
+
         // pipeline
-        $pipeline = $this->pipelinePropertiesFromTemp( $pagination[ 'perpage' ], $offset, $pagination[ 'field' ], $pagination[ 'sort' ] );
+        $pipeline = $this->pipelinePropertiesFromSearch( $searchId, $pagination );
 
         // select paginated
-        $pagitatedItems = DB::connection( 'peru_properties' )
-            ->collection( $searchId )
-            ->raw( ( function ( $collection ) use ( $pipeline ) {
-                return $collection->aggregate( $pipeline );
-            } ) )->toArray();
+        $pagitatedItems = Search::raw( ( function ( $collection ) use ( $pipeline ) {
+            return $collection->aggregate( $pipeline );
+        } ) );
 
         // new instance of LengthAwarePaginator
         $paginator = new LengthAwarePaginator( $pagitatedItems, $total, $pagination[ 'perpage' ], $page );
@@ -420,6 +421,52 @@ class PropertyRepository
         $paginator[ 'searchId' ] = $searchId;
 
         return $paginator;
+    }
+
+    /**
+     * Update selected properties in given search of searches collection.
+     *
+     * @param string $searchId The id of the current search.
+     * @param array $ids Array of property's ids selected by user.
+     *        [ '*' ] in case all were selected.
+     *
+     * @return #
+     */
+    public function updateSelectedSearchedProperties( string $searchId, array $ids )
+    {
+        // pipeline
+        $pipeline = [];
+
+        // filter ($match)
+        $pipeline[] = [
+            '_id' => [ '$eq' => new ObjectID( $searchId ) ]
+        ];
+
+        // update ($set)
+        $pipeline[] = [
+            '$set' => [ 'searched_properties.$[elem].selected' => true ]
+        ];
+
+        // options (arrayFilters)
+        if ( $ids !== [ '*' ] ) {
+            $pipeline[] = [
+                'arrayFilters' => [
+                    [ 'elem._id' => [ '$in' => $ids ] ]
+                ]
+            ];
+        }
+        else {
+            $pipeline[] = [];
+        }
+
+        list( $filter, $update, $options ) = $pipeline;
+
+        // exec query
+        $update = Search::raw( ( function ( $collection ) use ( $filter, $update, $options ) {
+            return $collection->updateOne( $filter, $update, $options );
+        } ) );
+
+        return $update;
     }
 
     /**
@@ -436,14 +483,16 @@ class PropertyRepository
         $search = Search::find( $searchId );
 
         // pipeline
-        $pipeline = $this->pipelineSelectedPropertiesFromTemp( $search[ 'selected_properties' ] );
+        $pipeline = $this->pipelineSelectedPropertiesFromSearch( $searchId );
 
         // get selected data in final format
-        $results = DB::connection( 'peru_properties' )
-            ->collection( $searchId )
-            ->raw( ( function ( $collection ) use ( $pipeline ) {
-                return $collection->aggregate( $pipeline );
-            } ) )->toArray();
+        $results = Search::raw( ( function ( $collection ) use ( $pipeline ) {
+            return $collection->aggregate( $pipeline );
+        } ) )->toArray();
+
+        if ( empty( $results ) === true ) {
+            throw new \Exception( 'No properties searched.', 1);
+        }
 
         return [
             'data' => [
@@ -463,25 +512,61 @@ class PropertyRepository
     }
 
     /**
+     * Return count of properties in the search collection
+     *
+     * @param string $searchId The collection name to get the properties.
+     *
+     * @return int
+     */
+    public function getCountSearchedProperties( string $searchId ): int
+    {
+        $query = Search::raw( ( function ( $collection ) use ( $searchId ) {
+            return $collection->aggregate( [
+                [
+                    '$match' => [
+                        '_id' => [ '$eq' => new ObjectID( $searchId ) ]
+                    ]
+                ],
+                [
+                    '$project' => [
+                        'total' => [
+                            '$cond' => [
+                                'if' => [ '$isArray' => '$searched_properties' ],
+                                'then' => [ '$size' => '$searched_properties' ],
+                                'else' => 0
+                            ]
+                        ]
+                    ]
+                ]
+            ] );
+        } ) )->toArray();
+
+        return $query[ 0 ][ 'total' ];
+    }
+
+
+    /**
      * Return pipeline to retrive properties
      * that match with the specified input.
      *
-     * @param array $propertiesWithin
-     * @param array $filters
-     * @param array $distance
-     * @param bool|null $allFields
-     * @param int|null $limit
-     * @param int|null $offset
+     * @param array $metadata {
+     *     The metadata to search the properties.
+     *
+     *     @type array $propertiesWithin [required] Pipeline $match.
+     *     @type array $filters [required] Pipeline $match.
+     *     @type array $distance [required] Pipeline $geoNear.
+     * }
+     * @param string $searchId
      * @return array
      */
-    protected function pipelinePropertiesToTemp( array $propertiesWithin, array $filters, array $distance ): array
+    protected function pipelinePropertiesToSearch( array $metadata, string $searchId ): array
     {
         // pipeline
         $pipeline = [];
 
         // geo distance ($geoNear)
         $pipeline[] = [
-            '$geoNear' => $distance
+            '$geoNear' => $metadata[ 'distance' ]
         ];
 
         // join con regions ($lookup)
@@ -505,9 +590,9 @@ class PropertyRepository
         ];
 
         // filters ($match)
-        if ( empty( $filters ) === false ) {
+        if ( empty( $metadata[ 'filters' ] ) === false ) {
             $pipeline[] = [
-                '$match' => $filters
+                '$match' => $metadata[ 'filters' ]
             ];
         }
 
@@ -532,7 +617,29 @@ class PropertyRepository
 
         // geo within ($match)
         $pipeline[] = [
-            '$match' => $propertiesWithin
+            '$match' => $metadata[ 'propertiesWithin' ]
+        ];
+
+        // search_id ($addFields)
+        $pipeline[] = [
+            '$addFields' => [
+                'search_id' => new ObjectID( $searchId ),
+            ]
+        ];
+
+        // $group
+        $pipeline[] = [
+            '$group' => [ '_id' => '$search_id', 'searched_properties' => [ '$push' => '$$ROOT' ] ]
+        ];
+
+        // insert into select ($merge)
+        $pipeline[] = [
+            '$merge' => [
+                'into' => 'searches',
+                'on' => '_id',
+                'whenMatched' => 'merge',
+                'whenNotMatched' => 'discard',
+            ],
         ];
 
         return $pipeline;
@@ -542,29 +649,60 @@ class PropertyRepository
      * Return pipeline to retrive properties paginated
      * from temp collection.
      *
-     * @param int|null $limit
-     * @param int|null $offset
-     * @param string $offset
-     * @param int $offset
+     * @param string $searchId The collection name to get the properties.
+     * @param array $pagination {
+     *     The values of the pagination
+     *
+     *     @type int $perpage [required] The number of rows per each
+     *           page of the pagination.
+     *     @type int $offset [required] The offset to paginate.
+     *     @type string $field [required] The field needed to be sorted.
+     *     @type string $sort [required] The 'asc' or 'desc' to be sorted.
+     * }
      *
      * @return array
      */
-    protected function pipelinePropertiesFromTemp( $limit = null, $offset = null, string $field, int $sort ): array
+    protected function pipelinePropertiesFromSearch( string $searchId, array $pagination ): array
     {
         // pipeline
         $pipeline = [];
 
         // sort array
-        if ( array_key_exists( $field, $this->sortFields ) ) {
-            $sortFields = array_merge( $this->sortFields, [ $field => $sort ] );
+        if ( array_key_exists( $pagination[ 'field' ], $this->sortFields ) === true ) {
+            $sortFields = array_merge( $this->sortFields, [ $pagination[ 'field' ] => $pagination[ 'sort' ] ] );
         }
         else {
-            $sortFields = array_merge( [ $field => $sort ], $this->sortFields );
+            $sortFields = array_merge( [ $pagination[ 'field' ] => $pagination[ 'sort' ] ], $this->sortFields );
         }
+
+        // select the current search ($match)
+        $pipeline[] = [
+            '$match' => [
+                '_id' => [ '$eq' => new ObjectID( $searchId ) ]
+            ]
+        ];
 
         // order by ($sort)
         $pipeline[] = [
             '$sort' => $sortFields
+        ];
+
+        // select only searched_properties field ($project)
+        $pipeline[] = [
+            '$project' => [
+                '_id' => 0,
+                'searched_properties' => 1
+            ]
+        ];
+
+        // unwind searched_properties field ($unwind)
+        $pipeline[] = [
+            '$unwind' => '$searched_properties'
+        ];
+
+        // promote the searched properties to top-level result ($replaceWith)
+        $pipeline[] = [
+            '$replaceWith' => '$searched_properties'
         ];
 
         // geo fields ($project)
@@ -591,16 +729,16 @@ class PropertyRepository
         ];
 
         // offset ($skip)
-        if ( $offset !== null ) {
+        if ( $pagination[ 'offset' ] !== null ) {
             $pipeline[] = [
-                '$skip' => $offset,
+                '$skip' => $pagination[ 'offset' ],
             ];
         }
 
         // limit ($limit)
-        if ( $limit !== null ) {
+        if ( $pagination[ 'perpage' ] !== null ) {
             $pipeline[] = [
-                '$limit' => $limit,
+                '$limit' => $pagination[ 'perpage' ],
             ];
         }
 
@@ -615,16 +753,41 @@ class PropertyRepository
      *
      * @return array
      */
-    protected function pipelineSelectedPropertiesFromTemp( array $ids ): array
+    protected function pipelineSelectedPropertiesFromSearch( string $searchId ): array
     {
         // pipeline
         $pipeline = [];
+
+        // select the current search ($match)
+        $pipeline[] = [
+            '$match' => [
+                '_id' => [ '$eq' => new ObjectID( $searchId ) ]
+            ]
+        ];
+
+        // select only searched_properties field ($project)
+        $pipeline[] = [
+            '$project' => [
+                '_id' => 0,
+                'searched_properties' => 1
+            ]
+        ];
+
+        // unwind searched_properties field ($unwind)
+        $pipeline[] = [
+            '$unwind' => '$searched_properties'
+        ];
+
+        // promote the searched properties to top-level result ($replaceWith)
+        $pipeline[] = [
+            '$replaceWith' => '$searched_properties'
+        ];
 
         // where in ($match)
         if ( $ids !== [ '*' ] ) {
             $pipeline[] = [
                 '$match' => [
-                    '_id' => [ '$in' => $ids ]
+                    'selected' => [ '$eq' => true ]
                 ]
             ];
         }
@@ -715,7 +878,7 @@ class PropertyRepository
         $pipeline = $this->pipelineGeoJSON( $propertiesWithin, $filters );
 
         // select
-        $results = Property::raw( ( function( $collection ) use ( $pipeline ) {
+        $results = Property::raw( ( function ( $collection ) use ( $pipeline ) {
             return $collection->aggregate( $pipeline );
         } ) );
 

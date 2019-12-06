@@ -34,7 +34,10 @@ class PurchaseRepository extends BaseRepository
         'status',
         'mp_init_point',
         'mp_notification_id',
-        'mp_status'
+        'mp_status',
+
+        'search_id',
+        'project',
     ];
 
     /**

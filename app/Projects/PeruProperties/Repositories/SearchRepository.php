@@ -22,6 +22,17 @@ class SearchRepository
     {
         return Search::create( $attributes );
     }
+    /**
+     * Find a document by id in repository
+     *
+     * @param array $attributes
+     *
+     * @return mixed
+     */
+    public function find( $id ): Search
+    {
+        return Search::find( $id );
+    }
 
     /**
      * Update a document in repository by id

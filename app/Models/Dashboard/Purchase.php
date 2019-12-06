@@ -40,11 +40,12 @@ class Purchase extends Model
 
     public $fillable = [
         'user_id',
-        'search_id',
         'project',
         // 'total_amount',
         // 'total_tax',
         'status',
+
+        'search_id',
     ];
 
     /**
@@ -56,13 +57,14 @@ class Purchase extends Model
         'id' => 'integer',
         'code' => 'string',
         'user_id' => 'integer',
-        'search_id' => 'string',
         'total_amount' => 'float',
         'total_tax' => 'float',
         'status' => 'string',
         'mp_init_point' => 'string',
         'mp_notification_id' => 'string',
-        'mp_status' => 'string'
+        'mp_status' => 'string',
+
+        'search_id' => 'string',
     ];
 
     /**
