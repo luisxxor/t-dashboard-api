@@ -682,11 +682,6 @@ class PropertyRepository
             ]
         ];
 
-        // order by ($sort)
-        $pipeline[] = [
-            '$sort' => $sortFields
-        ];
-
         // select only searched_properties field ($project)
         $pipeline[] = [
             '$project' => [
@@ -703,6 +698,11 @@ class PropertyRepository
         // promote the searched properties to top-level result ($replaceWith)
         $pipeline[] = [
             '$replaceWith' => '$searched_properties'
+        ];
+
+        // order by ($sort)
+        $pipeline[] = [
+            '$sort' => $sortFields
         ];
 
         // geo fields ($project)
