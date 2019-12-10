@@ -27,7 +27,7 @@ Route::middleware( 'auth:api', 'verified' )->group( function () {
 
     // purchases
     Route::get( 'purchases/purchase_files', 'API\Dashboard\PurchasesAPIController@index' )->name( 'purchases.index' );
-    Route::get( 'purchases/purchase_files/{id}/records', 'API\Dashboard\PurchasesAPIController@show' )->name( 'purchases.show' );
+    Route::get( 'purchases/purchase_files/{purchaseFileId}/records', 'API\Dashboard\PurchasesAPIController@show' )->name( 'purchases.show' );
 
     // multi-api info
     Route::get( 'dashboard/multi-api/index', 'API\Dashboard\ProjectsAPIController@index' )->name( 'dashboard.multi-api.index' );
@@ -38,7 +38,7 @@ Route::middleware( 'auth:api', 'verified' )->group( function () {
     Route::post( 'peru_properties/properties_ajax', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@searchProperties' )->name( 'peru_properties.searchProperties' );
     Route::post( 'peru_properties/properties_paginate', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@paginateProperties' )->name( 'peru_properties.paginateProperties' );
     Route::post( 'peru_properties/process_purchase', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@processPurchase' )->name( 'peru_properties.processPurchase' );
-    Route::post( 'peru_properties/purchase_files/{id}/export', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@exportPurchasedFile' )->name( 'peru_properties.export' );
+    Route::post( 'peru_properties/purchase_files/{purchaseFileId}/export', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@exportPurchasedFile' )->name( 'peru_properties.export' );
 
     // peru vehicles (coming soon)
     // Route::get( 'peru_vehicles/index', 'API\PeruVehicles\VehiclesAPIController@index' )->name( 'peru_vehicles.index' );

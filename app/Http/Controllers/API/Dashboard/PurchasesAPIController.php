@@ -123,16 +123,16 @@ class PurchasesAPIController extends AppBaseController
     }
 
     /**
-     * @param  int $id
+     * @param  int $purchaseFileId
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
-     *     path="/api/purchases/purchase_files/{id}/records",
+     *     path="/api/purchases/purchase_files/{purchaseFileId}/records",
      *     operationId="show",
      *     tags={"Purchases"},
      *     summary="Display the specified user's purchase file",
      *     @OA\Parameter(
-     *         name="id",
+     *         name="purchaseFileId",
      *         description="id of purchase file",
      *         required=true,
      *         in="path",
@@ -173,9 +173,9 @@ class PurchasesAPIController extends AppBaseController
      *     }
      * )
      */
-    public function show( $id )
+    public function show( $purchaseFileId )
     {
-        $purchaseFile = $this->purchaseFileRepository->find( $id );
+        $purchaseFile = $this->purchaseFileRepository->find( $purchaseFileId );
 
         if ( empty( $purchaseFile ) === true ) {
             \Log::info( 'Purchase File not found.', [ $purchaseFile ] );
@@ -195,14 +195,22 @@ class PurchasesAPIController extends AppBaseController
         // solo el body de la data
         $data = $json[ 'data' ][ 'body' ];
 
-        $imageLists = $json[ 'metadata' ][ 'image_list' ];
 
-        // asocuar imagenes a cada propiedad
+
+        // asociar imagenes a cada propiedad
+        $imageLists = $json[ 'metadata' ][ 'image_list' ];
         foreach ( $imageLists as $key => $item ) {
             $data[ $key ][ 'image_list' ] = $item;
         }
+        unset( $json[ 'metadata' ][ 'image_list' ] );
 
-        return $this->sendResponse( $data, 'Purchase file retrived successfully.' );
+        // output
+        $output = [
+            'data' => $data,
+            'metadata' => $json[ 'metadata' ],
+        ];
+
+        return $this->sendResponse( $output, 'Purchase file retrived successfully.' );
     }
 
     /**

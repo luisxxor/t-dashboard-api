@@ -701,13 +701,13 @@ class PropertiesAPIController extends AppBaseController
      *     }
      * )
      */
-    public function exportPurchasedFile( $id, Request $request )
+    public function exportPurchasedFile( $purchaseFileId, Request $request )
     {
         $request->validate( [
             'format' => [ 'required', 'string', 'in:csv,xlsx,ods' ],
         ] );
 
-        $purchaseFile = $this->purchaseFileRepository->find( $id );
+        $purchaseFile = $this->purchaseFileRepository->find( $purchaseFileId );
 
         if ( empty( $purchaseFile ) === true ) {
             \Log::info( 'Purchase File not found.', $purchaseFile );
