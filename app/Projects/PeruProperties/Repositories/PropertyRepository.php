@@ -813,7 +813,7 @@ class PropertyRepository
                     'total_area_m2'         => [ '$convert' => [ 'input' => '$total_area_m2', 'to' => 'double', 'onError' => 'Error', 'onNull' => 0.0 ] ],
                     'build_area_m2'         => [ '$convert' => [ 'input' => '$build_area_m2', 'to' => 'double', 'onError' => 'Error', 'onNull' => 0.0 ] ],
                     'address'               => [ '$ifNull' => [ '$address', null ] ],
-                    'publication_date'      => [ '$convert' => [ 'input' => '$publication_date', 'to' => 'string', 'onError' => 'Error', 'onNull' => 0.0 ] ],
+                    'publication_date'      => [ '$dateToString' => [ 'date' => '$publication_date', 'format' => '%d-%m-%Y', 'onNull' => 0.0 ] ],
                     'dollars_price'         => [ '$convert' => [ 'input' => '$dollars_price', 'to' => 'double', 'onError' => 'Error', 'onNull' => 0.0 ] ],
                     'others_price'          => [ '$convert' => [ 'input' => '$others_price', 'to' => 'double', 'onError' => 'Error', 'onNull' => 0.0 ] ],
                     'region'                => [
