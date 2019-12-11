@@ -456,7 +456,11 @@ class PropertyRepository
             ];
         }
         else {
-            $pipeline[] = [];
+            $pipeline[] = [
+                'arrayFilters' => [
+                    [ 'elem._id' => [ '$ne' => null ] ]
+                ]
+            ];
         }
 
         list( $filter, $update, $options ) = $pipeline;
@@ -749,7 +753,7 @@ class PropertyRepository
      * Return pipeline to retrive selected properties
      * from temp collection.
      *
-     * @param array $ids
+     * @param string $searchId The collection name to get the properties.
      *
      * @return array
      */
@@ -784,13 +788,11 @@ class PropertyRepository
         ];
 
         // where in ($match)
-        if ( $ids !== [ '*' ] ) {
-            $pipeline[] = [
-                '$match' => [
-                    'selected' => [ '$eq' => true ]
-                ]
-            ];
-        }
+        $pipeline[] = [
+            '$match' => [
+                'selected' => [ '$eq' => true ]
+            ]
+        ];
 
         // order by ($sort)
         $pipeline[] = [
