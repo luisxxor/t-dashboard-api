@@ -881,7 +881,7 @@
                 ]
             }
         },
-        "/api/purchases/purchase_files/{id}/records": {
+        "/api/purchases/purchase_files/{purchaseFileId}/records": {
             "get": {
                 "tags": [
                     "Purchases"
@@ -890,7 +890,7 @@
                 "operationId": "show",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "purchaseFileId",
                         "in": "path",
                         "description": "id of purchase file",
                         "required": true,
@@ -1175,6 +1175,9 @@
                                 }
                             }
                         }
+                    },
+                    "204": {
+                        "description": "The request has been successfully completed but your answer has no content"
                     },
                     "401": {
                         "description": "Unauthenticated."

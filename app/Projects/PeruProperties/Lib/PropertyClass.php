@@ -68,7 +68,7 @@ class PropertyClass
     public function createPurchaseJson( Purchase $purchase )
     {
         // construct and execute query
-        $fileData = $this->propertyRepository->getSelectedTempProperties( $purchase->search_id );
+        $fileData = $this->propertyRepository->getSelectedSearchedProperties( $purchase->search_id );
 
         //quantity of properties to process
         $rowQuantity = $fileData[ 'metadata' ][ 'rowQuantity' ];

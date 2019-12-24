@@ -3,13 +3,13 @@
 namespace App\Projects\PeruProperties\Repositories;
 
 use App\Projects\PeruProperties\Models\Property;
-use App\Projects\PeruProperties\Models\PropertyType;
 use App\Projects\PeruProperties\Models\Search;
-use Carbon\Carbon;
-use DB;
+use App\Projects\PeruProperties\Models\SearchedProperty;
+use App\Projects\PeruProperties\Pipelines\FilterPipelines;
+use App\Projects\PeruProperties\Pipelines\PropertyPipelines;
+use App\Projects\PeruProperties\Pipelines\SearchedPropertyPipelines;
 use Illuminate\Pagination\LengthAwarePaginator;
 use MongoDB\BSON\ObjectID;
-use MongoDB\BSON\UTCDateTime;
 
 /**
  * Class PropertyRepository
@@ -18,6 +18,8 @@ use MongoDB\BSON\UTCDateTime;
 */
 class PropertyRepository
 {
+    use FilterPipelines, PropertyPipelines, SearchedPropertyPipelines;
+
     /**
      * @var array
      */
@@ -88,253 +90,7 @@ class PropertyRepository
     }
 
     /**
-     * Return the filters to the query.
-     *
-     * @param array $filters
-     * @return array
-     */
-    protected function getFiltersToQuery( $filters ): array
-    {
-        $filterFields = [
-            'slidersFields' => [
-                'bedrooms' => [
-                    'name' => $this->constants[ 'FILTER_FIELD_BEDROOMS' ],
-                    'clousure' => function ( $field ) {
-                        return ( $field === '5' ) ? 5.1 : (float)$field;
-                    }
-                ],
-                'bathrooms' => [
-                    'name' => $this->constants[ 'FILTER_FIELD_BATHROOMS' ],
-                    'clousure' => function ( $field ) {
-                        return ( $field === '5' ) ? 5.1 : (float)$field;
-                    }
-                ],
-                'parkings' => [
-                    'name' => $this->constants[ 'FILTER_FIELD_PARKINGS' ],
-                    'clousure' => function ( $field ) {
-                        return ( $field === '5' ) ? 5.1 : (float)$field;
-                    }
-                ]
-            ],
-            'numericFields' => [
-                'antiquity_years' => [
-                    'name' => $this->constants[ 'FILTER_FIELD_ANTIQUITY_YEARS' ],
-                    'clousure' => function ( $field ) {
-                        return (int)$field;
-                    }
-                ],
-                'total_area_m2' => [
-                    'name' => $this->constants[ 'FILTER_FIELD_TOTAL_AREA_M2' ],
-                    'clousure' => function ( $field ) {
-                        return (float)$field;
-                    }
-                ],
-                'build_area_m2' => [
-                    'name' => $this->constants[ 'FILTER_FIELD_BUILD_AREA_M2' ],
-                    'clousure' => function ( $field ) {
-                        return (float)$field;
-                    }
-                ],
-                'publication_date' => [
-                    'name' => $this->constants[ 'FILTER_FIELD_PUBLICATION_DATE' ],
-                    'clousure' => function ( $field ) {
-                        $carbonDate = Carbon::createFromFormat( 'd/m/Y', trim( $field ) );
-
-                        # evaluar si es necesario convertir a UTCDateTime
-                        return new UTCDateTime( $carbonDate );
-                    },
-                ]
-            ],
-            'combosFields' => [
-                'property_type_id' => [
-                    'name' => $this->constants[ 'FILTER_FIELD_PROPERTY_TYPE' ],
-                    'clousure' => function ( $field ) {
-                        // select
-                        $results = PropertyType::where( 'owner_name', $field )->get();
-
-                        return array_column( $results->toArray(), '_id' );
-                    },
-                ],
-                'publication_type' => [
-                    'name' => $this->constants[ 'FILTER_FIELD_PUBLICATION_TYPE' ],
-                ],
-                'property_new' => [
-                    'name' => $this->constants[ 'FILTER_FIELD_PROPERTY_NEW' ],
-                    'clousure' => function ( $field ) {
-                        return (bool)$field;
-                    },
-                ]
-            ]
-        ];
-
-        $output = [];
-
-        // para slidersFields
-        foreach ( $filterFields[ 'slidersFields' ] as $key => $field ) {
-
-            // si viene el campo
-            if ( isset( $filters[ $field[ 'name' ] ] ) ) {
-
-                // si no viene vacio el campo
-                if ( empty( $filters[ $field[ 'name' ] ] ) === false ) { // si el campo viene vacio viene un string vacio
-
-                    // obtenemos ambos valores del rango
-                    $field_array = explode( '--', $filters[ $field[ 'name' ] ] );
-                    $min_field = (string)(int)$field_array[ 0 ];
-                    $max_field = (string)(int)$field_array[ 1 ];
-
-                    //ejecutamos un callback, en caso de ser necesario
-                    if ( isset( $field[ 'clousure' ] ) ) {
-                        $min_field = $field[ 'clousure' ]( $min_field );
-                        $max_field = $field[ 'clousure' ]( $max_field );
-                    }
-
-                    //se realiza where
-                    if ( $min_field === $max_field ) {
-                        $output[ $key ] = [ '$eq' => $min_field ];
-                    }
-                    else {
-                        if ( is_decimal( $max_field ) === true ) {
-                            $output[ $key ] = [ '$gte' => $min_field, ];
-                        }
-                        else {
-                            $output[ $key ] = [ '$gte' => $min_field, '$lte' => $max_field ];
-                        }
-                    }
-                }
-            }
-        }
-
-        // para numericFields
-        foreach ( $filterFields[ 'numericFields' ] as $key => $field ) {
-
-            // si viene el campo
-            if ( isset( $filters[ $field[ 'name'] ] ) ) {
-
-                // si no viene vacio el campo
-                if ( $filters[ $field[ 'name' ] ] !== '--' ) { // si el campo viene vacio viene solo '=='
-
-                    // obtenemos ambos valores del rango
-                    $field_array = explode( '--', $filters[ $field[ 'name' ] ] );
-                    $min_field = (string)$field_array[ 0 ];
-                    $max_field = (string)$field_array[ 1 ];
-
-                    //ejecutamos un callback, en caso de ser necesario
-                    if ( isset( $field[ 'clousure' ] ) ) {
-                        $min_field = $field[ 'clousure' ]( $min_field );
-                        $max_field = $field[ 'clousure' ]( $max_field );
-                    }
-
-                    //se realiza where
-                    if ( $min_field === $max_field ) {
-                        $output[ $key ] = [ '$eq' => $min_field ];
-                    }
-                    else {
-                        $output[ $key ] = [ '$gte' => $min_field, '$lte' => $max_field ];
-                    }
-                }
-            }
-        }
-
-        // para combosFields
-        foreach ( $filterFields[ 'combosFields' ] as $key => $field ) {
-
-            // si viene el campo
-            if ( isset( $filters[ $field[ 'name' ] ] ) ) {
-
-                // si no viene vacio el campo
-                if ( $filters[ $field[ 'name' ] ] !== null || $filters[ $field[ 'name' ] ] !== '' ) {
-
-                    //obtenemos el campo del filters que viene del buscador
-                    $finalField = $filters[ $field[ 'name' ] ];
-
-                    //ejecutamos un callback para la busqueda, en caso de ser necesario
-                    if ( isset( $field[ 'clousure' ] ) ) {
-                        $finalField = $field[ 'clousure' ]( $finalField );
-                    }
-
-                    //ejecutamos un callback para la mascara (para operadores ILIKE o LIKE), en caso de ser necesario
-                    if ( isset( $field[ 'mask' ] ) ) {
-                        $finalField = $field[ 'mask' ]( $finalField );
-                    }
-
-                    //se realiza where considerando si incluye operador espedifico
-                    if ( is_array( $finalField ) === true ) {
-                        $output[ $key ] = [ '$in' => $finalField ];
-                    }
-                    else {
-                        $output[ $key ] = [ '$eq' => $finalField ];
-                    }
-                }
-            }
-        }
-
-        return $output;
-    }
-
-    /**
-     * Return the array of vertices of the polygon.
-     *
-     * @param  array $arrayShape
-     *
-     * @return array
-     */
-    protected function getPropertiesWithinToQuery( $arrayShape ): array
-    {
-        $polygon = [];
-
-        $index = 0;
-        foreach ( $arrayShape as $value ) {
-            $polygon[ $index ][ 0 ] = (float)$value[ 'lng' ];
-            $polygon[ $index ][ 1 ] = (float)$value[ 'lat' ];
-
-            $index++;
-        }
-
-        // close polygon
-        $polygon[] = $polygon[ 0 ];
-
-        // match
-        $match = [
-            'geo_location' => [
-                '$geoWithin' => [
-                    '$geometry' => [
-                        'type' => 'Polygon' ,
-                        'coordinates' => [ $polygon ]
-                    ]
-                ]
-            ]
-        ];
-
-        return $match;
-    }
-
-    /**
-     * Get the distance between the base marker and each property.
-     *
-     * @param float $lat
-     * @param float $lng
-     *
-     * @return array
-     */
-    protected function getDistanceToQuery( float $lat, float $lng ): array
-    {
-        $geoNear = [
-            'near' => [
-                'type' => 'Point',
-                'coordinates' => [ $lng, $lat ]
-            ],
-            'spherical' => true,
-            'distanceField' => 'distance',
-            '$limit' => 100000 # pendiente definir este limite
-        ];
-
-        return $geoNear;
-    }
-
-
-    /**
-     * Store matched properties in given search of searches collection.
+     * Store matched properties as searched properties from given search.
      *
      * @param Search $search The search model to store the matched properties.
      *
@@ -342,20 +98,20 @@ class PropertyRepository
      */
     public function storeTempProperties( Search $search ): array
     {
-        // get properties within (parameters)
-        $propertiesWithin = $this->getPropertiesWithinToQuery( $search[ 'metadata' ][ 'vertices' ] );
+        // pipeline to get properties within (parameters)
+        $propertiesWithin = $this->pipelinePropertiesWithinToQuery( $search[ 'metadata' ][ 'vertices' ] );
 
-        // get filters (parameters)
-        $filters = $this->getFiltersToQuery( (array)$search[ 'metadata' ][ 'filters' ] );
+        // pipeline to get filters (parameters)
+        $filters = $this->pipelineFiltersToQuery( (array)$search[ 'metadata' ][ 'filters' ] );
 
-        // get distance (parameters)
-        $distance = $this->getDistanceToQuery( $search[ 'metadata' ][ 'initPoint' ][ 'lat' ], $search[ 'metadata' ][ 'initPoint' ][ 'lng' ] );
+        // pipeline to get distance (parameters)
+        $distance = $this->pipelineDistanceToQuery( $search[ 'metadata' ][ 'initPoint' ][ 'lat' ], $search[ 'metadata' ][ 'initPoint' ][ 'lng' ] );
 
         // metadata
         $metadata = compact( 'propertiesWithin', 'filters', 'distance' );
 
         // pipeline
-        $pipeline = $this->pipelinePropertiesToSearch( $metadata, $search->_id );
+        $pipeline = $this->pipelinePropertiesToSearch( $search->_id, $metadata );
 
         // exec query
         $toTemp = Property::raw( ( function ( $collection ) use ( $pipeline ) {
@@ -366,8 +122,7 @@ class PropertyRepository
     }
 
     /**
-     * Return (paginated) 'properties' from the given search of
-     * searches collection.
+     * Return (paginated) searched properties from the given search.
      *
      * @param string $searchId The id of the current search.
      * @param array $pagination {
@@ -379,12 +134,17 @@ class PropertyRepository
      *     @type string $field [optional] The field needed to be sorted.
      *     @type string $sort [optional] The 'asc' or 'desc' to be sorted.
      * }
+     *
      * @return array
      */
     public function getTempProperties( string $searchId, array $pagination ): array
     {
         // get total searched properties
         $total = $this->getCountSearchedProperties( $searchId );
+
+        if ( empty( $total ) === true ) {
+            return [];
+        }
 
         // calculo la cantidad de paginas del resultado a partir de la cantidad
         // de registros '$total' y la cantidad de registros por pagina '$pagination[ 'perpage' ]'
@@ -407,7 +167,7 @@ class PropertyRepository
         $pipeline = $this->pipelinePropertiesFromSearch( $searchId, $pagination );
 
         // select paginated
-        $pagitatedItems = Search::raw( ( function ( $collection ) use ( $pipeline ) {
+        $pagitatedItems = SearchedProperty::raw( ( function ( $collection ) use ( $pipeline ) {
             return $collection->aggregate( $pipeline );
         } ) );
 
@@ -424,64 +184,45 @@ class PropertyRepository
     }
 
     /**
-     * Update selected properties in given search of searches collection.
+     * Update selected searched properties of given search.
      *
      * @param string $searchId The id of the current search.
      * @param array $ids Array of property's ids selected by user.
      *        [ '*' ] in case all were selected.
      *
-     * @return #
+     * @return void
      */
-    public function updateSelectedSearchedProperties( string $searchId, array $ids )
+    public function updateSelectedSearchedProperties( string $searchId, array $ids ): void
     {
-        // pipeline
-        $pipeline = [];
-
-        // filter ($match)
-        $pipeline[] = [
-            '_id' => [ '$eq' => new ObjectID( $searchId ) ]
+        // query by which to filter documents
+        $filter = [
+            'search_id' => [ '$eq' => new ObjectID( $searchId ) ],
         ];
 
-        // update ($set)
-        $pipeline[] = [
-            '$set' => [ 'searched_properties.$[elem].selected' => true ]
-        ];
-
-        // options (arrayFilters)
+        // in case all where not selected, query only they who are ($in) '$ids'
         if ( $ids !== [ '*' ] ) {
-            $pipeline[] = [
-                'arrayFilters' => [
-                    [ 'elem._id' => [ '$in' => $ids ] ]
-                ]
-            ];
-        }
-        else {
-            $pipeline[] = [
-                'arrayFilters' => [
-                    [ 'elem._id' => [ '$ne' => null ] ]
-                ]
-            ];
+            $filter[ 'property_id' ] = [ '$in' => $ids ];
         }
 
-        list( $filter, $update, $options ) = $pipeline;
+        // update to apply to the matched document
+        $update = [
+            '$set' => [ 'selected' => true ]
+        ];
 
         // exec query
-        $update = Search::raw( ( function ( $collection ) use ( $filter, $update, $options ) {
-            return $collection->updateOne( $filter, $update, $options );
+        SearchedProperty::raw( ( function ( $collection ) use ( $filter, $update ) {
+            return $collection->updateMany( $filter, $update );
         } ) );
-
-        return $update;
     }
 
     /**
-     * Return 'properties' in the temp collection
-     * named as $searchId, that were selected by user.
+     * Return properties that were selected by user in given search.
      *
-     * @param string $searchId The collection name to get the properties.
+     * @param string $searchId The id of the current search.
      *
      * @return array
      */
-    public function getSelectedTempProperties( string $searchId ): array
+    public function getSelectedSearchedProperties( string $searchId ): array
     {
         // get the search document
         $search = Search::find( $searchId );
@@ -490,12 +231,12 @@ class PropertyRepository
         $pipeline = $this->pipelineSelectedPropertiesFromSearch( $searchId );
 
         // get selected data in final format
-        $results = Search::raw( ( function ( $collection ) use ( $pipeline ) {
+        $results = SearchedProperty::raw( ( function ( $collection ) use ( $pipeline ) {
             return $collection->aggregate( $pipeline );
         } ) )->toArray();
 
         if ( empty( $results ) === true ) {
-            throw new \Exception( 'No properties searched.', 1);
+            throw new \Exception( 'No properties selected.', 1 );
         }
 
         return [
@@ -516,441 +257,31 @@ class PropertyRepository
     }
 
     /**
-     * Return count of properties in the search collection
+     * Return count of searched properties for given search.
      *
-     * @param string $searchId The collection name to get the properties.
+     * @param string $searchId The id of the current search.
      *
      * @return int
      */
     public function getCountSearchedProperties( string $searchId ): int
     {
-        $query = Search::raw( ( function ( $collection ) use ( $searchId ) {
+        $query = SearchedProperty::raw( ( function ( $collection ) use ( $searchId ) {
             return $collection->aggregate( [
                 [
                     '$match' => [
-                        '_id' => [ '$eq' => new ObjectID( $searchId ) ]
+                        'search_id' => [ '$eq' => new ObjectID( $searchId ) ]
                     ]
                 ],
                 [
-                    '$project' => [
-                        'total' => [
-                            '$cond' => [
-                                'if' => [ '$isArray' => '$searched_properties' ],
-                                'then' => [ '$size' => '$searched_properties' ],
-                                'else' => 0
-                            ]
-                        ]
-                    ]
+                    '$count' => "total"
                 ]
             ] );
         } ) )->toArray();
 
-        return $query[ 0 ][ 'total' ];
+        try {
+            return $query[ 0 ][ 'total' ];
+        } catch ( \ErrorException $e ) {
+            return 0;
+        }
     }
-
-
-    /**
-     * Return pipeline to retrive properties
-     * that match with the specified input.
-     *
-     * @param array $metadata {
-     *     The metadata to search the properties.
-     *
-     *     @type array $propertiesWithin [required] Pipeline $match.
-     *     @type array $filters [required] Pipeline $match.
-     *     @type array $distance [required] Pipeline $geoNear.
-     * }
-     * @param string $searchId
-     * @return array
-     */
-    protected function pipelinePropertiesToSearch( array $metadata, string $searchId ): array
-    {
-        // pipeline
-        $pipeline = [];
-
-        // geo distance ($geoNear)
-        $pipeline[] = [
-            '$geoNear' => $metadata[ 'distance' ]
-        ];
-
-        // join con regions ($lookup)
-        $pipeline[] = [
-            '$lookup' => [
-                'from' => 'regions',
-                'localField' => 'region_id',
-                'foreignField' => '_id',
-                'as' => 'regions_docs'
-            ]
-        ];
-
-        // join con property_types ($lookup)
-        $pipeline[] = [
-            '$lookup' => [
-                'from' => 'property_types',
-                'localField' => 'property_type_id',
-                'foreignField' => '_id',
-                'as' => 'property_types_docs'
-            ]
-        ];
-
-        // filters ($match)
-        if ( empty( $metadata[ 'filters' ] ) === false ) {
-            $pipeline[] = [
-                '$match' => $metadata[ 'filters' ]
-            ];
-        }
-
-        // fields ($addFields)
-        $pipeline[] = [
-            '$addFields' => [
-                'property_type' => [ '$ifNull' => [
-                    [ '$arrayElemAt' => [ '$property_types_docs.name', 0 ] ],
-                    null
-                ] ],
-                'region' => [
-                    '$concat' => [
-                        [ '$arrayElemAt' => [ '$regions_docs.sub_reg1', 0 ] ],
-                        ', ',
-                        [ '$arrayElemAt' => [ '$regions_docs.sub_reg2', 0 ] ],
-                        ', ',
-                        [ '$arrayElemAt' => [ '$regions_docs.sub_reg3', 0 ] ]
-                    ]
-                ],
-            ]
-        ];
-
-        // geo within ($match)
-        $pipeline[] = [
-            '$match' => $metadata[ 'propertiesWithin' ]
-        ];
-
-        // search_id ($addFields)
-        $pipeline[] = [
-            '$addFields' => [
-                'search_id' => new ObjectID( $searchId ),
-            ]
-        ];
-
-        // $group
-        $pipeline[] = [
-            '$group' => [ '_id' => '$search_id', 'searched_properties' => [ '$push' => '$$ROOT' ] ]
-        ];
-
-        // insert into select ($merge)
-        $pipeline[] = [
-            '$merge' => [
-                'into' => 'searches',
-                'on' => '_id',
-                'whenMatched' => 'merge',
-                'whenNotMatched' => 'discard',
-            ],
-        ];
-
-        return $pipeline;
-    }
-
-    /**
-     * Return pipeline to retrive properties paginated
-     * from temp collection.
-     *
-     * @param string $searchId The collection name to get the properties.
-     * @param array $pagination {
-     *     The values of the pagination
-     *
-     *     @type int $perpage [required] The number of rows per each
-     *           page of the pagination.
-     *     @type int $offset [required] The offset to paginate.
-     *     @type string $field [required] The field needed to be sorted.
-     *     @type string $sort [required] The 'asc' or 'desc' to be sorted.
-     * }
-     *
-     * @return array
-     */
-    protected function pipelinePropertiesFromSearch( string $searchId, array $pagination ): array
-    {
-        // pipeline
-        $pipeline = [];
-
-        // sort array
-        if ( array_key_exists( $pagination[ 'field' ], $this->sortFields ) === true ) {
-            $sortFields = array_merge( $this->sortFields, [ $pagination[ 'field' ] => $pagination[ 'sort' ] ] );
-        }
-        else {
-            $sortFields = array_merge( [ $pagination[ 'field' ] => $pagination[ 'sort' ] ], $this->sortFields );
-        }
-
-        // select the current search ($match)
-        $pipeline[] = [
-            '$match' => [
-                '_id' => [ '$eq' => new ObjectID( $searchId ) ]
-            ]
-        ];
-
-        // select only searched_properties field ($project)
-        $pipeline[] = [
-            '$project' => [
-                '_id' => 0,
-                'searched_properties' => 1
-            ]
-        ];
-
-        // unwind searched_properties field ($unwind)
-        $pipeline[] = [
-            '$unwind' => '$searched_properties'
-        ];
-
-        // promote the searched properties to top-level result ($replaceWith)
-        $pipeline[] = [
-            '$replaceWith' => '$searched_properties'
-        ];
-
-        // order by ($sort)
-        $pipeline[] = [
-            '$sort' => $sortFields
-        ];
-
-        // geo fields ($project)
-        $pipeline[] = [
-            '$project' => [
-                'type' => 'Feature',
-                'properties' => [
-                    'id' => '$id',
-                    'address' => '$address',
-                    'dollars_price' => [ '$convert' => [ 'input' => '$dollars_price', 'to' => 'double', 'onError' => 'Error', 'onNull' => 0.0 ] ],
-                    'others_price' => [ '$convert' => [ 'input' => '$others_price', 'to' => 'double', 'onError' => 'Error', 'onNull' => 0.0 ] ],
-                    'bedrooms' => [ '$convert' => [ 'input' => '$bedrooms', 'to' => 'double', 'onError' => 'Error', 'onNull' => 0.0 ] ],
-                    'bathrooms' => [ '$convert' => [ 'input' => '$bathrooms', 'to' => 'double', 'onError' => 'Error', 'onNull' => 0.0 ] ],
-                    'parkings' => [ '$convert' => [ 'input' => '$parkings', 'to' => 'double', 'onError' => 'Error', 'onNull' => 0.0 ] ],
-                    'property_type' => '$property_type',
-                    'publication_date' => [ '$toString' => [ '$publication_date' ] ],
-                    'image_list' => [ '$ifNull' => [ '$image_list', null ] ],
-                    'distance' => [ '$convert' => [ 'input' => '$distance', 'to' => 'int', 'onError' => 'Error', 'onNull' => 0.0 ] ],
-                    'geo_location' => '$geo_location'
-                ],
-                'geo_location' => '$geo_location',
-                'geometry' => '$geo_location'
-            ]
-        ];
-
-        // offset ($skip)
-        if ( $pagination[ 'offset' ] !== null ) {
-            $pipeline[] = [
-                '$skip' => $pagination[ 'offset' ],
-            ];
-        }
-
-        // limit ($limit)
-        if ( $pagination[ 'perpage' ] !== null ) {
-            $pipeline[] = [
-                '$limit' => $pagination[ 'perpage' ],
-            ];
-        }
-
-        return $pipeline;
-    }
-
-    /**
-     * Return pipeline to retrive selected properties
-     * from temp collection.
-     *
-     * @param string $searchId The collection name to get the properties.
-     *
-     * @return array
-     */
-    protected function pipelineSelectedPropertiesFromSearch( string $searchId ): array
-    {
-        // pipeline
-        $pipeline = [];
-
-        // select the current search ($match)
-        $pipeline[] = [
-            '$match' => [
-                '_id' => [ '$eq' => new ObjectID( $searchId ) ]
-            ]
-        ];
-
-        // select only searched_properties field ($project)
-        $pipeline[] = [
-            '$project' => [
-                '_id' => 0,
-                'searched_properties' => 1
-            ]
-        ];
-
-        // unwind searched_properties field ($unwind)
-        $pipeline[] = [
-            '$unwind' => '$searched_properties'
-        ];
-
-        // promote the searched properties to top-level result ($replaceWith)
-        $pipeline[] = [
-            '$replaceWith' => '$searched_properties'
-        ];
-
-        // where in ($match)
-        $pipeline[] = [
-            '$match' => [
-                'selected' => [ '$eq' => true ]
-            ]
-        ];
-
-        // order by ($sort)
-        $pipeline[] = [
-            '$sort' => $this->sortFields
-        ];
-
-        // fields ($project)
-        $pipeline[] = [
-            '$project' => [
-                // body
-                'body' => [
-                    '_id'                   => '$_id',
-                    'link'                  => [ '$ifNull' => [ '$link', null ] ],
-                    'antiquity_years'       => [ '$ifNull' => [ '$antiquity_years', null ] ],
-                    'bedrooms'              => [ '$convert' => [ 'input' => '$bedrooms', 'to' => 'double', 'onError' => 'Error', 'onNull' => 0.0 ] ],
-                    'bathrooms'             => [ '$convert' => [ 'input' => '$bathrooms', 'to' => 'double', 'onError' => 'Error', 'onNull' => 0.0 ] ],
-                    'parkings'              => [ '$convert' => [ 'input' => '$parkings', 'to' => 'double', 'onError' => 'Error', 'onNull' => 0.0 ] ],
-                    'total_area_m2'         => [ '$convert' => [ 'input' => '$total_area_m2', 'to' => 'double', 'onError' => 'Error', 'onNull' => 0.0 ] ],
-                    'build_area_m2'         => [ '$convert' => [ 'input' => '$build_area_m2', 'to' => 'double', 'onError' => 'Error', 'onNull' => 0.0 ] ],
-                    'address'               => [ '$ifNull' => [ '$address', null ] ],
-                    'publication_date'      => [ '$dateToString' => [ 'date' => '$publication_date', 'format' => '%d-%m-%Y', 'onNull' => 0.0 ] ],
-                    'dollars_price'         => [ '$convert' => [ 'input' => '$dollars_price', 'to' => 'double', 'onError' => 'Error', 'onNull' => 0.0 ] ],
-                    'others_price'          => [ '$convert' => [ 'input' => '$others_price', 'to' => 'double', 'onError' => 'Error', 'onNull' => 0.0 ] ],
-                    'region'                => [
-                        '$concat' => [
-                            [ '$arrayElemAt' => [ '$regions_docs.sub_reg1', 0 ] ],
-                            ', ',
-                            [ '$arrayElemAt' => [ '$regions_docs.sub_reg2', 0 ] ],
-                            ', ',
-                            [ '$arrayElemAt' => [ '$regions_docs.sub_reg3', 0 ] ]
-                        ]
-                    ],
-                    'publication_type'      => [ '$ifNull' => [ '$publication_type', null ] ],
-                    'urbanization'          => [ '$ifNull' => [ '$urbanization', null ] ],
-                    'location'              => [ '$ifNull' => [ '$location', null ] ],
-                    'reference_place'       => [ '$ifNull' => [ '$reference_place', null ] ],
-                    'comment_subtitle'      => [ '$ifNull' => [ '$comment_subtitle', null ] ],
-                    'comment_description'   => [ '$ifNull' => [ '$comment_description', null ] ],
-                    'pool'                  => [ '$convert' => [ 'input' => '$pool', 'to' => 'double', 'onError' => 'Error', 'onNull' => 0.0 ] ],
-                    'elevator'              => [ '$convert' => [ 'input' => '$elevator', 'to' => 'double', 'onError' => 'Error', 'onNull' => 0.0 ] ],
-                    'property_type'         => [ '$ifNull' => [
-                        [ '$arrayElemAt' => [ '$property_types_docs.name', 0 ] ],
-                        null
-                    ] ],
-                    'property_new'          => [ '$ifNull' => [ '$property_new', null ] ],
-                    'longitude'             => [ '$convert' => [ 'input' => '$longitude', 'to' => 'string', 'onError' => 'Error', 'onNull' => 0.0 ] ],
-                    'latitude'              => [ '$convert' => [ 'input' => '$latitude', 'to' => 'string', 'onError' => 'Error', 'onNull' => 0.0 ] ],
-                    'distance'              => [ '$convert' => [ 'input' => '$distance', 'to' => 'int', 'onError' => 'Error', 'onNull' => 0.0 ] ],
-                ],
-
-                'header' => $this->header,
-
-                // 'image_list' => [
-                //     '_id' => '$_id',
-                //     'image_list' => [ '$ifNull' => [ '$image_list', null ] ]
-                // ],
-
-                'image_list' => [ '$ifNull' => [ '$image_list', null ] ],
-
-                'geometry' => '$geo_location'
-            ]
-        ];
-
-        return $pipeline;
-    }
-
-    //
-
-    /**
-     * Return 'features' value of the geoJSON.
-     *
-     * @param  array $vertices
-     * @param  array $filters
-     * @return array
-     */
-    /*public function selectGeoJSON( array $vertices, array $filters = [] ): array
-    {
-        // get properties within (parameters)
-        $propertiesWithin = $this->getPropertiesWithinToQuery( $vertices );
-
-        // get filters (parameters)
-        $filters = $this->getFiltersToQuery( $filters );
-
-        // pipeline
-        $pipeline = $this->pipelineGeoJSON( $propertiesWithin, $filters );
-
-        // select
-        $results = Property::raw( ( function ( $collection ) use ( $pipeline ) {
-            return $collection->aggregate( $pipeline );
-        } ) );
-
-        // construct geoJSON
-        $geoJSON = [
-            'type' => 'FeatureCollection',
-            'features' => $results
-        ];
-
-        return $geoJSON;
-    }*/
-
-    /**
-     * Return pipeline to retrive properties in geojson format
-     * that match with the specified input.
-     *
-     * @param array $propertiesWithin
-     * @param array $filters
-     * @return array
-     */
-    /*protected function pipelineGeoJSON( array $propertiesWithin, array $filters ): array
-    {
-        // pipeline
-        $pipeline = [];
-
-        // join con property_types ($lookup)
-        $pipeline[] = [
-            '$lookup' => [
-                'from' => 'property_types',
-                'localField' => 'property_type_id',
-                'foreignField' => '_id',
-                'as' => 'property_types_docs'
-            ]
-        ];
-
-        // filters ($match)
-        if ( empty( $filters ) === false ) {
-            $pipeline[] = [
-                '$match' => $filters
-            ];
-        }
-
-        // geo fields ($project)
-        $pipeline[] = [
-            '$project' => [
-                'type' => 'Feature',
-                'properties' => [
-                    'comment_subtitle' => '$comment_subtitle',
-                    'bedrooms' => '$bedrooms'
-                ],
-                'geo_location' => '$geo_location',
-                'geometry' => '$geo_location'
-            ]
-        ];
-
-        // fields ($addFields)
-        $pipeline[] = [
-            '$addFields' => [
-                'property_type' => [ '$ifNull' => [
-                    [ '$arrayElemAt' => [ '$property_types_docs.name', 0 ] ],
-                    null
-                ] ],
-            ]
-        ];
-
-        // geo within ($match)
-        $pipeline[] = [
-            '$match' => $propertiesWithin
-        ];
-
-        return $pipeline;
-    }*/
 }

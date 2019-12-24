@@ -217,6 +217,10 @@ class PropertiesAPIController extends AppBaseController
      *         )
      *     ),
      *     @OA\Response(
+     *         response=204,
+     *         description="The request has been successfully completed but your answer has no content"
+     *     ),
+     *     @OA\Response(
      *         response=401,
      *         description="Unauthenticated."
      *     ),
@@ -284,6 +288,10 @@ class PropertiesAPIController extends AppBaseController
 
         // construct and execute query
         $results = $this->propertyRepository->getTempProperties( $search->_id, compact( 'page', 'perpage', 'field', 'sort' ) );
+
+        if ( empty( $results ) === true ) {
+            return $this->sendError( 'Properties retrieved successfully.', $results, 204 );
+        }
 
         return $this->sendResponse( $results, 'Properties retrieved successfully.' );
     }
@@ -503,7 +511,7 @@ class PropertiesAPIController extends AppBaseController
         }
 
         // update the search to save selected ids by user
-        $update = $this->propertyRepository->updateSelectedSearchedProperties( $searchId, $ids );
+        $this->propertyRepository->updateSelectedSearchedProperties( $searchId, $ids );
 
         // save purchase
         $purchase = $this->purchaseRepository->generate( [
