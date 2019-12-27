@@ -12,6 +12,27 @@ use MongoDB\BSON\ObjectID;
 trait PropertyPipelines
 {
     /**
+     * Return pipeline to search properties
+     * only by geonear.
+     *
+     * @param array $distance [required] Pipeline $geoNear.
+     *
+     * @return array
+     */
+    protected function pipelinePropertiesOnlyByGeonear( array $distance ): array
+    {
+        // pipeline
+        $pipeline = [];
+
+        // geo distance ($geoNear)
+        $pipeline[] = [
+            '$geoNear' => $distance
+        ];
+
+        return $pipeline;
+    }
+
+    /**
      * Return pipeline to retrive properties
      * that match with the specified input.
      *

@@ -241,10 +241,12 @@ trait FilterPipelines
      *
      * @param float $lat
      * @param float $lng
+     * @param int $maxDistance The maximum distance from the center
+     *        point that the documents can be (in meters).
      *
      * @return array
      */
-    protected function pipelineDistanceToQuery( float $lat, float $lng ): array
+    protected function pipelineDistanceToQuery( float $lat, float $lng, int $maxDistance = 1000 ): array
     {
         $geoNear = [
             'near' => [
@@ -253,7 +255,7 @@ trait FilterPipelines
             ],
             'spherical' => true,
             'distanceField' => 'distance',
-            '$limit' => 100000 # pendiente definir este limite
+            'maxDistance' => $maxDistance
         ];
 
         return $geoNear;

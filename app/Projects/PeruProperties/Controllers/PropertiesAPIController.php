@@ -137,6 +137,96 @@ class PropertiesAPIController extends AppBaseController
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      *
+     * @OA\Get(
+     *     path="/api/peru_properties/ghost_search",
+     *     operationId="ghostSearch",
+     *     tags={"Peru Properties"},
+     *     summary="Make the ghost search",
+     *     @OA\Parameter(
+     *         name="lat",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="double"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="lng",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="double"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="maxDistance",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="int"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Ghost search done.",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean"
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="data",
+     *                     type="array",
+     *                     @OA\Items()
+     *                 ),
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated."
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="The given data was invalid."
+     *     ),
+     *     security={
+     *         {"": {}}
+     *     }
+     * )
+     */
+    public function ghostSearch( Request $request )
+    {
+        $request->validate( [
+            'lat'           => [ 'required', 'numeric' ],
+            'lng'           => [ 'required', 'numeric' ],
+            'maxDistance'   => [ 'required', 'integer', 'min:1', 'max:5000' ],
+        ] );
+
+        // input
+        $lat            = $request->get( 'lat' );
+        $lng            = $request->get( 'lng' );
+        $maxDistance    = $request->get( 'maxDistance' );
+
+        // construct and execute query.
+        // search properties
+        $this->propertyRepository->searchPropertiesOnlyByGeonear( $lat, $lng, $maxDistance );
+
+        return $this->sendResponse( [], 'Success.' );
+    }
+
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     *
      * @OA\Post(
      *     path="/api/peru_properties/properties_ajax",
      *     operationId="searchProperties",
@@ -274,12 +364,9 @@ class PropertiesAPIController extends AppBaseController
         $search = $this->searchRepository->create( $searchData );
 
         // construct and execute query.
-        // this will create the temp collection (named as the search id)
-        // and store in the matched properties
+        // this will store the matched properties
+        // in searched_properties collection.
         $this->propertyRepository->storeTempProperties( $search );
-
-        // select the search with updates
-        $search = $this->searchRepository->find( $search->_id );
 
         // paginate data (default)
         $page   = 1;

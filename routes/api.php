@@ -35,6 +35,7 @@ Route::middleware( 'auth:api', 'verified' )->group( function () {
 
     // peru properties
     Route::get( 'peru_properties/index', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@index' )->name( 'peru_properties.index' );
+    Route::get( 'peru_properties/ghost_search', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@ghostSearch' )->name( 'peru_properties.ghostSearch' );
     Route::post( 'peru_properties/properties_ajax', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@searchProperties' )->name( 'peru_properties.searchProperties' );
     Route::post( 'peru_properties/properties_paginate', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@paginateProperties' )->name( 'peru_properties.paginateProperties' );
     Route::post( 'peru_properties/process_purchase', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@processPurchase' )->name( 'peru_properties.processPurchase' );
