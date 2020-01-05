@@ -9,21 +9,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * Class Purchase
  * @package App\Models\Dashboard
  * @version February 5, 2019, 4:16 am UTC
- *
- * @property \App\Models\Dashboard\User user
- * @property \Illuminate\Database\Eloquent\Collection roleUser
- * @property \Illuminate\Database\Eloquent\Collection permissionRole
- * @property \Illuminate\Database\Eloquent\Collection PurchaseFile
- * @property \Illuminate\Database\Eloquent\Collection permissionUser
- * @property string code
- * @property integer user_id
- * @property string search_id
- * @property float total_amount
- * @property float total_tax
- * @property string status
- * @property string mp_init_point
- * @property string mp_notification_id
- * @property string mp_status
  */
 class Purchase extends Model
 {
@@ -40,12 +25,25 @@ class Purchase extends Model
 
     public $fillable = [
         'user_id',
+        'search_id',
         'project',
-        // 'total_amount',
-        // 'total_tax',
+        'total_rows_quantity',
+        'payment_type',
+        'currency',
         'status',
 
+        'payment_info->payment',
+    ];
+
+    protected $hidden = [
+        'payment_info',
+        'files_info',
+        'updated_at',
+        'deleted_at',
         'search_id',
+        'payment_type',
+        'currency',
+        'project',
     ];
 
     /**
@@ -60,11 +58,14 @@ class Purchase extends Model
         'total_amount' => 'float',
         'total_tax' => 'float',
         'status' => 'string',
-        'mp_init_point' => 'string',
-        'mp_notification_id' => 'string',
-        'mp_status' => 'string',
 
         'search_id' => 'string',
+        'project' => 'string',
+        'currency' => 'string',
+        'payment_type' => 'string',
+        'payment_info' => 'array',
+        'files_info' => 'array',
+        'total_rows_quantity' => 'integer',
     ];
 
     /**
@@ -82,14 +83,6 @@ class Purchase extends Model
     public function user()
     {
         return $this->belongsTo(\App\Models\Dashboard\User::class);
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     **/
-    public function purchaseFiles()
-    {
-        return $this->hasMany(\App\Models\Dashboard\PurchaseFile::class);
     }
 
     /**

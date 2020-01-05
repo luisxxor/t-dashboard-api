@@ -18,9 +18,9 @@ use Response;
  */
 class AppBaseController extends Controller
 {
-    public function sendResponse( $data, $message )
+    public function sendResponse( $data, $message, $code = 200 )
     {
-        return Response::json( ResponseUtil::makeResponse( $message, $data ) );
+        return Response::json( ResponseUtil::makeResponse( $message, $data ), $code );
     }
 
     public function sendError( $message, $errors = [], $code = 404 )

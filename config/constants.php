@@ -4,12 +4,15 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Peru Properties Back-End Info Config
+    | App Constants
     |--------------------------------------------------------------------------
     |
     */
 
-    'code' => 'pe-vehicles',
-    'generate_file_url' => 'peru_vehicles.generateFile',
+    'PURCHASES_RELEASED_STATUS' => 'released',
+    'PURCHASES_OPENED_STATUS' => 'opened',
+    'PURCHASES_PENDING_STATUS' => 'pending',
+
+    'PAYMENTS_MERCADOPAGO' => 'mercadopago',
 
 ];

@@ -15,7 +15,7 @@ class AddProjectIdToPurchases extends Migration
     {
         Schema::table( 'purchases', function ( Blueprint $table ) {
             $table->string( 'project' )->nullable()->default( null );
-            $table->foreign( 'project' )->references( 'code' )->on( 'projects' );;
+            $table->foreign( 'project' )->references( 'code' )->on( 'projects' );
         } );
     }
 

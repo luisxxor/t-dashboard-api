@@ -41,11 +41,22 @@ class PropertyRepository
     ];
 
     /**
+     * Fields and its order to sort the properties.
+     *
+     * @var string
+     */
+    protected $sortFields = [
+        'publication_date' => -1,
+        'distance' => -1,
+        '_id' => -1,
+    ];
+
+    /**
      * Header for export files.
      *
      * @var array
      */
-    protected $header = [
+    public $header = [
         '_id'                   => 'Código',
         'link'                  => 'Enlace',
         'antiquity_years'       => 'Antigüedad',
@@ -72,17 +83,6 @@ class PropertyRepository
         'longitude'             => 'Longitud',
         'latitude'              => 'Latitud',
         'distance'              => 'Distancia (m)',
-    ];
-
-    /**
-     * Fields and its order to sort the properties.
-     *
-     * @var string
-     */
-    protected $sortFields = [
-        'publication_date' => -1,
-        'distance' => -1,
-        '_id' => -1,
     ];
 
     public function __construct() {
@@ -120,7 +120,7 @@ class PropertyRepository
      *
      * @return array
      */
-    public function storeTempProperties( Search $search ): array
+    public function storeSearchedProperties( Search $search ): array
     {
         // pipeline to get properties within (parameters)
         $propertiesWithin = $this->pipelinePropertiesWithinToQuery( $search[ 'metadata' ][ 'vertices' ] );
@@ -161,7 +161,7 @@ class PropertyRepository
      *
      * @return array
      */
-    public function getTempProperties( string $searchId, array $pagination ): array
+    public function getSearchedProperties( string $searchId, array $pagination ): array
     {
         // get total searched properties
         $total = $this->getCountSearchedProperties( $searchId );
@@ -248,36 +248,37 @@ class PropertyRepository
      */
     public function getSelectedSearchedProperties( string $searchId ): array
     {
-        // get the search document
-        $search = Search::find( $searchId );
-
         // pipeline
         $pipeline = $this->pipelineSelectedPropertiesFromSearch( $searchId );
 
         // get selected data in final format
         $results = SearchedProperty::raw( ( function ( $collection ) use ( $pipeline ) {
             return $collection->aggregate( $pipeline );
-        } ) )->toArray();
+        } ) );
 
-        if ( empty( $results ) === true ) {
-            throw new \Exception( 'No properties selected.', 1 );
-        }
+        return $results->toArray();
+    }
 
-        return [
-            'data' => [
-                'header'    => array_values( (array)array_column( $results, 'header' )[ 0 ]->jsonSerialize() ),
-                'body'      => array_column( $results, 'body' ),
-            ],
-            'metadata' => [
-                'vertices'      => $search[ 'metadata' ][ 'vertices' ] ?? null,
-                'filters'       => $search[ 'metadata' ][ 'filters' ] ?? null,
-                'lat'           => $search[ 'metadata' ][ 'initPoint' ][ 'lat' ] ?? null,
-                'lng'           => $search[ 'metadata' ][ 'initPoint' ][ 'lng' ] ?? null,
-                'address'       => $search[ 'metadata' ][ 'initPoint' ][ 'address' ] ?? null,
-                'image_list'    => array_column( $results, 'image_list' ) ?? null,
-                'rowQuantity'   => count( $results ),
-            ]
-        ];
+
+    /**
+     * Return properties that were selected by user in given search
+     * in excel format.
+     *
+     * @param string $searchId The id of the current search.
+     *
+     * @return array
+     */
+    public function getSelectedSearchedPropertiesExcelFormat( string $searchId ): array
+    {
+        // pipeline
+        $pipeline = $this->pipelineSelectedPropertiesFromSearchExcelFormat( $searchId );
+
+        // get selected data in final format
+        $results = SearchedProperty::raw( ( function ( $collection ) use ( $pipeline ) {
+            return $collection->aggregate( $pipeline );
+        } ) );
+
+        return $results->toArray();
     }
 
     /**

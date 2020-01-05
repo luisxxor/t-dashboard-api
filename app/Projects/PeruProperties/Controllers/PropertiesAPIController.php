@@ -3,20 +3,17 @@
 namespace App\Projects\PeruProperties\Controllers;
 
 use App\Http\Controllers\AppBaseController;
-use App\Projects\PeruProperties\Lib\PropertyClass;
+use App\Lib\Handlers\FileHandler;
 use App\Projects\PeruProperties\Repositories\PropertyRepository;
 use App\Projects\PeruProperties\Repositories\PropertyTypeRepository;
 use App\Projects\PeruProperties\Repositories\SearchRepository;
-use App\Repositories\Dashboard\PurchaseFileRepository;
 use App\Repositories\Dashboard\PurchaseRepository;
-use DB;
 use DateTime;
-use GuzzleHttp\Client as GuzzleClient;
-use GuzzleHttp\Psr7\Request as GuzzleRequest;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\Psr7\Request as GuzzleRequest;
 
 /**
  * Class PropertiesAPIController
@@ -25,9 +22,9 @@ use Illuminate\Validation\Rule;
 class PropertiesAPIController extends AppBaseController
 {
     /**
-     * @var PropertyClass
+     * @var FileHandler
      */
-    private $propertyClass;
+    private $fileHandler;
 
     /**
      * @var PropertyTypeRepository
@@ -50,11 +47,6 @@ class PropertiesAPIController extends AppBaseController
     private $purchaseRepository;
 
     /**
-     * @var  PurchaseFileRepository
-     */
-    private $purchaseFileRepository;
-
-    /**
      * Create a new controller instance.
      *
      * @return void
@@ -62,15 +54,13 @@ class PropertiesAPIController extends AppBaseController
     public function __construct( PropertyTypeRepository $propertyTypeRepo,
         PropertyRepository $propertyRepo,
         SearchRepository $searchRepo,
-        PurchaseRepository $purchaseRepo,
-        PurchaseFileRepository $purchaseFileRepo )
+        PurchaseRepository $purchaseRepo )
     {
-        $this->propertyClass = new PropertyClass();
+        $this->fileHandler = new FileHandler();
         $this->propertyTypeRepository = $propertyTypeRepo;
         $this->propertyRepository = $propertyRepo;
         $this->searchRepository = $searchRepo;
         $this->purchaseRepository = $purchaseRepo;
-        $this->purchaseFileRepository = $purchaseFileRepo;
     }
 
     /**
@@ -268,7 +258,7 @@ class PropertiesAPIController extends AppBaseController
      *     ),
      *     @OA\Parameter(
      *         name="address",
-     *         required=true,
+     *         required=false,
      *         in="query",
      *         @OA\Schema(
      *             type="string"
@@ -366,7 +356,7 @@ class PropertiesAPIController extends AppBaseController
         // construct and execute query.
         // this will store the matched properties
         // in searched_properties collection.
-        $this->propertyRepository->storeTempProperties( $search );
+        $this->propertyRepository->storeSearchedProperties( $search );
 
         // paginate data (default)
         $page   = 1;
@@ -374,7 +364,7 @@ class PropertiesAPIController extends AppBaseController
         $sort   = -1;
 
         // construct and execute query
-        $results = $this->propertyRepository->getTempProperties( $search->_id, compact( 'page', 'perpage', 'field', 'sort' ) );
+        $results = $this->propertyRepository->getSearchedProperties( $search->_id, compact( 'page', 'perpage', 'field', 'sort' ) );
 
         if ( empty( $results ) === true ) {
             return $this->sendError( 'Properties retrieved successfully.', $results, 204 );
@@ -391,7 +381,7 @@ class PropertiesAPIController extends AppBaseController
      *     path="/api/peru_properties/properties_paginate",
      *     operationId="paginateProperties",
      *     tags={"Peru Properties"},
-     *     summary="Return the properties in given page that math with given search id",
+     *     summary="Return the properties that math with given search id",
      *     @OA\Parameter(
      *         name="searchId",
      *         required=true,
@@ -402,7 +392,7 @@ class PropertiesAPIController extends AppBaseController
      *     ),
      *     @OA\Parameter(
      *         name="page",
-     *         required=true,
+     *         required=false,
      *         in="query",
      *         @OA\Schema(
      *             type="integer"
@@ -487,7 +477,7 @@ class PropertiesAPIController extends AppBaseController
         $sort       = $request->get( 'sort' )       ?? -1;
 
         // construct and execute query
-        $results = $this->propertyRepository->getTempProperties( $searchId, compact( 'page', 'perpage', 'field', 'sort' ) );
+        $results = $this->propertyRepository->getSearchedProperties( $searchId, compact( 'page', 'perpage', 'field', 'sort' ) );
 
         return $this->sendResponse( $results, 'Properties retrieved successfully.' );
     }
@@ -500,8 +490,8 @@ class PropertiesAPIController extends AppBaseController
      *     path="/api/peru_properties/process_purchase",
      *     operationId="processPurchase",
      *     tags={"Peru Properties"},
-     *     summary="Create the Purchase and purchaseFile models",
-     *     description="Procces purchase and returns the MercadoPago link (if no admin)",
+     *     summary="Process purchase; create payment init point.",
+     *     description="Procces purchase and returns the payment init point link (if admin, generate files)",
      *     @OA\Parameter(
      *         name="searchId",
      *         required=true,
@@ -529,7 +519,7 @@ class PropertiesAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Purchase processed successfully, mercadopago link sended.",
+     *         description="Purchase processed successfully, payment init point link sended.",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(
@@ -553,6 +543,10 @@ class PropertiesAPIController extends AppBaseController
      *     @OA\Response(
      *         response=202,
      *         description="Purchase processed successfully, file generated (admin user)."
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description=" Bad Request."
      *     ),
      *     @OA\Response(
      *         response=401,
@@ -600,47 +594,46 @@ class PropertiesAPIController extends AppBaseController
         // update the search to save selected ids by user
         $this->propertyRepository->updateSelectedSearchedProperties( $searchId, $ids );
 
-        // save purchase
-        $purchase = $this->purchaseRepository->generate( [
-            'user_id'   => $user->id,
-            'status'    => 1,
-            'search_id' => $searchId,
-            'project'   => config( 'multi-api.pe-properties.backend-info.code' ),
-            'files' => [
-                [
-                    'title'         => 'Export Tasing Properties',
-                    'row_quantity'  => $total
-                ]
-            ]
-        ] );
+        // process purchase
+        $purchaseAttributes = [
+            'user_id'               => $user->id,
+            'search_id'             => $searchId,
+            'project'               => config( 'multi-api.pe-properties.backend-info.code' ),
+            'total_rows_quantity'   => $total,
+            'payment_type'          => config( 'constants.PAYMENTS_MERCADOPAGO' ),
+            'currency'              => 'PEN',
+            'status'                => config( 'constants.PURCHASES_OPENED_STATUS' ),
+        ];
 
-        // if admin generate file, else return mercadopago link
+        try {
+            $purchase = $this->purchaseRepository->process( $purchaseAttributes );
+        } catch ( \Exception $e ) {
+            return $this->sendError( $e->getMessage(), [], 400 );
+        }
+
+        // if admin, generate file. else, return payment init point link
         if ( $user->hasRole( 'admin' ) === true ) {
-            $generateFileUrl = route( config( 'multi-api.pe-properties.backend-info.generate_file_url_full' ), [], false );
 
-            // guzzle client
-            $guzzleClient = new GuzzleClient( [
-                'base_uri' => url( '/' ) . '/',
-                'timeout' => 30.0,
-            ] );
+            // generate files request
+            $guzzleClient = new GuzzleClient( [ 'base_uri' => url( '/' ), 'timeout' => 30.0 ] );
+            $guzzleClient->sendAsync( new GuzzleRequest(
+                'GET',
+                route( 'api.' . config( 'multi-api.pe-properties.backend-info.generate_file_url' ), [], false ),
+                [ 'Content-type' => 'application/json' ],
+                json_encode( [ 'purchaseCode' => $purchase->code ] )
+            ) )->wait( false );
 
-            // Create a PSR-7 request object to send
-            $headers = [ 'Content-type' => 'application/json' ];
-            $body = [ 'purchaseId' => $purchase->id ];
-            $guzzleRequest = new GuzzleRequest( 'GET', $generateFileUrl, $headers, json_encode( $body ) );
-            $promise = $guzzleClient->sendAsync( $guzzleRequest );
-            $promise->wait( false );
-
-            // status approved
-            $purchase->mp_status = 'approved';
+            // release item.
+            $purchase->status = config( 'constants.PURCHASES_RELEASED_STATUS' );
             $purchase->save();
 
             // return approved message
-            return $this->sendError( 'Purchase processed successfully, file generated (admin user).', [], 202 );
+            return $this->sendResponse( [], 'Purchase processed successfully, file generated (admin user).', 202 );
         }
         else {
-            // return mercadopago link
-            return $this->sendResponse( $purchase->mp_init_point, 'Purchase processed successfully, mercadopago link retrived.' );
+
+            // return payment init point link
+            return $this->sendResponse( $purchase->payment_info[ 'init_point' ], 'Purchase processed successfully, payment init point link retrived.' );
         }
     }
 
@@ -652,9 +645,9 @@ class PropertiesAPIController extends AppBaseController
      *     path="/api/peru_properties/generate_file",
      *     operationId="generatePropertiesFile",
      *     tags={"Peru Properties"},
-     *     summary="Build the export file with the given search item (mongodb document)",
+     *     summary="Build the purchase files",
      *     @OA\Parameter(
-     *         name="purchaseId",
+     *         name="purchaseCode",
      *         required=true,
      *         in="query",
      *         @OA\Schema(
@@ -697,51 +690,117 @@ class PropertiesAPIController extends AppBaseController
     public function generatePropertiesFile( Request $request )
     {
         $request->validate( [
-            'purchaseId'  => [ 'required', 'numeric' ],
+            'purchaseCode'  => [ 'required', 'string' ],
         ] );
 
         // input
-        $purchaseId = $request->get( 'purchaseId' );
+        $purchaseCode = $request->get( 'purchaseCode' );
 
         // get purchase
-        $purchase = $this->purchaseRepository->find( $purchaseId );
+        $purchase = $this->purchaseRepository->findByField( 'code', $purchaseCode )->first();
 
+        // validate purchase
         if ( empty( $purchase ) === true ) {
-            \Log::info( 'Purchase not found.', $purchaseId );
+            \Log::info( 'Purchase not found.', $purchaseCode );
 
             return $this->sendError( 'Purchase not found.', [], 404 );
         }
 
-        // create purchase json
+        // get search
+        $search = $this->searchRepository->find( $purchase->search_id );
+
+        // validate search
+        if ( empty( $search ) === true ) {
+            \Log::info( 'Search not found.', $purchase->search_id );
+
+            return $this->sendError( 'Search not found.', [], 404 );
+        }
+
+        $filesInfo = [];
+
+        // create json
         try {
-            $this->propertyClass->createPurchaseJson( $purchase );
+            // get selected searched properties by user
+            $selectedSearchedProperties = $this->propertyRepository->getSelectedSearchedProperties( $purchase->search_id );
+
+            // validate selected searched properties by user
+            if ( empty( $selectedSearchedProperties ) === true  ) {
+                \Log::info( 'No properties selected in given search.', $purchase->search_id );
+
+                return $this->sendError( 'No properties selected in given search.', [], 404 );
+            }
+
+            // quantity of rows
+            $rowsQuantity = count( $selectedSearchedProperties );
+
+            // data for json
+            $arrayData = $search;
+            $arrayData[ 'data' ] = $selectedSearchedProperties;
+            $jsonData = json_encode( $arrayData );
+
+            // free memory
+            unset( $search );
+            unset( $selectedSearchedProperties );
+
+            $filesInfo[] = $this->fileHandler->createAndUploadFile( $jsonData, $rowsQuantity, $purchaseCode, 'json' );
         } catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage() );
         }
 
-        // response OK
+        // create excel
+        try {
+            // get selected searched properties by user
+            $selectedSearchedPropertiesExcelFormat = $this->propertyRepository->getSelectedSearchedPropertiesExcelFormat( $purchase->search_id );
+
+            // validate selected searched properties by user
+            if ( empty( $selectedSearchedPropertiesExcelFormat ) === true  ) {
+                \Log::info( 'No properties selected in given search.', $purchase->search_id );
+
+                return $this->sendError( 'No properties selected in given search.', [], 404 );
+            }
+
+            // quantity of rows
+            $rowsQuantity = count( $selectedSearchedPropertiesExcelFormat );
+
+            // data for excel
+            $excelData = [
+                'header'    => $this->propertyRepository->header,
+                'body'      => $selectedSearchedPropertiesExcelFormat,
+            ];
+
+            // free memory
+            unset( $selectedSearchedPropertiesExcelFormat );
+
+            $filesInfo[] = $this->fileHandler->createAndUploadFile( $excelData, $rowsQuantity, $purchaseCode, 'xlsx' );
+        } catch ( \Exception $e ) {
+            return $this->sendError( $e->getMessage() );
+        }
+
+        $purchase->files_info = $filesInfo;
+        $purchase->save();
+
         return $this->sendResponse( 'OK', 'Properties\' file generated successfully.' );
     }
 
     /**
-     * @param   int $id
+     * @param   string $purchaseCode
      * @param   \Illuminate\Http\Request $request
      * @return  \Illuminate\Http\JsonResponse
      * @throws  \Illuminate\Auth\Access\AuthorizationException
      *
-     * @OA\Post(
-     *     path="api/peru_properties/purchase_files/{id}/export",
-     *     operationId="exportPurchasedFile",
+     * @OA\Get(
+     *     path="api/peru_properties/purchases/{purchaseCode}/download",
+     *     operationId="downloadPurchasedFile",
      *     tags={"Peru Properties"},
-     *     summary="Build the export file",
-     *     description="Build the export file with the json of purchased properties and the given format (format). Returns the download's link of file",
+     *     summary="Download the export file",
+     *     description="Returns the download link of file",
      *     @OA\Parameter(
-     *         name="id",
-     *         description="id of purchase file",
+     *         name="purchaseCode",
+     *         description="code of purchase",
      *         required=true,
      *         in="path",
      *         @OA\Schema(
-     *             type="integer"
+     *             type="string"
      *         )
      *     ),
      *     @OA\Parameter(
@@ -754,7 +813,7 @@ class PropertiesAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Purchase file exported successfully, download link retrived.",
+     *         description="download link retrived.",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(
@@ -785,7 +844,7 @@ class PropertiesAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Purchase File not found."
+     *         description="Purchase not found."
      *     ),
      *     @OA\Response(
      *         response=422,
@@ -796,37 +855,40 @@ class PropertiesAPIController extends AppBaseController
      *     }
      * )
      */
-    public function exportPurchasedFile( $purchaseFileId, Request $request )
+    public function downloadPurchasedFile( $purchaseCode, Request $request )
     {
         $request->validate( [
             'format' => [ 'required', 'string', 'in:csv,xlsx,ods' ],
         ] );
 
-        $purchaseFile = $this->purchaseFileRepository->find( $purchaseFileId );
+        // input
+        $format = $request->get( 'format' );
 
-        if ( empty( $purchaseFile ) === true ) {
-            \Log::info( 'Purchase File not found.', $purchaseFile );
+        // get purchase
+        $purchase = $this->purchaseRepository->findByField( 'code', $purchaseCode )->first();
 
-            return $this->sendError( 'Purchase File not found.', [], 404 );
+        // validate purchase
+        if ( empty( $purchase ) === true ) {
+            \Log::info( 'Purchase not found.', $purchaseCode );
+
+            return $this->sendError( 'Purchase not found.', [], 404 );
         }
 
-        // validar si el archivo pertenece al usuario
-        if ( $purchaseFile->purchase->user->id != auth()->user()->getKey() ) {
+        // validate if the purchase belongs to the user
+        if ( $purchase->user_id != auth()->user()->getKey() ) {
             throw new AuthorizationException;
         }
 
-        // formato del archivo
-        $format = $request->get( 'format' );
+        $fileInfo = collect( $purchase->files_info )->filter( function ( $item, $index ) use ( $format ) {
+            return $item[ 'type' ] === $format;
+        } )->first();
 
-        // obtener json con la data
-        $json = $this->purchaseFileRepository->getJson( $purchaseFile->file_path, $purchaseFile->file_name );
+        // get file
+        $filePath = $this->fileHandler->downloadFile( $fileInfo[ 'bucket' ], $fileInfo[ 'name' ], false );
 
-        // creacion del archivo a exportar
-        $exportedFileData = $this->propertyClass->createExportFile( $json[ 'data' ][ 'header' ], $json[ 'data' ][ 'body' ], $format );
+        // path to download the file
+        $routeFilePath = route( 'downloadFiles', [ 'fileName' => basename( $filePath ) ] );
 
-        // Ruta para descargar el archivo
-        $routeFilePath = route( 'downloadFiles', [ 'fileName' => $exportedFileData[ 'name' ] ] );
-
-        return $this->sendResponse( $routeFilePath, 'Purchase file exported successfully, download link retrived.' );
+        return $this->sendResponse( $routeFilePath, 'Download link retrived.' );
     }
 }

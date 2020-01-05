@@ -16,6 +16,11 @@ return [
         'path' => env( 'APP_URL' ) . '/api/peru_properties/index',
     ],
 
+    'ghostSearchURL' => [
+        'method' => 'get',
+        'path' => env( 'APP_URL' ) . '/api/peru_properties/ghost_search',
+    ],
+
     'searchURL' => [
         'method' => 'post',
         'path' => env( 'APP_URL' ) . '/api/peru_properties/properties_ajax',
@@ -32,8 +37,8 @@ return [
     ],
 
     'exportFileURL' => [
-        'method' => 'post',
-        'path' => env( 'APP_URL' ) . '/api/peru_properties/purchase_files/{id}/export',
+        'method' => 'get',
+        'path' => env( 'APP_URL' ) . '/api/peru_properties/purchases/{purchaseCode}/download',
     ],
 
     'mapMarkers' => [

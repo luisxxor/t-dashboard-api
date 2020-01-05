@@ -62,7 +62,7 @@ class VerificationAPIController extends AppBaseController
      *     }
      * )
      */
-    public function show( Request $request )
+    public function show()
     {
         $hasVerifiedEmail = auth()->user()->hasVerifiedEmail();
 
@@ -209,7 +209,7 @@ class VerificationAPIController extends AppBaseController
      *     }
      * )
      */
-    public function resend( Request $request )
+    public function resend()
     {
         if ( auth()->user()->hasVerifiedEmail() ) {
             return $this->sendError( 'Already verified.', [], 202 );

@@ -11,14 +11,7 @@
 |
 */
 
-Route::get( 'vue-app/{any}', function() {
-    return view('index');
-})->where( 'any','.*');
-
 Route::get( 'logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index' );
-
-// Route::get('login/{provider}', 'SocialController@redirect');
-// Route::get('login/{provider}/callback','SocialController@Callback');
 
 // Download files
 Route::name( 'downloadFiles' )
@@ -28,4 +21,4 @@ Route::name( 'downloadFiles' )
             return response()->download( sys_get_temp_dir() . DIRECTORY_SEPARATOR . $fileName );
         }
     )
-    ->where( [ 'file' => '(.*?)\.(xls|xlsx|csv|pdf)$' ] );
+    ->where( [ 'file' => '(.*?)\.(xls|xlsx|csv|pdf|json)$' ] );

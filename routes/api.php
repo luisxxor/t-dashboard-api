@@ -1,7 +1,6 @@
 <?php
 
 use App\Routers\AuthAPI;
-use Illuminate\Support\Facades\Config;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,8 +25,8 @@ Route::middleware( 'auth:api', 'verified' )->group( function () {
     Route::patch( 'dashboard/profile', 'API\Dashboard\ProfileAPIController@update' )->name( 'dashboard.profile.patch' );
 
     // purchases
-    Route::get( 'purchases/purchase_files', 'API\Dashboard\PurchasesAPIController@index' )->name( 'purchases.index' );
-    Route::get( 'purchases/purchase_files/{purchaseFileId}/records', 'API\Dashboard\PurchasesAPIController@show' )->name( 'purchases.show' );
+    Route::get( 'dashboard/purchases', 'API\Dashboard\PurchasesAPIController@index' )->name( 'purchases.index' );
+    Route::get( 'dashboard/purchases/{purchaseCode}/records', 'API\Dashboard\PurchasesAPIController@show' )->name( 'purchases.show' );
 
     // multi-api info
     Route::get( 'dashboard/multi-api/index', 'API\Dashboard\ProjectsAPIController@index' )->name( 'dashboard.multi-api.index' );
@@ -39,7 +38,7 @@ Route::middleware( 'auth:api', 'verified' )->group( function () {
     Route::post( 'peru_properties/properties_ajax', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@searchProperties' )->name( 'peru_properties.searchProperties' );
     Route::post( 'peru_properties/properties_paginate', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@paginateProperties' )->name( 'peru_properties.paginateProperties' );
     Route::post( 'peru_properties/process_purchase', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@processPurchase' )->name( 'peru_properties.processPurchase' );
-    Route::post( 'peru_properties/purchase_files/{purchaseFileId}/export', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@exportPurchasedFile' )->name( 'peru_properties.export' );
+    Route::get( 'peru_properties/purchases/{purchaseCode}/download', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@downloadPurchasedFile' )->name( 'peru_properties.download' );
 
     // peru vehicles (coming soon)
     // Route::get( 'peru_vehicles/index', 'API\PeruVehicles\VehiclesAPIController@index' )->name( 'peru_vehicles.index' );
@@ -49,13 +48,12 @@ Route::middleware( 'auth:api', 'verified' )->group( function () {
 } );
 
 // generate peru properties profile
-Route::get( 'peru_properties/generate_file', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@generatePropertiesFile' )->name( Config::get( 'multi-api.pe-properties.backend-info.generate_file_url' ) );
+Route::get( 'peru_properties/generate_file', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@generatePropertiesFile' )->name( \Config::get( 'multi-api.pe-properties.backend-info.generate_file_url' ) );
 
 
 
 
-# PROBAR ESTO
 # DOCUMENTAR
 // IPN para que mercadopago notifique cuando una transaccion fue completada
 // http://panel.tasing.pe/api/dashboard/notifications/mp
-Route::post( 'dashboard/notifications/mp', 'API\Dashboard\PurchasesAPIController@ipnNotification' );
+Route::post( 'dashboard/notifications/mp', 'API\Dashboard\MercadoPagoAPIController@ipnNotification' );

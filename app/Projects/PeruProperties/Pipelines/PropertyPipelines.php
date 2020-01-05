@@ -15,7 +15,7 @@ trait PropertyPipelines
      * Return pipeline to search properties
      * only by geonear.
      *
-     * @param array $distance [required] Pipeline $geoNear.
+     * @param array $distance Pipeline $geoNear.
      *
      * @return array
      */
@@ -107,6 +107,10 @@ trait PropertyPipelines
         $pipeline[] = [
             '$project' => [
                 '_id' => 0,
+                'property_type_id' => 0,
+                'property_types_docs' => 0,
+                'region_id' => 0,
+                'regions_docs' => 0,
             ]
         ];
 

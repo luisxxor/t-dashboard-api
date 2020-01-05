@@ -5,7 +5,6 @@ namespace App\Http\Controllers\API\Dashboard;
 use App\Http\Controllers\AppBaseController;
 use App\Repositories\Dashboard\ProjectRepository;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Response;
 
 /**
@@ -126,6 +125,10 @@ class ProjectsAPIController extends AppBaseController
      *     @OA\Response(
      *         response=404,
      *         description="Project not found."
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="The given data was invalid."
      *     ),
      *     security={
      *         {"": {}}

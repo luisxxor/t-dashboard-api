@@ -2,8 +2,7 @@
 
 namespace App\Repositories\Dashboard;
 
-use App\Lib\Handlers\MercadoPagoItem;
-use App\Lib\Handlers\MercadoPagoPreference;
+use App\Lib\Handlers\MercadoPagoHandler;
 use App\Models\Dashboard\Purchase;
 use App\Repositories\BaseRepository;
 
@@ -52,82 +51,19 @@ class PurchaseRepository extends BaseRepository
 
     /**
      * Configure the Model
-     **/
+     *
+     * @return Purchase
+     */
     public function model()
     {
         return Purchase::class;
     }
 
     /**
-     * Generate purchase.
-     **/
-    public function generate( array $attributes )
-    {
-        // create the Purchase
-        $purchase = $this->create( $attributes );
-
-        // set the code (it has a mutator) of the Purchase
-        $purchase->code = $purchase->id;
-
-        // instance the MercadoPago Preference
-        $preferenceMP = new MercadoPagoPreference();
-
-        // set the external_reference value (code of the Purchase) to the MercadoPago Preference
-        $preferenceMP->setExternalReference( $purchase->code );
-
-        // iterate files
-        $items = [];
-        $total = 0;
-        foreach ( $attributes[ 'files' ] as $file ) {
-            // set the PurchaseFile.
-            $purchaseFile = $this->setPurchaseFile( $purchase, $file );
-
-            // sum the total amount
-            $total += $purchaseFile->amount;
-
-            // create item (MercadoPago)
-            $items[] = $this->setMercadoPagoItem( $purchaseFile );
-        }
-
-        // Add items to MercadoPago Preference
-        $preferenceMP->addItems( $items );
-
-        // Save MercadoPago Preference
-        $preferenceMP->save();
-
-        // get MercadoPago Preference init point
-        $purchase->mp_init_point = $preferenceMP->getLink();
-
-        // save the total amount
-        $purchase->total_amount = $total;
-
-        $purchase->save();
-
-        return $purchase;
-    }
-
-    /**
-     * set the PurchaseFile.
-     **/
-    protected function setPurchaseFile( $purchase, array $file )
-    {
-        // PurchaseFile data
-        $purchaseFileData = [];
-        // $purchaseFileData[ 'file_path' ]        = $file[ 'file_path' ];
-        // $purchaseFileData[ 'file_name' ]        = $file[ 'file_name' ];
-        // $purchaseFileData[ 'filters' ]          = '';
-        $purchaseFileData[ 'row_quantity' ] = $file[ 'row_quantity' ];
-
-        $purchaseFileData[ 'amount' ]       = $this->calculateAmount( $file[ 'row_quantity' ] );
-        $purchaseFileData[ 'tax' ]          = 0.00;
-
-        // create PurchaseFile
-        return $purchase->purchaseFiles()->create( $purchaseFileData );
-    }
-
-    /**
      * Calculate the amount with the rows quantity.
-     **/
+     *
+     * @return float
+     */
     protected function calculateAmount( int $rowQuantity ): float
     {
         $amount = self::BASE_PRICE;
@@ -146,19 +82,77 @@ class PurchaseRepository extends BaseRepository
     }
 
     /**
-     * set the MercadoPago item.
-     **/
-    protected function setMercadoPagoItem( $purchaseFile )
+     * Create purchase, and process it with given payment method.
+     *
+     * @return Purchase
+     * @throws \Exception
+     */
+    public function process( array $purchaseAttributes )
     {
-        // add items to preferenceMP
-        $mercadoPagoItem = new MercadoPagoItem( [
-            'id'            => $purchaseFile->id,
-            'title'         => 'Compra de registros Tasing!',
-            'quantity'      => 1,
-            'currency_id'   => 'PEN',
-            'unit_price'    => $purchaseFile->amount
-        ] );
+        // create the Purchase
+        $purchase = $this->create( $purchaseAttributes );
 
-        return $mercadoPagoItem->getItemInstance();
+        // set the code (it has a mutator) of the Purchase
+        $purchase->code = $purchase->id;
+
+        $paymentProcess = null;
+
+        switch ( $purchase->payment_type ) {
+            case config( 'constants.PAYMENTS_MERCADOPAGO' ):
+
+                $paymentProcess = $this->processWithMercadopago( $purchase );
+                break;
+
+            default:
+
+                throw new \Exception( 'Payment method not supported.' );
+                break;
+        }
+
+        // save the amounts
+        $purchase->total_amount = $paymentProcess[ 'total_amount' ];
+        $purchase->total_tax = 0.0;
+
+        // save payment info
+        $purchase->payment_info = $paymentProcess;
+
+        $purchase->save();
+
+        return $purchase;
+    }
+
+    /**
+     * Process payment with Mercadopago.
+     *
+     * @return array
+     * @throws \Exception
+     */
+    protected function processWithMercadopago( Purchase $purchase ): array
+    {
+        $mercadoPago = new MercadoPagoHandler( config( 'services.mercadopago.access_token' ) );
+
+        // set preference with external reference
+        $mercadoPago->setPreference( [ 'external_reference' => $purchase->code ] );
+
+        // create item to process purchase
+        $item = [
+            // 'id'            => 'aqui iria el id, si lo tuviera',
+            'title'         => 'Información de ' . $purchase->total_rows_quantity . ' registros de Tasing!',
+            'quantity'      => 1,
+            'currency_id'   => $purchase->currency,
+            'unit_price'    => $this->calculateAmount( $purchase->total_rows_quantity ),
+        ];
+
+        // add item to MercadoPago Preference
+        $mercadoPago->addItem( $item );
+
+        // execute MercadoPago Preference
+        $mercadoPago->save();
+
+        return [
+            'total_amount' => $item[ 'unit_price' ],
+            'init_point' => $mercadoPago->getLink(),
+            'preference' => $mercadoPago->getPreference(),
+        ];
     }
 }

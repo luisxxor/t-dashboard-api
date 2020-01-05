@@ -108,14 +108,6 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
-     */
-    public function purchaseFiles()
-    {
-        return $this->hasManyThrough( \App\Models\Dashboard\PurchaseFile::class, \App\Models\Dashboard\Purchase::class );
-    }
-
-    /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function linkedSocialAccounts()

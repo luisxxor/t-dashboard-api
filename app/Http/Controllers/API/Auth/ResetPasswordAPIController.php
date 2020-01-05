@@ -81,32 +81,7 @@ class ResetPasswordAPIController extends AppBaseController
      *      ),
      *     @OA\Response(
      *         response=422,
-     *         description="The given data was invalid.",
-     *          @OA\JsonContent(
-     *              type="object",
-     *              @OA\Property(
-     *                  property="message",
-     *                  type="string"
-     *              ),
-     *              @OA\Property(
-     *                  property="errors",
-     *                  type="object",
-     *                  @OA\Property(
-     *                      property="field-1",
-     *                      type="array",
-     *                      @OA\Items(
-     *                          type="string"
-     *                      )
-     *                  ),
-     *                  @OA\Property(
-     *                      property="field-2",
-     *                      type="array",
-     *                      @OA\Items(
-     *                          type="string"
-     *                      )
-     *                  )
-     *              )
-     *          )
+     *         description="The given data was invalid."
      *     )
      * )
      */

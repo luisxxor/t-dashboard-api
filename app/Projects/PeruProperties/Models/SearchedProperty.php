@@ -22,6 +22,11 @@ class SearchedProperty extends Moloquent
     protected $primaryKey = '_id';
 
     /**
+     * @var array
+     */
+    protected $dates = [ 'publication_date' ];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array

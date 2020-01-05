@@ -12,6 +12,8 @@ use Socialite;
 class SocialiteAPIController extends AppBaseController
 {
     /**
+     * @return \Illuminate\Http\JsonResponse
+     *
      * @OA\Get(
      *     path="/api/login/{provider}",
      *     operationId="redirect",
@@ -54,11 +56,8 @@ class SocialiteAPIController extends AppBaseController
     }
 
     /**
+     * @return \Illuminate\Http\JsonResponse
      *
-     *
-     * @return \Illuminate\Http\Response
-     */
-    /**
      * @OA\Get(
      *     path="/api/login/{provider}/callback",
      *     operationId="callback",

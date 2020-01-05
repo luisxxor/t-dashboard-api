@@ -17,7 +17,7 @@ class CreatePurchasesTable extends Migration
             $table->bigIncrements('id');
 
             // code (for MP external_reference)
-            $table->string('code', 100)->nullable()->default(null);
+            $table->string('code', 100)->nullable()->default(null)->unique();
 
             // User reference
             $table->unsignedBigInteger('user_id')->nullable()->default(null);

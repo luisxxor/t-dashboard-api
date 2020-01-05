@@ -16,7 +16,7 @@ class SearchRepository
      *
      * @param array $attributes
      *
-     * @return mixed
+     * @return \App\Projects\PeruProperties\Models\Search
      */
     public function create( array $attributes ): Search
     {
@@ -25,9 +25,9 @@ class SearchRepository
     /**
      * Find a document by id in repository
      *
-     * @param array $attributes
+     * @param $id
      *
-     * @return mixed
+     * @return \App\Projects\PeruProperties\Models\Search
      */
     public function find( $id ): Search
     {
@@ -40,7 +40,7 @@ class SearchRepository
      * @param array $attributes
      * @param       $id
      *
-     * @return mixed
+     * @return \App\Projects\PeruProperties\Models\Search
      */
     public function update( array $attributes, $id ): Search
     {
