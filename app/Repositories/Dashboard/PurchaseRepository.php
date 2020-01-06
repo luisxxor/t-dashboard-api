@@ -14,7 +14,7 @@ use App\Repositories\BaseRepository;
 class PurchaseRepository extends BaseRepository
 {
     /** @const float */
-    const BASE_PRICE = 25.0;
+    const BASE_PRICE = 35.0;
 
     /** @const int */
     const BASE_QUANTITY = 15;
