@@ -585,7 +585,7 @@ class PropertiesAPIController extends AppBaseController
         if ( $selectAll === true ) {
             $ids = [ '*' ];
 
-            $total = $this->propertyRepository->getCountSearchedProperties( $searchId );
+            $total = $this->propertyRepository->countSearchedProperties( $searchId );
         }
         else {
             $total = count( $ids );
@@ -706,72 +706,49 @@ class PropertiesAPIController extends AppBaseController
             return $this->sendError( 'Purchase not found.', [], 404 );
         }
 
-        // get search
-        $search = $this->searchRepository->find( $purchase->search_id );
-
-        // validate search
-        if ( empty( $search ) === true ) {
-            \Log::info( 'Search not found.', $purchase->search_id );
-
-            return $this->sendError( 'Search not found.', [], 404 );
-        }
-
         $filesInfo = [];
+
+        // quantity of rows
+        $rowsQuantity = $this->propertyRepository->countSelectedSearchedProperties( $purchase->search_id );
 
         // create json
         try {
+
+            // get search
+            $search = $this->searchRepository->findOrFail( $purchase->search_id );
+
             // get selected searched properties by user
             $selectedSearchedProperties = $this->propertyRepository->getSelectedSearchedProperties( $purchase->search_id );
 
-            // validate selected searched properties by user
-            if ( empty( $selectedSearchedProperties ) === true  ) {
-                \Log::info( 'No properties selected in given search.', $purchase->search_id );
-
-                return $this->sendError( 'No properties selected in given search.', [], 404 );
-            }
-
-            // quantity of rows
-            $rowsQuantity = count( $selectedSearchedProperties );
-
-            // data for json
-            $arrayData = $search;
-            $arrayData[ 'data' ] = $selectedSearchedProperties;
-            $jsonData = json_encode( $arrayData );
+            $filesInfo[] = $this->fileHandler->createAndUploadFile(
+                array_merge( $search->toArray(), [ 'data' => $selectedSearchedProperties ] ),
+                $rowsQuantity,
+                $purchaseCode,
+                'json'
+            );
 
             // free memory
             unset( $search );
             unset( $selectedSearchedProperties );
-
-            $filesInfo[] = $this->fileHandler->createAndUploadFile( $jsonData, $rowsQuantity, $purchaseCode, 'json' );
+            gc_collect_cycles();
         } catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage() );
         }
 
         // create excel
         try {
-            // get selected searched properties by user
-            $selectedSearchedPropertiesExcelFormat = $this->propertyRepository->getSelectedSearchedPropertiesExcelFormat( $purchase->search_id );
 
-            // validate selected searched properties by user
-            if ( empty( $selectedSearchedPropertiesExcelFormat ) === true  ) {
-                \Log::info( 'No properties selected in given search.', $purchase->search_id );
+            $filesInfo[] = $this->fileHandler->createAndUploadFile(
+                [
+                    'header'    => $this->propertyRepository->header,
+                    'body'      => $this->propertyRepository->getSelectedSearchedPropertiesExcelFormat( $purchase->search_id ),
+                ],
+                $rowsQuantity,
+                $purchaseCode,
+                'xlsx'
+            );
 
-                return $this->sendError( 'No properties selected in given search.', [], 404 );
-            }
-
-            // quantity of rows
-            $rowsQuantity = count( $selectedSearchedPropertiesExcelFormat );
-
-            // data for excel
-            $excelData = [
-                'header'    => $this->propertyRepository->header,
-                'body'      => $selectedSearchedPropertiesExcelFormat,
-            ];
-
-            // free memory
-            unset( $selectedSearchedPropertiesExcelFormat );
-
-            $filesInfo[] = $this->fileHandler->createAndUploadFile( $excelData, $rowsQuantity, $purchaseCode, 'xlsx' );
+            gc_collect_cycles();
         } catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage() );
         }

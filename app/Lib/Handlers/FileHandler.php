@@ -58,18 +58,26 @@ class FileHandler
 
                     $fh = fopen( $filePath, 'w' ) or die( 'Se produjo un error al crear el archivo' );
 
-                    fwrite( $fh, $fileData ) or die( 'No se pudo escribir en el archivo' );
+                    fwrite( $fh, json_encode( $fileData ) ) or die( 'No se pudo escribir en el archivo' );
 
                     fclose( $fh );
                     break;
 
                 case 'xlsx':
-                    WriterEntityFactory::createWriter( 'xlsx' )
+                case 'csv':
+
+                    $writer = WriterEntityFactory::createWriter( $fileType )
                         ->setDefaultRowStyle( SpoutHandler::getDefaultStyle() )
-                        ->openToFile( $filePath )
-                        ->addRow( WriterEntityFactory::createRowFromArray( $fileData[ 'header' ], SpoutHandler::getHeaderStyle() ) )
-                        ->addRows( SpoutHandler::createRowsFromArray( $fileData[ 'body' ], SpoutHandler::getBodyStyle() ) )
-                        ->close();
+                        ->openToFile( $filePath );
+
+                    $writer->addRow( WriterEntityFactory::createRowFromArray( $fileData[ 'header' ], SpoutHandler::getHeaderStyle() ) );
+
+                    foreach ( $fileData[ 'body' ] as $value ) {
+                        $writer->addRow( WriterEntityFactory::createRowFromArray( $value, SpoutHandler::getHeaderStyle() ) );
+                    }
+
+                    $writer->close();
+
                     break;
 
                 default:

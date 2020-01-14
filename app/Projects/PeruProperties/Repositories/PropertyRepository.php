@@ -164,7 +164,7 @@ class PropertyRepository
     public function getSearchedProperties( string $searchId, array $pagination ): array
     {
         // get total searched properties
-        $total = $this->getCountSearchedProperties( $searchId );
+        $total = $this->countSearchedProperties( $searchId );
 
         if ( empty( $total ) === true ) {
             return [];
@@ -245,6 +245,7 @@ class PropertyRepository
      * @param string $searchId The id of the current search.
      *
      * @return array
+     * @throws \Exception
      */
     public function getSelectedSearchedProperties( string $searchId ): array
     {
@@ -255,6 +256,11 @@ class PropertyRepository
         $results = SearchedProperty::raw( ( function ( $collection ) use ( $pipeline ) {
             return $collection->aggregate( $pipeline );
         } ) );
+
+        if ( $results->isEmpty() === true ) {
+            throw new \Exception( 'No properties selected in given search.' );
+
+        }
 
         return $results->toArray();
     }
@@ -267,6 +273,7 @@ class PropertyRepository
      * @param string $searchId The id of the current search.
      *
      * @return array
+     * @throws \Exception
      */
     public function getSelectedSearchedPropertiesExcelFormat( string $searchId ): array
     {
@@ -278,6 +285,11 @@ class PropertyRepository
             return $collection->aggregate( $pipeline );
         } ) );
 
+        if ( $results->isEmpty() === true ) {
+            throw new \Exception( 'No properties selected in given search.' );
+
+        }
+
         return $results->toArray();
     }
 
@@ -288,13 +300,43 @@ class PropertyRepository
      *
      * @return int
      */
-    public function getCountSearchedProperties( string $searchId ): int
+    public function countSearchedProperties( string $searchId ): int
     {
         $query = SearchedProperty::raw( ( function ( $collection ) use ( $searchId ) {
             return $collection->aggregate( [
                 [
                     '$match' => [
                         'search_id' => [ '$eq' => new ObjectID( $searchId ) ]
+                    ]
+                ],
+                [
+                    '$count' => "total"
+                ]
+            ] );
+        } ) )->toArray();
+
+        try {
+            return $query[ 0 ][ 'total' ];
+        } catch ( \ErrorException $e ) {
+            return 0;
+        }
+    }
+
+    /**
+     * Return count of selected searched properties for given search.
+     *
+     * @param string $searchId The id of the current search.
+     *
+     * @return int
+     */
+    public function countSelectedSearchedProperties( string $searchId ): int
+    {
+        $query = SearchedProperty::raw( ( function ( $collection ) use ( $searchId ) {
+            return $collection->aggregate( [
+                [
+                    '$match' => [
+                        'search_id' => [ '$eq' => new ObjectID( $searchId ) ],
+                        'selected' => [ '$eq' => true ]
                     ]
                 ],
                 [

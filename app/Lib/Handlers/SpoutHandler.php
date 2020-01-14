@@ -4,10 +4,8 @@ namespace App\Lib\Handlers;
 
 use Box\Spout\Common\Entity\Style\Border;
 use Box\Spout\Common\Entity\Style\Color;
-use Box\Spout\Common\Entity\Style\Style;
 use Box\Spout\Writer\Common\Creator\Style\BorderBuilder;
 use Box\Spout\Writer\Common\Creator\Style\StyleBuilder;
-use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 
 /**
  *
@@ -19,24 +17,7 @@ class SpoutHandler
     /**
      * Get default style.
      *
-     * @param array $rowValues
-     * @param Style|null $rowStyle
-     *
-     * @return array
-     */
-    public static function createRowsFromArray( array $rowValues = [], Style $rowStyle = null )
-    {
-        $rows = array_map( function ( $rowValue ) use ( $rowStyle ) {
-            return WriterEntityFactory::createRowFromArray( $rowValue, $rowStyle );
-        }, $rowValues );
-
-        return $rows;
-    }
-
-    /**
-     * Get default style.
-     *
-     * @return Style
+     * @return Box\Spout\Common\Entity\Style\Style
      */
     public static function getDefaultStyle()
     {
@@ -52,7 +33,7 @@ class SpoutHandler
     /**
      * Get header style.
      *
-     * @return Style
+     * @return Box\Spout\Common\Entity\Style\Style
      */
     public static function getHeaderStyle()
     {
@@ -69,7 +50,7 @@ class SpoutHandler
     /**
      * Get body style.
      *
-     * @return Style
+     * @return Box\Spout\Common\Entity\Style\Style
      */
     public static function getBodyStyle()
     {
@@ -83,7 +64,7 @@ class SpoutHandler
     /**
      * Get default border.
      *
-     * @return Border
+     * @return Box\Spout\Common\Entity\Style\Border
      */
     public static function getDefaultBorder()
     {
@@ -100,7 +81,7 @@ class SpoutHandler
     /**
      * Get data border.
      *
-     * @return Border
+     * @return Box\Spout\Common\Entity\Style\Border
      */
     public static function getDataBorder()
     {
