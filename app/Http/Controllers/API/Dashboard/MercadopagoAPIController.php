@@ -4,31 +4,31 @@ namespace App\Http\Controllers\API\Dashboard;
 
 use App\Http\Controllers\AppBaseController;
 use App\Lib\Handlers\MercadoPagoHandler;
-use App\Repositories\Dashboard\PurchaseRepository;
+use App\Repositories\Dashboard\OrderRepository;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
 use Response;
 
 /**
- * Class MercadoPagoAPIController
+ * Class MercadopagoAPIController
  * @package App\Http\Controllers\API\Dashboard
  */
-class MercadoPagoAPIController extends AppBaseController
+class MercadopagoAPIController extends AppBaseController
 {
     /**
-    * @var  PurchaseRepository
-    */
-    private $purchaseRepository;
+     * @var OrderRepository
+     */
+    private $orderRepository;
 
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct( PurchaseRepository $purchaseRepo )
+    public function __construct( OrderRepository $orderRepo )
     {
-        $this->purchaseRepository = $purchaseRepo;
+        $this->orderRepository = $orderRepo;
     }
 
     /**
@@ -44,8 +44,8 @@ class MercadoPagoAPIController extends AppBaseController
         }
 
         // request values
-        $mp_topic           = $request->get( 'topic' );
-        $mp_notification_id = $request->get( 'id' );
+        $topic           = $request->get( 'topic' );
+        $notificationId = $request->get( 'id' );
 
         \Log::info( 'request values' );
         \Log::debug( [ 'id' => $request->get( 'id' ), 'topic' => $request->get( 'topic' ) ] );
@@ -56,9 +56,9 @@ class MercadoPagoAPIController extends AppBaseController
         $merchantOrderInfo = null;
 
         // get the merchantOrder
-        switch( $mp_topic ) {
+        switch( $topic ) {
             case 'payment':
-                $payment = $mercadoPago->getPayment( $mp_notification_id );
+                $payment = $mercadoPago->getPayment( $notificationId );
 
                 // get the payment and the corresponding merchantOrder reported by the IPN.
                 $merchantOrderInfo = $mercadoPago->getMerchantOrder( $payment->order->id ?? null );
@@ -66,7 +66,7 @@ class MercadoPagoAPIController extends AppBaseController
                 break;
 
             case 'merchant_order':
-                $merchantOrderInfo = $mercadoPago->getMerchantOrder( $mp_notification_id );
+                $merchantOrderInfo = $mercadoPago->getMerchantOrder( $notificationId );
 
                 break;
         }
@@ -77,14 +77,14 @@ class MercadoPagoAPIController extends AppBaseController
             // get external reference id
             $externalReferenceId = $merchantOrderInfo->external_reference;
 
-            // get purchase
-            $purchase = $this->purchaseRepository->findByField( 'code', $externalReferenceId )->first();
+            // get order
+            $order = $this->orderRepository->findByField( 'code', $externalReferenceId )->first();
 
             // si el codigo externo corresponde con una compra del sistema
-            if ( empty( $purchase ) === false ) {
+            if ( empty( $order ) === false ) {
 
                 // link payment info
-                $purchase->fill( [ 'payment_info->payment' => $merchantOrderInfo->getAttributes() ] );
+                $order->fill( [ 'payment_info->payment' => $merchantOrderInfo->getAttributes() ] );
 
                 // calculate the payment's transaction amount (it should be only one)
                 $paidAmount = 0;
@@ -103,20 +103,20 @@ class MercadoPagoAPIController extends AppBaseController
                     $guzzleClient = new GuzzleClient( [ 'base_uri' => url( '/' ), 'timeout' => 30.0 ] );
                     $guzzleClient->sendAsync( new GuzzleRequest(
                         'GET',
-                        route( 'api.' . config( 'multi-api.' . $purchase->project . '.backend-info.generate_file_url' ), [], false ),
+                        route( 'api.' . config( 'multi-api.' . $order->project . '.backend-info.generate_file_url' ), [], false ),
                         [ 'Content-type' => 'application/json' ],
-                        json_encode( [ 'purchaseCode' => $purchase->code ] )
+                        json_encode( [ 'orderCode' => $order->code ] )
                     ) )->wait( false );
 
                     // release item.
-                    $purchase->status = config( 'constants.PURCHASES_RELEASED_STATUS' );
-                    $purchase->save();
+                    $order->status = config( 'constants.ORDERS_RELEASED_STATUS' );
+                    $order->save();
                 }
                 else {
                     // not paid yet. Do not release the item.
-                    if ( $purchase->status !== config( 'constants.PURCHASES_RELEASED_STATUS' ) ) {
-                        $purchase->status = config( 'constants.PURCHASES_PENDING_STATUS' );
-                        $purchase->save();
+                    if ( $order->status !== config( 'constants.ORDERS_RELEASED_STATUS' ) ) {
+                        $order->status = config( 'constants.ORDERS_PENDING_STATUS' );
+                        $order->save();
                     }
                 }
             }

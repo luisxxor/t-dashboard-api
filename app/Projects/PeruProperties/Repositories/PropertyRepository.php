@@ -223,6 +223,16 @@ class PropertyRepository
             'search_id' => [ '$eq' => new ObjectID( $searchId ) ],
         ];
 
+        // update
+        $update = [
+            '$set' => [ 'selected' => false ]
+        ];
+
+        // unselect all properties
+        SearchedProperty::raw( ( function ( $collection ) use ( $filter, $update ) {
+            return $collection->updateMany( $filter, $update );
+        } ) );
+
         // in case all where not selected, query only they who are ($in) '$ids'
         if ( $ids !== [ '*' ] ) {
             $filter[ 'property_id' ] = [ '$in' => $ids ];

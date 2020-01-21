@@ -73,7 +73,7 @@ class FileHandler
                     $writer->addRow( WriterEntityFactory::createRowFromArray( $fileData[ 'header' ], SpoutHandler::getHeaderStyle() ) );
 
                     foreach ( $fileData[ 'body' ] as $value ) {
-                        $writer->addRow( WriterEntityFactory::createRowFromArray( $value, SpoutHandler::getHeaderStyle() ) );
+                        $writer->addRow( WriterEntityFactory::createRowFromArray( $value, SpoutHandler::getBodyStyle() ) );
                     }
 
                     $writer->close();

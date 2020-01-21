@@ -245,7 +245,7 @@
     },
     {
         "type": "relation",
-        "relation": "1tm,Purchase,user_id"
+        "relation": "1tm,Order,user_id"
     },
     {
         "type": "relation",

@@ -6,15 +6,15 @@ use Eloquent as Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * Class Purchase
+ * Class Order
  * @package App\Models\Dashboard
  * @version February 5, 2019, 4:16 am UTC
  */
-class Purchase extends Model
+class Order extends Model
 {
     use SoftDeletes;
 
-    public $table = 'purchases';
+    public $table = 'orders';
 
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
@@ -28,14 +28,15 @@ class Purchase extends Model
         'search_id',
         'project',
         'total_rows_quantity',
-        'payment_type',
-        'currency',
+        // 'payment_type',
+        // 'currency',
         'status',
 
         'payment_info->payment',
     ];
 
     protected $hidden = [
+        'user_id',
         'payment_info',
         'files_info',
         'updated_at',
@@ -93,6 +94,6 @@ class Purchase extends Model
      */
     public function setCodeAttribute( $value )
     {
-        $this->attributes[ 'code' ] = 'purchase-' . str_pad( $value, 8, '0', STR_PAD_LEFT );
+        $this->attributes[ 'code' ] = 'orden-' . str_pad( $value, 8, '0', STR_PAD_LEFT );
     }
 }

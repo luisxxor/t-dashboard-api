@@ -7,7 +7,7 @@ use App\Lib\Handlers\FileHandler;
 use App\Projects\PeruProperties\Repositories\PropertyRepository;
 use App\Projects\PeruProperties\Repositories\PropertyTypeRepository;
 use App\Projects\PeruProperties\Repositories\SearchRepository;
-use App\Repositories\Dashboard\PurchaseRepository;
+use App\Repositories\Dashboard\OrderRepository;
 use DateTime;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
@@ -42,9 +42,9 @@ class PropertiesAPIController extends AppBaseController
     private $searchRepository;
 
     /**
-     * @var PurchaseRepository
+     * @var OrderRepository
      */
-    private $purchaseRepository;
+    private $orderRepository;
 
     /**
      * Create a new controller instance.
@@ -54,13 +54,13 @@ class PropertiesAPIController extends AppBaseController
     public function __construct( PropertyTypeRepository $propertyTypeRepo,
         PropertyRepository $propertyRepo,
         SearchRepository $searchRepo,
-        PurchaseRepository $purchaseRepo )
+        OrderRepository $orderRepo )
     {
         $this->fileHandler = new FileHandler();
         $this->propertyTypeRepository = $propertyTypeRepo;
         $this->propertyRepository = $propertyRepo;
         $this->searchRepository = $searchRepo;
-        $this->purchaseRepository = $purchaseRepo;
+        $this->orderRepository = $orderRepo;
     }
 
     /**
@@ -487,11 +487,11 @@ class PropertiesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Post(
-     *     path="/api/peru_properties/process_purchase",
-     *     operationId="processPurchase",
+     *     path="/api/peru_properties/order",
+     *     operationId="order",
      *     tags={"Peru Properties"},
-     *     summary="Process purchase; create payment init point.",
-     *     description="Procces purchase and returns the payment init point link (if admin, generate files)",
+     *     summary="Order items",
+     *     description="Create order in case it does not, and update the 'ids' value of search",
      *     @OA\Parameter(
      *         name="searchId",
      *         required=true,
@@ -502,24 +502,16 @@ class PropertiesAPIController extends AppBaseController
      *     ),
      *     @OA\Parameter(
      *         name="ids",
-     *         required=false,
+     *         required=true,
      *         in="query",
      *         @OA\Schema(
      *             type="array",
      *             @OA\Items()
      *         )
      *     ),
-     *     @OA\Parameter(
-     *         name="selectAll",
-     *         required=false,
-     *         in="query",
-     *         @OA\Schema(
-     *             type="boolean"
-     *         )
-     *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Purchase processed successfully, payment init point link sended.",
+     *         description="Ordered successfully.",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(
@@ -542,7 +534,7 @@ class PropertiesAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=202,
-     *         description="Purchase processed successfully, file generated (admin user)."
+     *         description="Ordered successfully, file generated."
      *     ),
      *     @OA\Response(
      *         response=400,
@@ -561,55 +553,50 @@ class PropertiesAPIController extends AppBaseController
      *     }
      * )
      */
-    public function processPurchase( Request $request )
+    public function order( Request $request )
     {
         $request->validate( [
-            'searchId' => [ 'required', 'string' ],
-            'ids' => [ 'nullable', 'array', Rule::requiredIf( function () use ( $request ) {
-                return $request->has( 'selectAll' ) === false;
-            } ) ],
-            'selectAll' => [ 'nullable', 'boolean', Rule::requiredIf( function () use ( $request ) {
-                return $request->has( 'ids' ) === false || empty( $request->get( 'ids' ) ) === true;
-            } ) ],
+            'searchId'  => [ 'required', 'string' ],
+            'ids'       => [ 'required', 'array' ],
         ] );
 
         // input
         $searchId   = $request->get( 'searchId' );
-        $ids        = $request->get( 'ids' ) ?? [];
-        $selectAll  = $request->get( 'selectAll' );
+        $ids        = $request->get( 'ids' );
 
         // get user
         $user = auth()->user();
 
-        // get selected ids by user
-        if ( $selectAll === true ) {
-            $ids = [ '*' ];
+        // get order if exist
+        $order = $this->orderRepository->findByField( 'search_id', $searchId )->first();
 
+        // get selected ids by user
+        if ( $ids === [ '*' ] ) {
             $total = $this->propertyRepository->countSearchedProperties( $searchId );
         }
         else {
             $total = count( $ids );
         }
 
+        // if order doesn't exist
+        if ( empty( $order ) === true ) {
+            // create order
+            $order = $this->orderRepository->create( [
+                'user_id'               => $user->id,
+                'search_id'             => $searchId,
+                'project'               => config( 'multi-api.pe-properties.backend-info.code' ),
+                'total_rows_quantity'   => $total,
+                'status'                => config( 'constants.ORDERS_OPENED_STATUS' ),
+            ] );
+        }
+        else {
+            // update order
+            $order->total_rows_quantity = $total;
+            $order->save();
+        }
+
         // update the search to save selected ids by user
         $this->propertyRepository->updateSelectedSearchedProperties( $searchId, $ids );
-
-        // process purchase
-        $purchaseAttributes = [
-            'user_id'               => $user->id,
-            'search_id'             => $searchId,
-            'project'               => config( 'multi-api.pe-properties.backend-info.code' ),
-            'total_rows_quantity'   => $total,
-            'payment_type'          => config( 'constants.PAYMENTS_MERCADOPAGO' ),
-            'currency'              => 'PEN',
-            'status'                => config( 'constants.PURCHASES_OPENED_STATUS' ),
-        ];
-
-        try {
-            $purchase = $this->purchaseRepository->process( $purchaseAttributes );
-        } catch ( \Exception $e ) {
-            return $this->sendError( $e->getMessage(), [], 400 );
-        }
 
         // if admin, generate file. else, return payment init point link
         if ( $user->hasRole( 'admin' ) === true ) {
@@ -620,20 +607,18 @@ class PropertiesAPIController extends AppBaseController
                 'GET',
                 route( 'api.' . config( 'multi-api.pe-properties.backend-info.generate_file_url' ), [], false ),
                 [ 'Content-type' => 'application/json' ],
-                json_encode( [ 'purchaseCode' => $purchase->code ] )
+                json_encode( [ 'orderCode' => $order->code ] )
             ) )->wait( false );
 
-            // release item.
-            $purchase->status = config( 'constants.PURCHASES_RELEASED_STATUS' );
-            $purchase->save();
+            // release order.
+            $order->status = config( 'constants.ORDERS_RELEASED_STATUS' );
+            $order->save();
 
-            // return approved message
-            return $this->sendResponse( [], 'Purchase processed successfully, file generated (admin user).', 202 );
+            return $this->sendResponse( $order, 'Ordered successfully, file generated.', 202 );
         }
         else {
 
-            // return payment init point link
-            return $this->sendResponse( $purchase->payment_info[ 'init_point' ], 'Purchase processed successfully, payment init point link retrived.' );
+            return $this->sendResponse( $order, 'Ordered successfully.' );
         }
     }
 
@@ -645,9 +630,9 @@ class PropertiesAPIController extends AppBaseController
      *     path="/api/peru_properties/generate_file",
      *     operationId="generatePropertiesFile",
      *     tags={"Peru Properties"},
-     *     summary="Build the purchase files",
+     *     summary="Build the order files",
      *     @OA\Parameter(
-     *         name="purchaseCode",
+     *         name="orderCode",
      *         required=true,
      *         in="query",
      *         @OA\Schema(
@@ -679,7 +664,7 @@ class PropertiesAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Purchase not found."
+     *         description="Order not found."
      *     ),
      *     @OA\Response(
      *         response=422,
@@ -690,40 +675,40 @@ class PropertiesAPIController extends AppBaseController
     public function generatePropertiesFile( Request $request )
     {
         $request->validate( [
-            'purchaseCode'  => [ 'required', 'string' ],
+            'orderCode'  => [ 'required', 'string' ],
         ] );
 
         // input
-        $purchaseCode = $request->get( 'purchaseCode' );
+        $orderCode = $request->get( 'orderCode' );
 
-        // get purchase
-        $purchase = $this->purchaseRepository->findByField( 'code', $purchaseCode )->first();
+        // get order
+        $order = $this->orderRepository->findByField( 'code', $orderCode )->first();
 
-        // validate purchase
-        if ( empty( $purchase ) === true ) {
-            \Log::info( 'Purchase not found.', $purchaseCode );
+        // validate order
+        if ( empty( $order ) === true ) {
+            \Log::info( 'Order not found.', $orderCode );
 
-            return $this->sendError( 'Purchase not found.', [], 404 );
+            return $this->sendError( 'Order not found.', [], 404 );
         }
 
         $filesInfo = [];
 
         // quantity of rows
-        $rowsQuantity = $this->propertyRepository->countSelectedSearchedProperties( $purchase->search_id );
+        $rowsQuantity = $this->propertyRepository->countSelectedSearchedProperties( $order->search_id );
 
         // create json
         try {
 
             // get search
-            $search = $this->searchRepository->findOrFail( $purchase->search_id );
+            $search = $this->searchRepository->findOrFail( $order->search_id );
 
             // get selected searched properties by user
-            $selectedSearchedProperties = $this->propertyRepository->getSelectedSearchedProperties( $purchase->search_id );
+            $selectedSearchedProperties = $this->propertyRepository->getSelectedSearchedProperties( $order->search_id );
 
             $filesInfo[] = $this->fileHandler->createAndUploadFile(
                 array_merge( $search->toArray(), [ 'data' => $selectedSearchedProperties ] ),
                 $rowsQuantity,
-                $purchaseCode,
+                $orderCode,
                 'json'
             );
 
@@ -741,10 +726,10 @@ class PropertiesAPIController extends AppBaseController
             $filesInfo[] = $this->fileHandler->createAndUploadFile(
                 [
                     'header'    => $this->propertyRepository->header,
-                    'body'      => $this->propertyRepository->getSelectedSearchedPropertiesExcelFormat( $purchase->search_id ),
+                    'body'      => $this->propertyRepository->getSelectedSearchedPropertiesExcelFormat( $order->search_id ),
                 ],
                 $rowsQuantity,
-                $purchaseCode,
+                $orderCode,
                 'xlsx'
             );
 
@@ -753,27 +738,27 @@ class PropertiesAPIController extends AppBaseController
             return $this->sendError( $e->getMessage() );
         }
 
-        $purchase->files_info = $filesInfo;
-        $purchase->save();
+        $order->files_info = $filesInfo;
+        $order->save();
 
         return $this->sendResponse( 'OK', 'Properties\' file generated successfully.' );
     }
 
     /**
-     * @param   string $purchaseCode
+     * @param   string $orderCode
      * @param   \Illuminate\Http\Request $request
      * @return  \Illuminate\Http\JsonResponse
      * @throws  \Illuminate\Auth\Access\AuthorizationException
      *
      * @OA\Get(
-     *     path="api/peru_properties/purchases/{purchaseCode}/download",
-     *     operationId="downloadPurchasedFile",
+     *     path="api/peru_properties/orders/{orderCode}/download",
+     *     operationId="downloadOrderedFile",
      *     tags={"Peru Properties"},
      *     summary="Download the export file",
      *     description="Returns the download link of file",
      *     @OA\Parameter(
-     *         name="purchaseCode",
-     *         description="code of purchase",
+     *         name="orderCode",
+     *         description="code of order",
      *         required=true,
      *         in="path",
      *         @OA\Schema(
@@ -821,7 +806,7 @@ class PropertiesAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Purchase not found."
+     *         description="Order not found."
      *     ),
      *     @OA\Response(
      *         response=422,
@@ -832,7 +817,7 @@ class PropertiesAPIController extends AppBaseController
      *     }
      * )
      */
-    public function downloadPurchasedFile( $purchaseCode, Request $request )
+    public function downloadOrderedFile( $orderCode, Request $request )
     {
         $request->validate( [
             'format' => [ 'required', 'string', 'in:csv,xlsx,ods' ],
@@ -841,22 +826,22 @@ class PropertiesAPIController extends AppBaseController
         // input
         $format = $request->get( 'format' );
 
-        // get purchase
-        $purchase = $this->purchaseRepository->findByField( 'code', $purchaseCode )->first();
+        // get order
+        $order = $this->orderRepository->findByField( 'code', $orderCode )->first();
 
-        // validate purchase
-        if ( empty( $purchase ) === true ) {
-            \Log::info( 'Purchase not found.', $purchaseCode );
+        // validate order
+        if ( empty( $order ) === true ) {
+            \Log::info( 'Order not found.', $orderCode );
 
-            return $this->sendError( 'Purchase not found.', [], 404 );
+            return $this->sendError( 'Order not found.', [], 404 );
         }
 
-        // validate if the purchase belongs to the user
-        if ( $purchase->user_id != auth()->user()->getKey() ) {
+        // validate if the order belongs to the user
+        if ( $order->user_id != auth()->user()->getKey() ) {
             throw new AuthorizationException;
         }
 
-        $fileInfo = collect( $purchase->files_info )->filter( function ( $item, $index ) use ( $format ) {
+        $fileInfo = collect( $order->files_info )->filter( function ( $item, $index ) use ( $format ) {
             return $item[ 'type' ] === $format;
         } )->first();
 

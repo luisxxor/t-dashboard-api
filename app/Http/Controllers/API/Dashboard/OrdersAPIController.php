@@ -5,15 +5,15 @@ namespace App\Http\Controllers\API\Dashboard;
 use App\Http\Controllers\AppBaseController;
 use App\Lib\Handlers\FileHandler;
 use App\Repositories\Dashboard\ProjectRepository;
-use App\Repositories\Dashboard\PurchaseRepository;
+use App\Repositories\Dashboard\OrderRepository;
 use Illuminate\Http\Request;
 use Response;
 
 /**
- * Class PurchasesAPIController
+ * Class OrdersAPIController
  * @package App\Http\Controllers\API\Dashboard
  */
-class PurchasesAPIController extends AppBaseController
+class OrdersAPIController extends AppBaseController
 {
     /**
      * @var FileHandler
@@ -21,9 +21,9 @@ class PurchasesAPIController extends AppBaseController
     private $fileHandler;
 
     /**
-     * @var  PurchaseRepository
+     * @var  OrderRepository
      */
-    private $purchaseRepository;
+    private $orderRepository;
 
     /**
      * @var  ProjectRepository
@@ -35,11 +35,11 @@ class PurchasesAPIController extends AppBaseController
      *
      * @return void
      */
-    public function __construct( PurchaseRepository $purchaseRepo,
+    public function __construct( OrderRepository $orderRepo,
         ProjectRepository $projectRepo )
     {
         $this->fileHandler = new FileHandler();
-        $this->purchaseRepository = $purchaseRepo;
+        $this->orderRepository = $orderRepo;
         $this->projectRepository = $projectRepo;
     }
 
@@ -48,10 +48,10 @@ class PurchasesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
-     *     path="/api/dashboard/purchases",
+     *     path="/api/dashboard/orders",
      *     operationId="index",
-     *     tags={"Purchases"},
-     *     summary="Display a listing of the user's purchase files",
+     *     tags={"Orders"},
+     *     summary="Display a listing of the user's orders",
      *     @OA\Parameter(
      *         name="project",
      *         required=true,
@@ -62,7 +62,7 @@ class PurchasesAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Purchase files retrived successfully.",
+     *         description="Orders retrived successfully.",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(
@@ -108,30 +108,30 @@ class PurchasesAPIController extends AppBaseController
             return $this->sendError( 'Project not found.', [], 404 );
         }
 
-        $purchases = auth()->user()->purchases()->get();
+        $orders = auth()->user()->orders()->get()->sortByDesc( 'created_at' );
 
         // solo las compras concretadas y del project actual
-        $purchases = $purchases->filter( function ( $item, $index ) use ( $projectCode ) {
-            return $item->status === config( 'constants.PURCHASES_RELEASED_STATUS' )
+        $orders = $orders->filter( function ( $item, $index ) use ( $projectCode ) {
+            return $item->status === config( 'constants.ORDERS_RELEASED_STATUS' )
                 && $item->project === $projectCode;
         } );
 
-        return $this->sendResponse( array_values( $purchases->toArray() ), 'Purchase retrived successfully.' );
+        return $this->sendResponse( array_values( $orders->toArray() ), 'Order retrived successfully.' );
     }
 
     /**
-     * @param  string $purchaseCode
+     * @param  string $orderCode
      * @return \Illuminate\Http\JsonResponse
      * @throws \Illuminate\Auth\Access\AuthorizationException
      *
      * @OA\Get(
-     *     path="/api/dashboard/purchases/{purchaseCode}/records",
+     *     path="/api/dashboard/orders/{orderCode}/records",
      *     operationId="show",
-     *     tags={"Purchases"},
-     *     summary="Display the specified user's purchase",
+     *     tags={"Orders"},
+     *     summary="Display the specified user's order",
      *     @OA\Parameter(
-     *         name="purchaseCode",
-     *         description="code of purchase",
+     *         name="orderCode",
+     *         description="code of order",
      *         required=true,
      *         in="path",
      *         @OA\Schema(
@@ -140,7 +140,7 @@ class PurchasesAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Purchase file retrived successfully.",
+     *         description="Order retrived successfully.",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(
@@ -168,31 +168,31 @@ class PurchasesAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Purchase File not found."
+     *         description="Order File not found."
      *     ),
      *     security={
      *         {"": {}}
      *     }
      * )
      */
-    public function show( $purchaseCode )
+    public function show( $orderCode )
     {
-        // get purchase
-        $purchase = $this->purchaseRepository->findByField( 'code', $purchaseCode )->first();
+        // get order
+        $order = $this->orderRepository->findByField( 'code', $orderCode )->first();
 
-        // validate purchase
-        if ( empty( $purchase ) === true ) {
-            \Log::info( 'Purchase not found.', $purchaseCode );
+        // validate order
+        if ( empty( $order ) === true ) {
+            \Log::info( 'Order not found.', $orderCode );
 
-            return $this->sendError( 'Purchase not found.', [], 404 );
+            return $this->sendError( 'Order not found.', [], 404 );
         }
 
-        // validate if the purchase belongs to the user
-        if ( $purchase->user_id != auth()->user()->getKey() ) {
+        // validate if the order belongs to the user
+        if ( $order->user_id != auth()->user()->getKey() ) {
             throw new AuthorizationException;
         }
 
-        $fileInfo = collect( $purchase->files_info )->filter( function ( $item, $index ) {
+        $fileInfo = collect( $order->files_info )->filter( function ( $item, $index ) {
             return $item[ 'type' ] === 'json';
         } )->first();
 
@@ -210,6 +210,6 @@ class PurchasesAPIController extends AppBaseController
             'metadata' => $decodedContent[ 'metadata' ],
         ];
 
-        return $this->sendResponse( $output, 'Purchase file retrived successfully.' );
+        return $this->sendResponse( $output, 'Order retrived successfully.' );
     }
 }

@@ -2,8 +2,11 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use App\Billing\MercadopagoPaymentGateway;
+use App\Billing\NotSupportedPaymentGateway;
+use App\Billing\PaymentGatewayContract;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,9 +27,19 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        // this is for external public folder
-        // $this->app->bind( 'path.public', function () {
-        //     return base_path() . '/../public_html';
-        // } );
+        $this->app->singleton( PaymentGatewayContract::class, function ( $app ) {
+
+            switch ( request()->get( 'paymentType' ) ) {
+                case config( 'constants.payment_gateways.MERCADOPAGO' ):
+
+                    return new MercadopagoPaymentGateway( request()->get( 'currency' ) );
+                    break;
+
+                default:
+
+                    return new NotSupportedPaymentGateway();
+                    break;
+            }
+        } );
     }
 }

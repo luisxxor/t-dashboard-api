@@ -13,7 +13,7 @@ class CreatePurchasesTable extends Migration
      */
     public function up()
     {
-        Schema::create('purchases', function (Blueprint $table) {
+        Schema::create('purchases', function (Blueprint $table) { // renamed later to 'orders'
             $table->bigIncrements('id');
 
             // code (for MP external_reference)
@@ -29,11 +29,6 @@ class CreatePurchasesTable extends Migration
 
             // status
             $table->string('status', 100)->nullable()->default(null);
-
-            // MercadoPago
-            $table->text('mp_init_point')->nullable()->default(null);
-            $table->text('mp_notification_id')->nullable()->default(null);
-            $table->text('mp_status')->nullable()->default(null);
 
             $table->timestamps();
             $table->softDeletes();

@@ -30,8 +30,8 @@ class Project extends Model
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      **/
-    public function purchases()
+    public function orders()
     {
-        return $this->hasMany( \App\Models\Dashboard\Purchase::class, 'project', 'code' );
+        return $this->hasMany( \App\Models\Dashboard\Order::class, 'project', 'code' );
     }
 }

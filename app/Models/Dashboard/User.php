@@ -102,9 +102,9 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function purchases()
+    public function orders()
     {
-        return $this->hasMany( \App\Models\Dashboard\Purchase::class );
+        return $this->hasMany( \App\Models\Dashboard\Order::class );
     }
 
     /**

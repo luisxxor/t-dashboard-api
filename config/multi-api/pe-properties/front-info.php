@@ -31,14 +31,21 @@ return [
         'path' => env( 'APP_URL' ) . '/api/peru_properties/properties_paginate',
     ],
 
-    'processPurchaseURL' => [
+    'processOrderURL' => [
         'method' => 'post',
-        'path' => env( 'APP_URL' ) . '/api/peru_properties/process_purchase',
+        'path' => env( 'APP_URL' ) . '/api/peru_properties/order',
     ],
 
     'exportFileURL' => [
         'method' => 'get',
-        'path' => env( 'APP_URL' ) . '/api/peru_properties/purchases/{purchaseCode}/download',
+        'path' => env( 'APP_URL' ) . '/api/peru_properties/orders/{orderCode}/download',
+    ],
+
+    'paymentTypes' => [
+        [
+            'paymentType' => config( 'constants.payment_gateways.MERCADOPAGO' ),
+            'currency' => config( 'constants.payment_currencies.PEN' )
+        ],
     ],
 
     'mapMarkers' => [
