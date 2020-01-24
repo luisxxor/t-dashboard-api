@@ -43,6 +43,10 @@ Route::middleware( 'auth:api', 'verified' )->group( function () {
     Route::post( 'peru_properties/order', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@order' )->name( 'peru_properties.processOrder' );
     Route::get( 'peru_properties/orders/{orderCode}/download', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@downloadOrderedFile' )->name( 'peru_properties.download' );
 
+    //trancing
+    Route::get( 'tracing_properties/index', '\App\Projects\TracingProperties\Controllers\TracingsAPIController@index' )->name( 'tracing_properties.index' );
+    Route::post( 'tracing_properties/register_property', '\App\Projects\TracingProperties\Controllers\TracingsAPIController@tracingProperties' )->name( 'tracing_properties.register' );
+
 } );
 
 // generate peru properties profile
