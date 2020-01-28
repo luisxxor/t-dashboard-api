@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Projects\TracingProperties\Repositories;
+namespace App\Projects\PeruProperties\Repositories;
 
-use App\Projects\TracingProperties\Models\Tracing;
+use App\Projects\PeruProperties\Models\Tracing;
 
 /**
  * Class TracingRepository
- * @package App\Projects\TracingProperties\Repositories
+ * @package App\Projects\PeruProperties\Repositories
  * @version Jun 28, 2019, 2:34 pm UTC
 */
 class TracingRepository
@@ -16,7 +16,7 @@ class TracingRepository
      *
      * @param array $attributes
      *
-     * @return \App\Projects\TracingProperties\Models\Tracing
+     * @return \App\Projects\PeruProperties\Models\Tracing
      */
     public function create( array $attributes )
     {
@@ -27,7 +27,7 @@ class TracingRepository
      *
      * @param  mixed  $id
      *
-     * @return \App\Projects\TracingProperties\Models\Tracing
+     * @return \App\Projects\PeruProperties\Models\Tracing
      */
     public function find( $id )
     {
@@ -39,7 +39,7 @@ class TracingRepository
      *
      * @param  mixed  $id
      *
-     * @return \App\Projects\TracingProperties\Models\Tracing
+     * @return \App\Projects\PeruProperties\Models\Tracing
      * @throws \Exception
      */
     public function findOrFail( $id )
@@ -59,7 +59,7 @@ class TracingRepository
      * @param  array $attributes
      * @param  mixed $id
      *
-     * @return \App\Projects\TracingProperties\Models\Tracing
+     * @return \App\Projects\PeruProperties\Models\Tracing
      */
     public function update( array $attributes, $id )
     {

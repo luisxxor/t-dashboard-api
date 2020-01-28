@@ -361,4 +361,10 @@ class PropertyRepository
             return 0;
         }
     }
+
+    public function create( array $attributes )
+    {
+        return Property::create( $attributes );
+    }
+
 }

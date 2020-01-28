@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Projects\TracingProperties\Models;
+namespace App\Projects\PeruProperties\Models;
 
 use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
 

@@ -45,7 +45,7 @@ Route::middleware( 'auth:api', 'verified' )->group( function () {
 
     //trancing
     Route::get( 'tracing_properties/index', '\App\Projects\TracingProperties\Controllers\TracingsAPIController@index' )->name( 'tracing_properties.index' );
-    Route::post( 'tracing_properties/register_property', '\App\Projects\TracingProperties\Controllers\TracingsAPIController@tracingProperties' )->name( 'tracing_properties.register' );
+    Route::post( 'tracing_properties/create_property', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@createProperties' )->name( 'tracing_properties.create' );
 
 } );
 

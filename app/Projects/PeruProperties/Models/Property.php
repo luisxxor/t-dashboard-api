@@ -19,7 +19,12 @@ class Property extends Moloquent
     /**
      * @var string
      */
-    protected $primaryKey = '_id';
+    protected $primaryKey = '_id'; 
+
+    /**
+     * @var string
+     */
+    protected $fillable = array('*');
 
     /**
      * @var array

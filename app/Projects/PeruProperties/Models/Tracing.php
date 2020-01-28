@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Projects\TracingProperties\Models;
+namespace App\Projects\PeruProperties\Models;
 
 use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
 
-class TypeOperation extends Moloquent
+class Tracing extends Moloquent
 {
     /**
      * @var string
@@ -14,7 +14,7 @@ class TypeOperation extends Moloquent
     /**
      * @var string
      */
-    protected $collection = 'type_operations';
+    protected $collection = 'tracings';
 
     /**
      * @var string
@@ -27,7 +27,10 @@ class TypeOperation extends Moloquent
      * @var array
      */
     protected $fillable = [
-        'type_operation',
-        'code'
+        'nro_seg',
+        'type_operation_id',
+        'property_ids',
+        'observation',
+        'user_id',
     ];
 }
