@@ -5,7 +5,7 @@ namespace App\Http\Controllers\API\Dashboard;
 use App\Http\Controllers\AppBaseController;
 use App\Http\Requests\API\Dashboard\UpdateProfileAPIRequest;
 use App\Http\Resources\User as UserResource;
-use App\Repositories\Dashboard\ProfileRepository;
+use App\Repositories\Dashboard\UserRepository;
 use App\Rules\CurrentPassword;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -18,17 +18,17 @@ use Response;
  */
 class ProfileAPIController extends AppBaseController
 {
-    /** @var  ProfileRepository */
-    private $profileRepository;
+    /** @var  UserRepository */
+    private $userRepository;
 
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct( ProfileRepository $profileRepo )
+    public function __construct( UserRepository $userRepo )
     {
-        $this->profileRepository = $profileRepo;
+        $this->userRepository = $userRepo;
     }
 
     /**
@@ -194,7 +194,7 @@ class ProfileAPIController extends AppBaseController
             ],
         ] )->validate();
 
-        $profile = $this->profileRepository->update( $input, $user->id );
+        $profile = $this->userRepository->update( $input, $user->id );
 
         $user = new UserResource( $profile );
 

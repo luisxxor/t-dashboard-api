@@ -24,24 +24,30 @@ Route::middleware( 'auth:api', 'verified' )->group( function () {
     Route::put( 'dashboard/profile', 'API\Dashboard\ProfileAPIController@update' )->name( 'dashboard.profile.put' );
     Route::patch( 'dashboard/profile', 'API\Dashboard\ProfileAPIController@update' )->name( 'dashboard.profile.patch' );
 
+    // users management
+    Route::get( 'dashboard/users', 'API\Dashboard\UsersManagementAPIController@index' )->name( 'dashboard.usersManagement.index' )
+        ->middleware( 'can:manage.users' );
+    Route::get( 'dashboard/users/{id}/orders', 'API\Dashboard\UsersManagementAPIController@ordersByUser' )->name( 'dashboard.usersManagement.ordersByUser' )
+        ->middleware( 'can:manage.users' );
+
     // orders
     Route::get( 'dashboard/orders', 'API\Dashboard\OrdersAPIController@index' )->name( 'orders.index' );
-    Route::get( 'dashboard/orders/{orderCode}/records', 'API\Dashboard\OrdersAPIController@show' )->name( 'orders.show' );
+    Route::get( 'dashboard/orders/{orderCode}/records', 'API\Dashboard\OrdersAPIController@getJson' )->name( 'orders.getJson' );
+    Route::get( 'dashboard/orders/{orderCode}/download', 'API\Dashboard\OrdersAPIController@downloadFile' )->name( 'orders.downloadFile' );
 
     // multi-api info
     Route::get( 'dashboard/multi-api/index', 'API\Dashboard\ProjectsAPIController@index' )->name( 'dashboard.multi-api.index' );
     Route::get( 'dashboard/multi-api/get_front_info', 'API\Dashboard\ProjectsAPIController@getFrontInfo' )->name( 'dashboard.multi-api.getFrontInfo' );
 
     // payments
-    Route::post( 'dashboard/payments/process', 'API\Dashboard\PayOrderAPIController@pay' )->name( 'payments.pay' );
+    Route::post( 'dashboard/payments/process', 'API\Dashboard\OrdersPaymentAPIController@pay' )->name( 'payments.pay' );
 
     // peru properties
-    Route::get( 'peru_properties/index', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@index' )->name( 'peru_properties.index' );
+    Route::get( 'peru_properties/filters/property_type', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@getPropertyTypeFilterData' )->name( 'peru_properties.filters.propertyType' );
     Route::get( 'peru_properties/ghost_search', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@ghostSearch' )->name( 'peru_properties.ghostSearch' );
-    Route::post( 'peru_properties/properties_ajax', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@searchProperties' )->name( 'peru_properties.searchProperties' );
-    Route::post( 'peru_properties/properties_paginate', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@paginateProperties' )->name( 'peru_properties.paginateProperties' );
+    Route::post( 'peru_properties/search', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@searchProperties' )->name( 'peru_properties.searchProperties' );
+    Route::post( 'peru_properties/paginate', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@paginateProperties' )->name( 'peru_properties.paginateProperties' );
     Route::post( 'peru_properties/order', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@order' )->name( 'peru_properties.processOrder' );
-    Route::get( 'peru_properties/orders/{orderCode}/download', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@downloadOrderedFile' )->name( 'peru_properties.download' );
 
 } );
 

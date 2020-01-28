@@ -143,9 +143,7 @@ class RegisterAPIController extends AppBaseController
             'password' => $data[ 'password' ],
         ] );
 
-        # probar con assignRole() como en luxury
-        // attach default role_id=2 to the new user
-        $user->roles()->attach( 2 );
+        $user->assignRoles( 'regular-user' );
 
         return $user;
     }

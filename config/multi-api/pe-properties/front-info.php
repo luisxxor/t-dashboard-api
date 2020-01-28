@@ -11,11 +11,6 @@ return [
     |
     */
 
-    'baseURL' => [
-        'method' => 'get',
-        'path' => env( 'APP_URL' ) . '/api/peru_properties/index',
-    ],
-
     'ghostSearchURL' => [
         'method' => 'get',
         'path' => env( 'APP_URL' ) . '/api/peru_properties/ghost_search',
@@ -23,22 +18,17 @@ return [
 
     'searchURL' => [
         'method' => 'post',
-        'path' => env( 'APP_URL' ) . '/api/peru_properties/properties_ajax',
+        'path' => env( 'APP_URL' ) . '/api/peru_properties/search',
     ],
 
     'paginationURL' => [
         'method' => 'post',
-        'path' => env( 'APP_URL' ) . '/api/peru_properties/properties_paginate',
+        'path' => env( 'APP_URL' ) . '/api/peru_properties/paginate',
     ],
 
     'processOrderURL' => [
         'method' => 'post',
         'path' => env( 'APP_URL' ) . '/api/peru_properties/order',
-    ],
-
-    'exportFileURL' => [
-        'method' => 'get',
-        'path' => env( 'APP_URL' ) . '/api/peru_properties/orders/{orderCode}/download',
     ],
 
     'paymentTypes' => [
@@ -76,7 +66,7 @@ return [
                 'label' => 'Tipo',
                 'type' => 'dropdown',
                 'placeholder' => 'Seleccione el tipo de propiedad',
-                'valuesURL' => env( 'APP_URL' ) . '/api/peru_properties/index',
+                'valuesURL' => env( 'APP_URL' ) . '/api/peru_properties/filters/property_type',
             ],
             [
                 'field' => $constants[ 'FILTER_FIELD_PUBLICATION_DATE' ],

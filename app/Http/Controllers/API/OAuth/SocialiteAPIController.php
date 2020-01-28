@@ -175,8 +175,7 @@ class SocialiteAPIController extends AppBaseController
                 $user->email_verified_at = now();
                 $user->save();
 
-                // attach default role_id=2 to the new user
-                $user->roles()->attach( 2 );
+                $user->assignRoles( 'regular-user' );
             }
 
             // create linked social account for user
