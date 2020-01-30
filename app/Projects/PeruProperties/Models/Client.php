@@ -9,7 +9,7 @@ class Search extends Moloquent
     /**
      * @var string
      */
-    protected $connection = 'tracing';
+    protected $connection = 'peru_properties';
 
     /**
      * @var string

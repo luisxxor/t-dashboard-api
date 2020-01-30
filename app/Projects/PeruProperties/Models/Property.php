@@ -29,5 +29,10 @@ class Property extends Moloquent
     /**
      * @var array
      */
-    protected $dates = [ 'publication_date' ];
+    protected $dates = [
+        'created_at', 
+        'updated_at', 
+        'deleted_at', 
+        'publication_date'
+    ];
 }

@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
+use MongoDB\BSON\Decimal128;
 
 /**
  * Class TracingsAPIController
@@ -108,40 +109,48 @@ class TracingsAPIController extends AppBaseController
         $user = auth()->user();
 
         // metadata data
+
         $propertyData = [
-            'user_id' => $user->id,
-            'latitude' => $latitude,
-            'longitude' => $longitude,
-            'address' => $address,
-            'searched_properties' => "MMM",
-            'total_area_m2' => null,
-            'region_id' => $region_id,
-            'publication_type' => $publication_type,
-            'property_type_id' => $property_type_id,
-            'property_new' => $property_new,
-            'project_id' => null,
-            'project_phase' => null,
-            'property_name' => null,
-            'metadata' => $metadata,
-            'link' => 'tasin',
-            'image_list' => [],
-            'bathrooms' => null,
-            'bedrooms' => null,
-            'build_area_m2' => null,
-            'comment_description' => null,
-            'comment_subtitle' => null,
-            'dollars_price' => null,
-            'others_price' => null,
-            'geo_location' => array(
-                "type" => "Point", 
+            "address" => "Av. sadas Prolongacion los Tallanes",
+            "bathrooms" => new Decimal128(2),
+            "bedrooms" => new Decimal128(3),
+            "build_area_m2" => new Decimal128(75.3),
+            "comment_description" => " Vista Calle ",
+            "comment_subtitle" => null,
+            "dollars_price" => new Decimal128(83271),
+            'image_list' => [ ],
+            "latitude" => -5.164013014652,
+            "link" => "https://urbania.pe/inmueble/proyecto-garden-360-piura-piura-edifica-2357/tipo-departamenasdasdto-12803",
+            "longitude" => -80.628774213031,
+            'metadata' => [
+                [
+                    "project_phase" => "EN CONSTRUCCIÓN",
+                    "dollars_price" => new Decimal128(83271),
+                    "others_price" => new Decimal128(280623),
+                    "created_at" =>  new DateTime( 'now' )
+                ]
+            ],
+            "others_price" => new Decimal128(280623),
+            "parkings" => new Decimal128(1),
+            "project_id" => 2357,
+            "project_phase" => "EN CONSTRUCCIÓN",
+            "property_name" => "Departamento Tipo A",
+            "property_new" => true,
+            "property_type_id" => "7595ad34a49bb70a2f11d82d787d3c3d",
+            "publication_date" => new DateTime( 'now' ),
+            "publication_type" => "venta",
+            "region_id" => "e438e8a31a11c4552eca33477af32bac",
+            "total_area_m2" => new Decimal128(75.3),
+            'geo_location' => [
+                "type" => "Point",
                 "coordinates" => [ 
-                $longitude, 
-                $latitude
-            ]),
-            'created_at' => new DateTime( 'now' ),
-            'updated_at' => new DateTime( 'now' ),
-            'deleted_at' => null
+                    -80.628774213031, 
+                    -5.164013014652
+                ]
+            ],
         ];
+
+        // dd(json_encode($propertyData));
 
         // insert into 'property' collection
         $property = $this->propertyRepository->create( $propertyData );

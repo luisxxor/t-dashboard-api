@@ -9,7 +9,7 @@ class TypeOperation extends Moloquent
     /**
      * @var string
      */
-    protected $connection = 'tracing';
+    protected $connection = 'peru_properties';
 
     /**
      * @var string

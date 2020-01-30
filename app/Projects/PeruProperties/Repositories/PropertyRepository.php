@@ -10,6 +10,7 @@ use App\Projects\PeruProperties\Pipelines\PropertyPipelines;
 use App\Projects\PeruProperties\Pipelines\SearchedPropertyPipelines;
 use Illuminate\Pagination\LengthAwarePaginator;
 use MongoDB\BSON\ObjectID;
+use MongoDB\BSON\Decimal128;
 
 /**
  * Class PropertyRepository
