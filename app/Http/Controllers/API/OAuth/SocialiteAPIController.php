@@ -129,10 +129,8 @@ class SocialiteAPIController extends AppBaseController
             // get user email through provider
             $email = $userProvider->getEmail();
 
-            // if provider has user email
-            if ( $email !== null ) {
-                $user = User::where( 'email', $email )->first();
-            }
+            // get user if exists
+            $user = User::where( 'email', $email )->first();
 
             // create user if it is not created yet
             if ( $user === null ) {
@@ -145,7 +143,7 @@ class SocialiteAPIController extends AppBaseController
                         $userData = [
                             'name' => $userRaw[ 'given_name' ],
                             'lastname' => $userRaw[ 'family_name' ],
-                            'email' => $userProvider->getEmail()
+                            'email' => $email
                         ];
 
                         break;
@@ -156,7 +154,7 @@ class SocialiteAPIController extends AppBaseController
                         $userData = [
                             'name' => $userRaw[ 'first_name' ],
                             'lastname' => $userRaw[ 'last_name' ],
-                            'email' => $userProvider->getEmail()
+                            'email' => $email
                         ];
 
                         break;
@@ -165,7 +163,7 @@ class SocialiteAPIController extends AppBaseController
                         $userData = [
                             'name' => $userProvider->getName() ?? '',
                             'lastname' => '',
-                            'email' => $userProvider->getEmail()
+                            'email' => $email
                         ];
                         break;
                 }
