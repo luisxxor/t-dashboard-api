@@ -6,6 +6,7 @@ use App\Http\Controllers\AppBaseController;
 use App\Lib\Handlers\FileHandler;
 use App\Repositories\Dashboard\OrderRepository;
 use App\Repositories\Dashboard\ProjectRepository;
+use App\Repositories\Dashboard\UserRepository;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Response;
@@ -32,16 +33,23 @@ class OrdersAPIController extends AppBaseController
     private $projectRepository;
 
     /**
+     * @var  UserRepository
+     */
+    private $userRepository;
+
+    /**
      * Create a new controller instance.
      *
      * @return void
      */
     public function __construct( OrderRepository $orderRepo,
-        ProjectRepository $projectRepo )
+        ProjectRepository $projectRepo,
+        UserRepository $userRepo )
     {
         $this->fileHandler = new FileHandler();
         $this->orderRepository = $orderRepo;
         $this->projectRepository = $projectRepo;
+        $this->userRepository = $userRepo;
     }
 
     /**
@@ -59,6 +67,14 @@ class OrdersAPIController extends AppBaseController
      *         in="query",
      *         @OA\Schema(
      *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="userId",
+     *         required=false,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="int"
      *         )
      *     ),
      *     @OA\Response(
@@ -97,10 +113,12 @@ class OrdersAPIController extends AppBaseController
     public function index( Request $request )
     {
         $request->validate( [
-            'project' => 'required|string',
+            'project' => [ 'required', 'string' ],
+            'userId' => [ 'nullable', 'integer' ],
         ] );
 
-        $projectCode = $request->get( 'project' );
+        $projectCode    = $request->get( 'project' );
+        $userId         = $request->get( 'userId' );
 
         $project = $this->projectRepository->findByField( 'code', $projectCode );
 
@@ -109,10 +127,25 @@ class OrdersAPIController extends AppBaseController
             return $this->sendError( 'Project not found.', [], 404 );
         }
 
-        $orders = auth()->user()->orders()->get()->sortByDesc( 'created_at' );
+        $user = auth()->user();
+
+        // if user has permission to see foreign orders list
+        if ( $userId !== null && $user->hasPermissionTo( 'see.foreign.orders.list' ) === true ) {
+            $user = $this->userRepository->find( $userId );
+
+            if ( empty( $user ) === true ) {
+                \Log::info( 'User not found.', [ $id ] );
+
+                return $this->sendError( 'User not found.', [], 404 );
+            }
+        }
+
+        $orders = $user->orders()->get()->sortByDesc( 'created_at' );
 
         // solo las compras concretadas y del project actual
         $orders = $orders->filter( function ( $item, $index ) use ( $projectCode ) {
+            # TODO: pendiente mostrar ordenes pendientes y por pagar, para que el
+            # usuario tenga oportunidad de realizar el pago de las mismas
             return $item->status === config( 'constants.ORDERS_RELEASED_STATUS' )
                 && $item->project === $projectCode;
         } );
@@ -188,8 +221,8 @@ class OrdersAPIController extends AppBaseController
             return $this->sendError( 'Order not found.', [], 404 );
         }
 
-        // validate if the order belongs to the user
-        if ( $order->user_id != auth()->user()->getKey() ) {
+        // validate if the order belongs to the user, or user has permission to see foreign order
+        if ( $order->user_id != auth()->user()->getKey() || $user->hasPermissionTo( 'see.foreign.order' ) === true ) {
             throw new AuthorizationException;
         }
 
@@ -306,8 +339,8 @@ class OrdersAPIController extends AppBaseController
             return $this->sendError( 'Order not found.', [], 404 );
         }
 
-        // validate if the order belongs to the user
-        if ( $order->user_id != auth()->user()->getKey() ) {
+        // validate if the order belongs to the user, or user has permission to download foreign order
+        if ( $order->user_id != auth()->user()->getKey() || $user->hasPermissionTo( 'download.foreign.order' ) === true ) {
             throw new AuthorizationException;
         }
 

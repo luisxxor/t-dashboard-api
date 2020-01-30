@@ -592,8 +592,8 @@ class PropertiesAPIController extends AppBaseController
         // update the search to save selected ids by user
         $this->propertyRepository->updateSelectedSearchedProperties( $searchId, $ids );
 
-        // if admin, generate file. else, return payment init point link
-        if ( $user->hasRole( 'admin' ) === true ) {
+        // if user has permission to release order without paying, generate file
+        if ( $user->hasPermissionTo( 'release.order.without.paying' ) === true ) {
 
             // generate files request
             $guzzleClient = new GuzzleClient( [ 'base_uri' => url( '/' ), 'timeout' => 30.0 ] );
@@ -610,10 +610,9 @@ class PropertiesAPIController extends AppBaseController
 
             return $this->sendResponse( $order, 'Ordered successfully, file generated.', 202 );
         }
-        else {
 
-            return $this->sendResponse( $order, 'Ordered successfully.' );
-        }
+        // return payment init point link
+        return $this->sendResponse( $order, 'Ordered successfully.' );
     }
 
     /**
