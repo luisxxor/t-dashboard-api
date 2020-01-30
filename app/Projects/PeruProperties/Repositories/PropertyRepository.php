@@ -365,7 +365,14 @@ class PropertyRepository
 
     public function create( array $attributes )
     {
-        return Property::create( $attributes );
+
+       $property = Property::raw((
+                function ( $collection ) use ( $propertyData ) {             
+                    return $collection->insertOne( $propertyData );         
+            })
+        );
+
+        return $property;
     }
 
 }

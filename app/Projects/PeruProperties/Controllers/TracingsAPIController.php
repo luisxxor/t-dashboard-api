@@ -150,7 +150,6 @@ class TracingsAPIController extends AppBaseController
             ],
         ];
 
-        // dd(json_encode($propertyData));
 
         // insert into 'property' collection
         $property = $this->propertyRepository->create( $propertyData );
