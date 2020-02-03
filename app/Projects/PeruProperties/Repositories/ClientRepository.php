@@ -2,36 +2,36 @@
 
 namespace App\Projects\PeruProperties\Repositories;
 
-use App\Projects\PeruProperties\Models\Tracing;
+use App\Projects\PeruProperties\Models\Client;
 
 /**
- * Class TracingRepository
+ * Class ClientRepository
  * @package App\Projects\PeruProperties\Repositories
  * @version Jun 28, 2019, 2:34 pm UTC
 */
-class TracingRepository
+class ClientRepository
 {
     /**
      * Save a new document in repository
      *
      * @param array $attributes
      *
-     * @return \App\Projects\PeruProperties\Models\Tracing
+     * @return \App\Projects\PeruProperties\Models\Client
      */
     public function create( array $attributes )
     {
-        return Tracing::create( $attributes );
+        return Client::create( $attributes );
     }
     /**
      * Find a document by id in repository
      *
      * @param  mixed  $id
      *
-     * @return \App\Projects\PeruProperties\Models\Tracing
+     * @return \App\Projects\PeruProperties\Models\Client
      */
     public function find( $id )
     {
-        return Tracing::find( $id );
+        return Client::find( $id );
     }
 
     /**
@@ -39,18 +39,18 @@ class TracingRepository
      *
      * @param  mixed  $id
      *
-     * @return \App\Projects\PeruProperties\Models\Tracing
+     * @return \App\Projects\PeruProperties\Models\Client
      * @throws \Exception
      */
     public function findOrFail( $id )
     {
-        $tracing = $this->find( $id );
+        $client = $this->find( $id );
 
-        if ( empty( $tracing ) === true ) {
-            throw new \Exception( 'Tracing not found.' );
+        if ( empty( $client ) === true ) {
+            throw new \Exception( 'Client not found.' );
         }
 
-        return $tracing;
+        return $client;
     }
 
     /**
@@ -59,25 +59,25 @@ class TracingRepository
      * @param  array $attributes
      * @param  mixed $id
      *
-     * @return \App\Projects\PeruProperties\Models\Tracing
+     * @return \App\Projects\PeruProperties\Models\Client
      */
     public function update( array $attributes, $id )
     {
-        $tracing = Tracing::find( $id );
+        $client = Client::find( $id );
 
-        $tracing->fill( $attributes );
+        $client->fill( $attributes );
 
-        $tracing->save();
+        $client->save();
 
-        return $tracing;
+        return $client;
     }
 
     public function delete( $id )
     {
-        $tracing = Tracing::find( $id );
+        $client = Client::find( $id );
 
-        $tracing->delete();
+        $client->delete();
 
-        return $tracing;
+        return $client;
     }
 }

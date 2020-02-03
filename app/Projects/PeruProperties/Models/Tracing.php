@@ -3,9 +3,12 @@
 namespace App\Projects\PeruProperties\Models;
 
 use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
+use Jenssegers\Mongodb\Eloquent\SoftDeletes;
 
 class Tracing extends Moloquent
 {
+    use SoftDeletes;
+    
     /**
      * @var string
      */

@@ -6,21 +6,62 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Peru Properties Front-End Info Config
+    | Trancing properties Front-End Info Config
     |--------------------------------------------------------------------------
     |
     */
 
-    'baseURL' => [
-        'method' => 'get',
-        'path' => env( 'APP_URL' ) . '/api/tracing_properties/index',
-    ],
-
-
     'registerProperty' => [
         'method' => 'get',
-        'path' => env( 'APP_URL' ) . '/api/tracing_properties/register_property',
+        'path' => env( 'APP_URL' ) . '/api/tracing_properties/create_property',
     ],
+
+    'updateProperty' => [
+        'method' => 'patch',
+        'path' => env( 'APP_URL' ) . '/api/tracing_properties/update_property/{id}',
+    ],
+
+
+    'createTracing' => [
+        'method' => 'post',
+        'path' => env( 'APP_URL' ) . '/api/tracing/create',
+    ],   
+
+    'editTracing' => [
+        'method' => 'get',
+        'path' => env( 'APP_URL' ) . '/api/tracing/edit/{id}',
+    ],    
+
+    'updateTracing' => [
+        'method' => 'patch',
+        'path' => env( 'APP_URL' ) . '/api/tracing/update/{id}',
+    ],    
+
+    'deleteTracing' => [
+        'method' => 'delete',
+        'path' => env( 'APP_URL' ) . '/api/tracing/delete/{id}',
+    ],
+
+    'createClient' => [
+        'method' => 'post',
+        'path' => env( 'APP_URL' ) . '/api/client/create',
+    ],   
+
+    'editClient' => [
+        'method' => 'get',
+        'path' => env( 'APP_URL' ) . '/api/client/edit/{id}',
+    ],    
+
+    'updateClient' => [
+        'method' => 'patch',
+        'path' => env( 'APP_URL' ) . '/api/client/update/{id}',
+    ],    
+
+    'deleteClient' => [
+        'method' => 'delete',
+        'path' => env( 'APP_URL' ) . '/api/client/delete/{id}',
+    ],
+
 
     'mapMarkers' => [
         'visible' => true,

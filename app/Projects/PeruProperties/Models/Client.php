@@ -3,9 +3,11 @@
 namespace App\Projects\PeruProperties\Models;
 
 use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
+use Jenssegers\Mongodb\Eloquent\SoftDeletes;
 
-class Search extends Moloquent
+class Client extends Moloquent
 {
+    use SoftDeletes;
     /**
      * @var string
      */
@@ -34,6 +36,7 @@ class Search extends Moloquent
         'email',
         'executive',
         'email_executive',
+        'user_id',
     ];
 
 

@@ -367,10 +367,21 @@ class PropertyRepository
     {
 
        $property = Property::raw((
-                function ( $collection ) use ( $propertyData ) {             
-                    return $collection->insertOne( $propertyData );         
+                function ( $collection ) use ( $attributes ) {             
+                    return $collection->insertOne( $attributes );         
             })
         );
+
+        return $property;
+    }
+
+        public function update( array $attributes, $id )
+    {
+        $property = Property::find( $id );
+
+        $property->fill( $attributes );
+
+        $property->save();
 
         return $property;
     }

@@ -43,10 +43,28 @@ Route::middleware( 'auth:api', 'verified' )->group( function () {
     Route::post( 'peru_properties/order', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@order' )->name( 'peru_properties.processOrder' );
     Route::get( 'peru_properties/orders/{orderCode}/download', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@downloadOrderedFile' )->name( 'peru_properties.download' );
 
-    //trancing
-    Route::get( 'tracing_properties/index', '\App\Projects\TracingProperties\Controllers\TracingsAPIController@index' )->name( 'tracing_properties.index' );
+    //trancing property
     Route::post( 'tracing_properties/create_property', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@createProperties' )->name( 'tracing_properties.create' );
 
+    Route::patch( 'tracing_properties/update_property/{id}', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@updateProperties' )->name( 'tracing_properties.update' );
+
+    //trancing create
+    Route::post( 'tracing/create', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@createTracing' )->name( 'tracing.create' );
+
+    Route::get( 'tracing/edit/{id}', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@editTracing' )->name( 'tracing.edit' );
+
+    Route::patch( 'tracing/update/{id}', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@updateTracing' )->name( 'tracing.update' );
+
+    Route::delete( 'tracing/delete/{id}', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@deleteTracing' )->name( 'tracing.delete' );
+
+    //client create
+    Route::post( 'client/create', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@createClient' )->name( 'client.create' );
+
+    Route::get( 'client/edit/{id}', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@editClient' )->name( 'client.edit' );
+
+    Route::patch( 'client/update/{id}', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@updateClient' )->name( 'client.update' );
+
+    Route::delete( 'client/delete/{id}', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@deleteClient' )->name( 'client.delete' );
 } );
 
 // generate peru properties profile
