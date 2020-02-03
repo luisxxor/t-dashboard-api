@@ -378,10 +378,10 @@ class PropertyRepository
         public function update( array $attributes, $id )
     {
         $property = Property::find( $id );
+        // $property->address = $attributes['address'];
+        // $property->save();
 
-        $property->fill( $attributes );
-
-        $property->save();
+        $property->fill( $attributes )->save();
 
         return $property;
     }

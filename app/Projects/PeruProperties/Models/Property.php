@@ -24,7 +24,8 @@ class Property extends Moloquent
     /**
      * @var string
      */
-    protected $fillable = array('*');
+    
+    protected $guarded = [];
 
     /**
      * @var array
