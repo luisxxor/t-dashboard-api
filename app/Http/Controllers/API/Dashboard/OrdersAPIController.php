@@ -142,11 +142,9 @@ class OrdersAPIController extends AppBaseController
 
         $orders = $user->orders()->get()->sortByDesc( 'created_at' );
 
-        // solo las compras concretadas y del project actual
+        // only consistent orders and from given project
         $orders = $orders->filter( function ( $item, $index ) use ( $projectCode ) {
-            # TODO: pendiente mostrar ordenes pendientes y por pagar, para que el
-            # usuario tenga oportunidad de realizar el pago de las mismas
-            return $item->status === config( 'constants.ORDERS_RELEASED_STATUS' )
+            return $item->status !== null
                 && $item->project === $projectCode;
         } );
 

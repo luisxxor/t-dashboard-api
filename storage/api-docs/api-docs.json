@@ -454,6 +454,14 @@
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    {
+                        "name": "userId",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "int"
+                        }
                     }
                 ],
                 "responses": {
@@ -1009,16 +1017,75 @@
                 ]
             }
         },
-        "/api/dashboard/users/{id}/orders": {
-            "get": {
+        "/api/dashboard/admin/users/{userId}": {
+            "put": {
                 "tags": [
                     "Users Management"
                 ],
-                "summary": "Display the orders of an user",
-                "operationId": "ordersByUser",
+                "summary": "Update the specified user's User with given data",
+                "operationId": "update",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "lastname",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "phone_number1",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "address_line1",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "address_line2",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "password",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "accessible_projects",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {}
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Data retrived.",
+                        "description": "Data updated successfully.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1027,13 +1094,7 @@
                                             "type": "boolean"
                                         },
                                         "data": {
-                                            "properties": {
-                                                "data": {
-                                                    "type": "array",
-                                                    "items": {}
-                                                }
-                                            },
-                                            "type": "object"
+                                            "$ref": "#/components/schemas/User"
                                         },
                                         "message": {
                                             "type": "string"
@@ -1046,6 +1107,12 @@
                     },
                     "401": {
                         "description": "Unauthenticated."
+                    },
+                    "404": {
+                        "description": "Data not found."
+                    },
+                    "422": {
+                        "description": "The given data was invalid."
                     }
                 },
                 "security": [

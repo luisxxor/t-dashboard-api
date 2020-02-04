@@ -8,6 +8,7 @@ use App\Repositories\Dashboard\UserRepository;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class RegisterAPIController extends AppBaseController
 {
@@ -142,7 +143,7 @@ class RegisterAPIController extends AppBaseController
             'lastname'  => [ 'required', 'string', 'min:2', 'max:30' ],
             'email'     => [ 'required', 'string', 'email', 'max:30', 'unique:users' ],
             'password'  => [ 'required', 'string', 'min:8', 'max:30', 'confirmed' ],
-            'token'     => [ 'required', 'string' ],
+            'token'     => [ 'required', 'string', Rule::in( array_keys( config( 'multi-api' ) ) ) ],
         ] );
     }
 

@@ -174,7 +174,7 @@ class ProfileAPIController extends AppBaseController
      */
     public function update( Request $request )
     {
-        $input = $request->only( [ 'name', 'lastname', 'phone_number1', 'address_line1', 'address_line2', 'old_password' ] );
+        $input = $request->only( [ 'name', 'lastname', 'phone_number1', 'address_line1', 'address_line2', 'password', 'old_password' ] );
 
         $user = auth()->user();
 
@@ -184,10 +184,11 @@ class ProfileAPIController extends AppBaseController
             'phone_number1' => [ 'nullable', 'string' ],
             'address_line1' => [ 'nullable', 'string', 'min:5', 'max:50' ],
             'address_line2' => [ 'nullable', 'string', 'min:5', 'max:50' ],
+            'password' => [ 'nullable', 'string', 'min:8', 'max:30' ],
             'old_password' => [
                 'bail',
-                Rule::requiredIf( function () use ( $user ) {
-                    return empty( $user->password ) === false;
+                Rule::requiredIf( function () use ( $request ) {
+                    return $request->get( 'password' ) !== null;
                 } ),
                 'string',
                 new CurrentPassword

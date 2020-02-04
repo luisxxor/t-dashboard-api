@@ -4,13 +4,13 @@ namespace App\Http\Controllers\API\OAuth;
 
 use App\Http\Controllers\AppBaseController;
 use App\Http\Resources\User as UserResource;
-// use App\Models\Dashboard\User;
 use App\Providers\GoogleProvider;
 use App\Repositories\Dashboard\UserRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Socialite;
 
 class SocialiteAPIController extends AppBaseController
@@ -82,7 +82,7 @@ class SocialiteAPIController extends AppBaseController
     public function redirect( $provider, Request $request )
     {
         $request->validate( [
-            'token' => [ 'required', 'string' ],
+            'token' => [ 'required', 'string', Rule::in( array_keys( config( 'multi-api' ) ) ) ],
         ] );
 
         $token = $request->get( 'token' );

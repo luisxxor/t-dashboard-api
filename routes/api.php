@@ -33,7 +33,10 @@ Route::middleware( 'auth:api', 'verified' )->group( function () {
 
     // users management
 
-    Route::get( 'dashboard/users', 'API\Dashboard\UsersManagementAPIController@index' )->name( 'dashboard.usersManagement.index' )
+    Route::get( 'dashboard/admin/users', 'API\Dashboard\UsersManagementAPIController@index' )->name( 'dashboard.usersManagement.index' )
+        ->middleware( 'can:manage.users' );
+
+    Route::put( 'dashboard/admin/users/{userId}', 'API\Dashboard\UsersManagementAPIController@update' )->name( 'dashboard.usersManagement.update' )
         ->middleware( 'can:manage.users' );
 
     // orders
