@@ -4,13 +4,32 @@ namespace App\Http\Controllers\API\OAuth;
 
 use App\Http\Controllers\AppBaseController;
 use App\Http\Resources\User as UserResource;
-use App\Models\Dashboard\User;
+// use App\Models\Dashboard\User;
+use App\Providers\GoogleProvider;
+use App\Repositories\Dashboard\UserRepository;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Socialite;
 
 class SocialiteAPIController extends AppBaseController
 {
+    /**
+     * @var  UserRepository
+     */
+    private $userRepository;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct( UserRepository $userRepo )
+    {
+        $this->userRepository = $userRepo;
+    }
+
     /**
      * @return \Illuminate\Http\JsonResponse
      *
@@ -50,7 +69,19 @@ class SocialiteAPIController extends AppBaseController
      */
     public function redirect( $provider )
     {
-        $urlRedirect = Socialite::driver( $provider )->stateless()->redirect()->getTargetUrl();
+        // $urlRedirect = Socialite::driver( $provider )->stateless()->redirect()->getTargetUrl();
+        // $urlRedirect = Socialite::driver( $provider )->with( [ 'internal_project' => 'example.com' ] )->stateless()->redirect()->getTargetUrl();
+        $urlRedirect = Socialite::extend( 'google', function ( $container ) {
+                $config = $container['config']['services.google'];
+                return new GoogleProvider(
+                    $container[ 'request' ],
+                    $config[ 'client_id' ],
+                    $config[ 'client_secret' ],
+                    Str::startsWith( value($config['redirect']), '/' ) ? $container[ 'url' ]->to( value($config['redirect']) ) : value($config['redirect']),
+                    Arr::get( $config, 'guzzle', [] )
+                );
+            } )
+            ->driver( $provider )->redirect()->getTargetUrl();
 
         return $this->sendResponse( $urlRedirect, 'Provider redirect url retrieve successfully.' );
     }
@@ -130,7 +161,7 @@ class SocialiteAPIController extends AppBaseController
             $email = $userProvider->getEmail();
 
             // get user if exists
-            $user = User::where( 'email', $email )->first();
+            $user = $this->userRepository->findByField( 'email', $email )->first();
 
             // create user if it is not created yet
             if ( $user === null ) {
@@ -169,9 +200,11 @@ class SocialiteAPIController extends AppBaseController
                 }
 
                 // create user
-                $user = User::create( $userData );
-                $user->email_verified_at = now();
-                $user->save();
+                // $user = User::create( $userData );
+                $userData[ 'email_verified_at' ] = now();
+                $user = $this->userRepository->create( $userData );
+                // $user->email_verified_at = now();
+                // $user->save();
 
                 $user->assignRoles( 'regular-user' );
             }

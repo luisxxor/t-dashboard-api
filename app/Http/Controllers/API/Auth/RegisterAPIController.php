@@ -3,14 +3,29 @@
 namespace App\Http\Controllers\API\Auth;
 
 use App\Http\Controllers\AppBaseController;
-use App\Models\Dashboard\User;
 use App\Http\Resources\User as UserResource;
+use App\Repositories\Dashboard\UserRepository;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class RegisterAPIController extends AppBaseController
 {
+    /**
+     * @var  UserRepository
+     */
+    private $userRepository;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct( UserRepository $userRepo )
+    {
+        $this->userRepository = $userRepo;
+    }
+
     /**
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
@@ -95,9 +110,11 @@ class RegisterAPIController extends AppBaseController
      */
     public function register( Request $request )
     {
-        $this->validator( $request->all() )->validate();
+        $input = $request->only( [ 'name', 'lastname', 'email', 'password', 'password_confirmation' ] );
 
-        event( new Registered( $user = $this->create( $request->all() ) ) );
+        $this->validator( $input )->validate();
+
+        event( new Registered( $user = $this->create( $input ) ) );
 
         // # ver que scopes asignar/crear
         $scopes = [];
@@ -136,7 +153,7 @@ class RegisterAPIController extends AppBaseController
      */
     protected function create( array $data )
     {
-        $user = User::create( [
+        $user = $this->userRepository->create( [
             'name' => $data[ 'name' ],
             'lastname' => $data[ 'lastname' ],
             'email' => $data[ 'email' ],
