@@ -31,6 +31,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
 
         'email_verified_at',
+
+        'accessible_projects',
     ];
 
     /**
@@ -49,6 +51,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'address_line2' => 'string',
 
         'password' => 'string',
+
+        'accessible_projects' => 'array',
     ];
 
     /**

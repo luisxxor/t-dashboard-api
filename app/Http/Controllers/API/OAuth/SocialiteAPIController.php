@@ -28,6 +28,18 @@ class SocialiteAPIController extends AppBaseController
     public function __construct( UserRepository $userRepo )
     {
         $this->userRepository = $userRepo;
+
+        Socialite::extend( 'google', function ( $container ) {
+            $config = $container[ 'config' ][ 'services.google' ];
+            $redirect = value( $config[ 'redirect' ] );
+            return new GoogleProvider(
+                $container[ 'request' ],
+                $config[ 'client_id' ],
+                $config[ 'client_secret' ],
+                Str::startsWith( $redirect, '/' ) ? $container[ 'url' ]->to( $redirect ) : $redirect,
+                Arr::get( $config, 'guzzle', [] )
+            );
+        } );
     }
 
     /**
@@ -67,21 +79,15 @@ class SocialiteAPIController extends AppBaseController
      *      )
      * )
      */
-    public function redirect( $provider )
+    public function redirect( $provider, Request $request )
     {
-        // $urlRedirect = Socialite::driver( $provider )->stateless()->redirect()->getTargetUrl();
-        // $urlRedirect = Socialite::driver( $provider )->with( [ 'internal_project' => 'example.com' ] )->stateless()->redirect()->getTargetUrl();
-        $urlRedirect = Socialite::extend( 'google', function ( $container ) {
-                $config = $container['config']['services.google'];
-                return new GoogleProvider(
-                    $container[ 'request' ],
-                    $config[ 'client_id' ],
-                    $config[ 'client_secret' ],
-                    Str::startsWith( value($config['redirect']), '/' ) ? $container[ 'url' ]->to( value($config['redirect']) ) : value($config['redirect']),
-                    Arr::get( $config, 'guzzle', [] )
-                );
-            } )
-            ->driver( $provider )->redirect()->getTargetUrl();
+        $request->validate( [
+            'token' => [ 'required', 'string' ],
+        ] );
+
+        $token = $request->get( 'token' );
+
+        $urlRedirect = Socialite::driver( $provider )->setFakeState( $token )->redirect()->getTargetUrl();
 
         return $this->sendResponse( $urlRedirect, 'Provider redirect url retrieve successfully.' );
     }
@@ -139,8 +145,14 @@ class SocialiteAPIController extends AppBaseController
      *     ),
      * )
      */
-    public function callback( $provider )
+    public function callback( $provider, Request $request )
     {
+        $request->validate( [
+            'state' => [ 'required', 'string' ],
+        ] );
+
+        $token = $request->get( 'state' );
+
         // get user info through provider
         $userProvider = Socialite::driver( $provider )->stateless()->user();
 
@@ -200,11 +212,9 @@ class SocialiteAPIController extends AppBaseController
                 }
 
                 // create user
-                // $user = User::create( $userData );
                 $userData[ 'email_verified_at' ] = now();
+                $userData[ 'accessible_projects' ] = [ $token ];
                 $user = $this->userRepository->create( $userData );
-                // $user->email_verified_at = now();
-                // $user->save();
 
                 $user->assignRoles( 'regular-user' );
             }

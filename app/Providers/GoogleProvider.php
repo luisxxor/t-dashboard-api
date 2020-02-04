@@ -8,6 +8,11 @@ use Illuminate\Http\RedirectResponse;
 class GoogleProvider extends GoogleProviderSocialite
 {
     /**
+     * @var string
+     */
+    protected $state = null;
+
+    /**
      * Redirect the user of the application to the provider's authentication screen.
      *
      * @return \Illuminate\Http\RedirectResponse
@@ -30,6 +35,20 @@ class GoogleProvider extends GoogleProviderSocialite
      */
     protected function getState()
     {
-        return 'stevenYO';
+        return $this->state;
+    }
+
+    /**
+     * Sets an arbitrary string designed to send a state to google and spected it.
+     *
+     * @param string $value
+     *
+     * @return string
+     */
+    public function setFakeState( string $value )
+    {
+        $this->state = $value;
+
+        return $this;
     }
 }

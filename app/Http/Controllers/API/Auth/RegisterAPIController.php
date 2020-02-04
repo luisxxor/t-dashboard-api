@@ -110,7 +110,7 @@ class RegisterAPIController extends AppBaseController
      */
     public function register( Request $request )
     {
-        $input = $request->only( [ 'name', 'lastname', 'email', 'password', 'password_confirmation' ] );
+        $input = $request->only( [ 'name', 'lastname', 'email', 'password', 'password_confirmation', 'token' ] );
 
         $this->validator( $input )->validate();
 
@@ -138,10 +138,11 @@ class RegisterAPIController extends AppBaseController
     protected function validator( array $data )
     {
         return Validator::make( $data, [
-            'name' => ['required', 'string', 'min:2', 'max:30'],
-            'lastname' => ['required', 'string', 'min:2', 'max:30'],
-            'email' => ['required', 'string', 'email', 'max:30', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'max:30', 'confirmed'],
+            'name'      => [ 'required', 'string', 'min:2', 'max:30' ],
+            'lastname'  => [ 'required', 'string', 'min:2', 'max:30' ],
+            'email'     => [ 'required', 'string', 'email', 'max:30', 'unique:users' ],
+            'password'  => [ 'required', 'string', 'min:8', 'max:30', 'confirmed' ],
+            'token'     => [ 'required', 'string' ],
         ] );
     }
 
@@ -158,6 +159,7 @@ class RegisterAPIController extends AppBaseController
             'lastname' => $data[ 'lastname' ],
             'email' => $data[ 'email' ],
             'password' => $data[ 'password' ],
+            'accessible_projects' => [ $data[ 'token' ] ],
         ] );
 
         $user->assignRoles( 'regular-user' );
