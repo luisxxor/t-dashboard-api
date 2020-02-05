@@ -1,21 +1,20 @@
 <?php
 
-namespace App\Http\Controllers\API\Dashboard;
+namespace App\Http\Controllers\API\Admin;
 
 use App\Http\Controllers\AppBaseController;
-# TODO crear recurso usuario para management
-// use App\Http\Resources\User as UserResource;
+use App\Repositories\Admin\RoleRepository;
+use App\Repositories\Dashboard\ProjectRepository;
 use App\Repositories\Dashboard\UserRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use Response;
 
 /**
- * Class UsersManagementAPIController
- * @package App\Http\Controllers\API\Dashboard
+ * Class UsersAPIController
+ * @package App\Http\Controllers\API\Admin
  */
-class UsersManagementAPIController extends AppBaseController
+class UsersAPIController extends AppBaseController
 {
     /**
      * @var  UserRepository
@@ -23,13 +22,27 @@ class UsersManagementAPIController extends AppBaseController
     private $userRepository;
 
     /**
+     * @var  ProjectRepository
+     */
+    private $projectRepository;
+
+    /**
+     * @var  RoleRepository
+     */
+    private $roleRepository;
+
+    /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct( UserRepository $userRepo )
+    public function __construct( UserRepository $userRepo,
+        ProjectRepository $projectRepo,
+        RoleRepository $roleRepo )
     {
         $this->userRepository = $userRepo;
+        $this->projectRepository = $projectRepo;
+        $this->roleRepository = $roleRepo;
     }
 
     /**
@@ -38,7 +51,7 @@ class UsersManagementAPIController extends AppBaseController
      * @OA\Get(
      *     path="/api/dashboard/users",
      *     operationId="index",
-     *     tags={"Users Management"},
+     *     tags={"Admin"},
      *     summary="Display the list of users",
      *     @OA\Response(
      *         response=200,
@@ -51,14 +64,7 @@ class UsersManagementAPIController extends AppBaseController
      *             ),
      *             @OA\Property(
      *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(
-     *                     property="data",
-     *                     type="array",
-     *                     @OA\Items(
-     *                         ref="#/components/schemas/User"
-     *                     )
-     *                 ),
+     *                 type="object"
      *             ),
      *             @OA\Property(
      *                 property="message",
@@ -79,8 +85,6 @@ class UsersManagementAPIController extends AppBaseController
     {
         $users = $this->userRepository->all();
 
-        // $resource = UserResource::collection( $users );
-
         return $this->sendResponse( $users, 'Users data retrived.' );
     }
 
@@ -92,8 +96,8 @@ class UsersManagementAPIController extends AppBaseController
      * @OA\Put(
      *     path="/api/dashboard/admin/users/{userId}",
      *     operationId="update",
-     *     tags={"Users Management"},
-     *     summary="Update the specified user's User with given data",
+     *     tags={"Admin"},
+     *     summary="Update the specified user's with given data",
      *     @OA\Parameter(
      *         name="name",
      *         required=true,
@@ -144,7 +148,16 @@ class UsersManagementAPIController extends AppBaseController
      *     ),
      *     @OA\Parameter(
      *         name="accessible_projects",
-     *         required=true,
+     *         required=false,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="array",
+     *             @OA\Items()
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="roles",
+     *         required=false,
      *         in="query",
      *         @OA\Schema(
      *             type="array",
@@ -162,7 +175,7 @@ class UsersManagementAPIController extends AppBaseController
      *             ),
      *             @OA\Property(
      *                 property="data",
-     *                 ref="#/components/schemas/User"
+     *                 type="object"
      *             ),
      *             @OA\Property(
      *                 property="message",
@@ -189,7 +202,17 @@ class UsersManagementAPIController extends AppBaseController
      */
     public function update( $userId, Request $request )
     {
-        $input = $request->only( [ 'name', 'lastname', 'phone_number1', 'address_line1', 'address_line2', 'password', 'accessible_projects' ] );
+        $input = $request->only( [
+            'name', 'lastname', 'phone_number1', 'address_line1', 'address_line2', 'password',
+
+            'accessible_projects',
+
+            'roles',
+        ] );
+
+        $projects = array_column( $this->projectRepository->all( [], null, null, [ 'code' ] )->toArray(), 'code' );
+
+        $roles = array_column( $this->roleRepository->all( [], null, null, [ 'slug' ] )->toArray(), 'slug' );
 
         Validator::make( $input, [
             'name' => [ 'required', 'string', 'min:2', 'max:30' ],
@@ -198,7 +221,10 @@ class UsersManagementAPIController extends AppBaseController
             'address_line1' => [ 'nullable', 'string', 'min:5', 'max:50' ],
             'address_line2' => [ 'nullable', 'string', 'min:5', 'max:50' ],
             'password' => [ 'nullable', 'string', 'min:8', 'max:30' ],
-            'accessible_projects' => [ 'required', 'array', 'filled', Rule::in( array_keys( config( 'multi-api' ) ) ) ],
+
+            'accessible_projects' => [ 'nullable', 'array', 'filled', Rule::in( $projects ) ],
+
+            'roles' => [ 'nullable', 'array', 'filled', Rule::in( $roles ) ],
         ] )->validate();
 
         $user = $this->userRepository->find( $userId );
@@ -209,8 +235,10 @@ class UsersManagementAPIController extends AppBaseController
 
         $user = $this->userRepository->update( $input, $userId );
 
-        // $user = new UserResource( $user );
+        if ( $request->get( 'roles' ) !== null ) {
+            $user->syncRoles( $request->get( 'roles' ) );
+        }
 
-        return $this->sendResponse( $user, 'User updated successfully.' );
+        return $this->sendResponse( $user->append( 'role_list' )->toArray(), 'User updated successfully.' );
     }
 }

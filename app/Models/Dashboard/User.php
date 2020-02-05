@@ -106,6 +106,16 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get the user's roles.
+     *
+     * @return array
+     */
+    public function getRoleListAttribute()
+    {
+        return array_column( $this->roles()->get( [ 'slug' ] )->toArray(), 'slug' );
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function orders()
