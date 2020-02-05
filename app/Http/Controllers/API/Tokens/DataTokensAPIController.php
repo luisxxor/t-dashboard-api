@@ -37,6 +37,15 @@ class DataTokensAPIController extends AppBaseController
      *     operationId="create",
      *     tags={"Tokens"},
      *     summary="Generate auth token",
+     *     @OA\Parameter(
+     *         name="data",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="array",
+     *             @OA\Items()
+     *         )
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Data retrieved.",
@@ -59,10 +68,7 @@ class DataTokensAPIController extends AppBaseController
      *     @OA\Response(
      *         response=401,
      *         description="Unauthenticated."
-     *     ),
-     *     security={
-     *         {"": {}}
-     *     }
+     *     )
      * )
      */
     public function create( Request $request )

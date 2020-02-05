@@ -31,7 +31,7 @@ class RolesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
-     *     path="/api/dashboard/roles",
+     *     path="/api/admin/roles",
      *     operationId="index",
      *     tags={"Admin"},
      *     summary="Display the list of roles",

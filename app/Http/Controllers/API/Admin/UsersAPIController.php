@@ -49,7 +49,7 @@ class UsersAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
-     *     path="/api/dashboard/users",
+     *     path="/api/admin/users",
      *     operationId="index",
      *     tags={"Admin"},
      *     summary="Display the list of users",
@@ -94,7 +94,7 @@ class UsersAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Put(
-     *     path="/api/dashboard/admin/users/{userId}",
+     *     path="/api/admin/admin/users/{userId}",
      *     operationId="update",
      *     tags={"Admin"},
      *     summary="Update the specified user's with given data",

@@ -11,7 +11,7 @@
         }
     ],
     "paths": {
-        "/api/dashboard/roles": {
+        "/api/admin/roles": {
             "get": {
                 "tags": [
                     "Admin"
@@ -51,7 +51,7 @@
                 ]
             }
         },
-        "/api/dashboard/users": {
+        "/api/admin/users": {
             "get": {
                 "tags": [
                     "Admin"
@@ -91,7 +91,7 @@
                 ]
             }
         },
-        "/api/dashboard/admin/users/{userId}": {
+        "/api/admin/admin/users/{userId}": {
             "put": {
                 "tags": [
                     "Admin"
@@ -1259,6 +1259,52 @@
                                 }
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/api/tokens/auth_token": {
+            "post": {
+                "tags": [
+                    "Tokens"
+                ],
+                "summary": "Generate auth token",
+                "operationId": "create",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {}
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Data retrieved.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
                     }
                 }
             }
