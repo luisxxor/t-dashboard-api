@@ -18,6 +18,8 @@ AuthAPI::routes( [ 'verify' => true ] );
 Route::get( 'login/{provider}', 'API\OAuth\SocialiteAPIController@redirect' );
 Route::get( 'login/{provider}/callback','API\OAuth\SocialiteAPIController@callback' );
 
+Route::post( 'tokens/auth_token', 'API\Tokens\DataTokensAPIController@create' )->name( 'tokens.dataToken.create' );
+
 Route::prefix( 'dashboard' )->middleware( 'auth:api', 'verified' )->group( function () {
 
     // profile

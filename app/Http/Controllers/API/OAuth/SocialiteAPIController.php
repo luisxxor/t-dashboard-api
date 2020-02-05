@@ -6,9 +6,11 @@ use App\Http\Controllers\AppBaseController;
 use App\Http\Resources\User as UserResource;
 use App\Providers\GoogleProvider;
 use App\Repositories\Dashboard\UserRepository;
+use App\Repositories\Tokens\DataTokenRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Socialite;
@@ -21,13 +23,20 @@ class SocialiteAPIController extends AppBaseController
     private $userRepository;
 
     /**
+     * @var  DataTokenRepository
+     */
+    private $dataTokenRepository;
+
+    /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct( UserRepository $userRepo )
+    public function __construct( UserRepository $userRepo,
+        DataTokenRepository $dataTokenRepo )
     {
         $this->userRepository = $userRepo;
+        $this->dataTokenRepository = $dataTokenRepo;
 
         Socialite::extend( 'google', function ( $container ) {
             $config = $container[ 'config' ][ 'services.google' ];
@@ -82,7 +91,7 @@ class SocialiteAPIController extends AppBaseController
     public function redirect( $provider, Request $request )
     {
         $request->validate( [
-            'token' => [ 'required', 'string', Rule::in( array_keys( config( 'multi-api' ) ) ) ],
+            'token' => [ 'required', 'string', 'filled' ],
         ] );
 
         $token = $request->get( 'token' );
@@ -147,11 +156,19 @@ class SocialiteAPIController extends AppBaseController
      */
     public function callback( $provider, Request $request )
     {
-        $request->validate( [
-            'state' => [ 'required', 'string' ],
-        ] );
+        Validator::make( $request->toArray(), [
+                'state' => [ 'required', 'string', 'exists:data_tokens,token' ],
+            ],
+            [
+                'state.exists' => 'Token no valido.',
+            ]
+        )->validate();
 
-        $token = $request->get( 'state' );
+        $dataToken = $this->dataTokenRepository->findAndDelete( $request->get( 'state' ) )[ 'data' ];
+
+        Validator::make( $dataToken, [
+            'project' => [ 'required', 'string', Rule::in( array_keys( config( 'multi-api' ) ) ) ],
+        ] )->validate();
 
         // get user info through provider
         $userProvider = Socialite::driver( $provider )->stateless()->user();
@@ -211,12 +228,10 @@ class SocialiteAPIController extends AppBaseController
                         break;
                 }
 
-                // create user
                 $userData[ 'email_verified_at' ] = now();
-                $userData[ 'accessible_projects' ] = [ $token ];
-                $user = $this->userRepository->create( $userData );
+                $userData[ 'project' ] = $dataToken[ 'project' ];
 
-                $user->assignRoles( 'regular-user' );
+                $user = $this->create( $userData );
             }
 
             // create linked social account for user
@@ -240,6 +255,27 @@ class SocialiteAPIController extends AppBaseController
         ];
 
         return $this->sendResponse( $response, 'User logged successfully.' );
+    }
+
+    /**
+     * Create a new user instance after a valid registration.
+     *
+     * @param  array  $data
+     * @return \App\Models\Dashboard\User
+     */
+    protected function create( array $data )
+    {
+        $user = $this->userRepository->create( [
+            'name' => $data[ 'name' ],
+            'lastname' => $data[ 'lastname' ],
+            'email' => $data[ 'email' ],
+            'email_verified_at' => $data[ 'email_verified_at' ],
+            'accessible_projects' => [ $data[ 'project' ] ],
+        ] );
+
+        $user->assignRoles( 'regular-user' );
+
+        return $user;
     }
 
     /**

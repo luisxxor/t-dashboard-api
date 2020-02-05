@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\Auth;
 use App\Http\Controllers\AppBaseController;
 use App\Http\Resources\User as UserResource;
 use App\Repositories\Dashboard\UserRepository;
+use App\Repositories\Tokens\DataTokenRepository;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -18,13 +19,20 @@ class RegisterAPIController extends AppBaseController
     private $userRepository;
 
     /**
+     * @var  DataTokenRepository
+     */
+    private $dataTokenRepository;
+
+    /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct( UserRepository $userRepo )
+    public function __construct( UserRepository $userRepo,
+        DataTokenRepository $dataTokenRepo )
     {
         $this->userRepository = $userRepo;
+        $this->dataTokenRepository = $dataTokenRepo;
     }
 
     /**
@@ -115,6 +123,14 @@ class RegisterAPIController extends AppBaseController
 
         $this->validator( $input )->validate();
 
+        $dataToken = $this->dataTokenRepository->findAndDelete( $request->get( 'token' ) )[ 'data' ];
+
+        Validator::make( $dataToken, [
+            'project' => [ 'required', 'string', Rule::in( array_keys( config( 'multi-api' ) ) ) ],
+        ] )->validate();
+
+        $input[ 'project' ] = $dataToken[ 'project' ];
+
         event( new Registered( $user = $this->create( $input ) ) );
 
         // # ver que scopes asignar/crear
@@ -139,12 +155,16 @@ class RegisterAPIController extends AppBaseController
     protected function validator( array $data )
     {
         return Validator::make( $data, [
-            'name'      => [ 'required', 'string', 'min:2', 'max:30' ],
-            'lastname'  => [ 'required', 'string', 'min:2', 'max:30' ],
-            'email'     => [ 'required', 'string', 'email', 'max:30', 'unique:users' ],
-            'password'  => [ 'required', 'string', 'min:8', 'max:30', 'confirmed' ],
-            'token'     => [ 'required', 'string', Rule::in( array_keys( config( 'multi-api' ) ) ) ],
-        ] );
+                'name'      => [ 'required', 'string', 'min:2', 'max:30' ],
+                'lastname'  => [ 'required', 'string', 'min:2', 'max:30' ],
+                'email'     => [ 'required', 'string', 'email', 'max:30', 'unique:users' ],
+                'password'  => [ 'required', 'string', 'min:8', 'max:30', 'confirmed' ],
+                'token'     => [ 'required', 'string', 'exists:data_tokens,token' ],
+            ],
+            [
+                'token.exists' => 'Token no valido.',
+            ]
+        );
     }
 
     /**
@@ -160,7 +180,7 @@ class RegisterAPIController extends AppBaseController
             'lastname' => $data[ 'lastname' ],
             'email' => $data[ 'email' ],
             'password' => $data[ 'password' ],
-            'accessible_projects' => [ $data[ 'token' ] ],
+            'accessible_projects' => [ $data[ 'project' ] ],
         ] );
 
         $user->assignRoles( 'regular-user' );
