@@ -11,6 +11,11 @@ return [
     |
     */
 
+    'InitPointer' => [
+        'method' => 'get',
+        'path' => env( 'APP_URL' ) . '/api/tracing_properties/init_pointer',
+    ],    
+
     'registerProperty' => [
         'method' => 'get',
         'path' => env( 'APP_URL' ) . '/api/tracing_properties/create_property',

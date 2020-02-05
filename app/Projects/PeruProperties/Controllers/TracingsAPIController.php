@@ -197,6 +197,25 @@ class TracingsAPIController extends AppBaseController
     /**
      * PROPERTIES
      */
+    public function initPoint( Request $request )
+    {
+        $request->validate( [
+            'lat'           => [ 'required', 'numeric' ],
+            'lng'           => [ 'required', 'numeric' ],
+            'maxDistance'   => [ 'required', 'integer', 'min:1', 'max:5000' ],
+        ] );
+
+        // input
+        $lat            = $request->get( 'lat' );
+        $lng            = $request->get( 'lng' );
+        $maxDistance    = $request->get( 'maxDistance' );
+
+        // construct and execute query.
+        // search properties
+        $properties = $this->propertyRepository->searchPropertiesToTracing( $lat, $lng, $maxDistance );
+
+        return $this->sendResponse( array('count' => count($properties), 'properties' => $properties ), 'Success.' );
+    }
 
 
     public function createProperties( Request $request )
@@ -221,10 +240,17 @@ class TracingsAPIController extends AppBaseController
         // metadata data
 
         $propertyData = [
-            "address" => $address,
-            "latitude" => $latitude ,
-            "link" => $link,
-            "longitude" => $longitude
+            "address"      => $address,
+            "latitude"     => $latitude ,
+            "link"         => $link,
+            "longitude"    => $longitude,
+            'geo_location' => [
+                "type"         => "Point",
+                "coordinates"  => [ 
+                    $longitude, 
+                    $latitude 
+                    ]
+            ],
         ];
 
 

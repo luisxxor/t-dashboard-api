@@ -44,6 +44,8 @@ Route::middleware( 'auth:api', 'verified' )->group( function () {
     Route::get( 'peru_properties/orders/{orderCode}/download', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@downloadOrderedFile' )->name( 'peru_properties.download' );
 
     //trancing property
+    Route::get( 'tracing_properties/init_pointer', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@initPoint' )->name( 'tracing_properties.init' );
+
     Route::post( 'tracing_properties/create_property', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@createProperties' )->name( 'tracing_properties.create' );
 
     Route::patch( 'tracing_properties/update_property/{id}', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@updateProperties' )->name( 'tracing_properties.update' );

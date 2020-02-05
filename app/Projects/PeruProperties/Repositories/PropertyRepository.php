@@ -114,6 +114,31 @@ class PropertyRepository
         } ) );
     }
 
+        /**
+     * Make a search of properties but not specting response.
+     *
+     * @param float $lat
+     * @param float $lng
+     * @param int $maxDistance The maximum distance from the center
+     *        point that the documents can be (in meters).
+     *
+     * @return array
+     */
+    public function searchPropertiesToTracing( float $lat, float $lng, int $maxDistance )
+    {
+        // pipeline to get distance (parameters)
+        $distance = $this->pipelineDistanceToQuery( $lat, $lng, $maxDistance );
+
+        // pipeline
+        $pipeline = $this->pipelinePropertiesOnlyByGeonear( $distance );
+
+        // exec query
+       return Property::raw( ( function ( $collection ) use ( $pipeline ) {
+            return $collection->aggregate( $pipeline );
+        } ) );
+    }
+
+
     /**
      * Store matched properties as searched properties from given search.
      *
