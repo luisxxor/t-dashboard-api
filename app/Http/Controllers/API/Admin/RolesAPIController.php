@@ -65,7 +65,7 @@ class RolesAPIController extends AppBaseController
      */
     public function index()
     {
-        $roles = $this->roleRepository->with( 'permissions' )->get( /*[ 'name', 'slug', 'description', 'special' ]*/ );
+        $roles = $this->roleRepository->with( 'permissions' )->get();
 
         return $this->sendResponse( $roles->toArray(), 'Data retrieved.' );
     }

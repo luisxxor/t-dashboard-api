@@ -60,6 +60,8 @@ class SocialiteAPIController extends AppBaseController
     }
 
     /**
+     * @param  string $provider
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
@@ -118,6 +120,8 @@ class SocialiteAPIController extends AppBaseController
     }
 
     /**
+     * @param  string $provider
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
