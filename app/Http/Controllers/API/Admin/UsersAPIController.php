@@ -50,7 +50,7 @@ class UsersAPIController extends AppBaseController
      *
      * @OA\Get(
      *     path="/api/admin/users",
-     *     operationId="index",
+     *     operationId="index-",
      *     tags={"Admin"},
      *     summary="Display the list of users",
      *     @OA\Response(

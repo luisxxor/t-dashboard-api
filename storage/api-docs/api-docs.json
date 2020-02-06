@@ -57,7 +57,7 @@
                     "Admin"
                 ],
                 "summary": "Display the list of users",
-                "operationId": "index",
+                "operationId": "index-",
                 "responses": {
                     "200": {
                         "description": "Data retrived.",
@@ -353,6 +353,14 @@
                     },
                     {
                         "name": "password_confirmation",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "token",
                         "in": "query",
                         "required": true,
                         "schema": {
@@ -1178,6 +1186,14 @@
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
@@ -1223,6 +1239,14 @@
                     },
                     {
                         "name": "code",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "token",
                         "in": "query",
                         "required": true,
                         "schema": {

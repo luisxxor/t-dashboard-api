@@ -67,6 +67,14 @@ class SocialiteAPIController extends AppBaseController
      *             type="string"
      *         )
      *     ),
+     *     @OA\Parameter(
+     *         name="token",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
      *      @OA\Response(
      *          response=200,
      *          description="Provider redirect url retrieve successfully.",
@@ -119,6 +127,14 @@ class SocialiteAPIController extends AppBaseController
      *     ),
      *     @OA\Parameter(
      *         name="code",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="token",
      *         required=true,
      *         in="query",
      *         @OA\Schema(

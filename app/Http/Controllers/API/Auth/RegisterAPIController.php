@@ -84,6 +84,14 @@ class RegisterAPIController extends AppBaseController
      *             type="string"
      *         )
      *     ),
+     *     @OA\Parameter(
+     *         name="token",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
      *      @OA\Response(
      *          response=200,
      *          description="User registered successfully.",
@@ -157,7 +165,7 @@ class RegisterAPIController extends AppBaseController
         return Validator::make( $data, [
                 'name'      => [ 'required', 'string', 'min:2', 'max:30' ],
                 'lastname'  => [ 'required', 'string', 'min:2', 'max:30' ],
-                'email'     => [ 'required', 'string', 'email', 'max:30', 'unique:users' ],
+                'email'     => [ 'required', 'string', 'email', 'max:50', 'unique:users' ],
                 'password'  => [ 'required', 'string', 'min:8', 'max:30', 'confirmed' ],
                 'token'     => [ 'required', 'string', 'exists:data_tokens,token' ],
             ],
