@@ -1,48 +1,61 @@
 <?php
 
-namespace App\Http\Controllers\API\Dashboard;
+namespace App\Http\Controllers\API\Admin;
 
 use App\Http\Controllers\AppBaseController;
-use App\Http\Requests\API\Dashboard\UpdateProfileAPIRequest;
-use App\Http\Resources\User as UserResource;
+use App\Repositories\Admin\RoleRepository;
+use App\Repositories\Dashboard\ProjectRepository;
 use App\Repositories\Dashboard\UserRepository;
-use App\Rules\CurrentPassword;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use Response;
 
 /**
- * Class ProfileAPIController
- * @package App\Http\Controllers\API\Dashboard
+ * Class UsersAPIController
+ * @package App\Http\Controllers\API\Admin
  */
-class ProfileAPIController extends AppBaseController
+class UsersAPIController extends AppBaseController
 {
-    /** @var  UserRepository */
+    /**
+     * @var  UserRepository
+     */
     private $userRepository;
+
+    /**
+     * @var  ProjectRepository
+     */
+    private $projectRepository;
+
+    /**
+     * @var  RoleRepository
+     */
+    private $roleRepository;
 
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct( UserRepository $userRepo )
+    public function __construct( UserRepository $userRepo,
+        ProjectRepository $projectRepo,
+        RoleRepository $roleRepo )
     {
         $this->userRepository = $userRepo;
+        $this->projectRepository = $projectRepo;
+        $this->roleRepository = $roleRepo;
     }
 
     /**
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
-     *     path="/api/dashboard/profile",
-     *     operationId="show",
-     *     tags={"Profile"},
-     *     summary="Display the authenticated user's Profile",
+     *     path="/api/admin/users",
+     *     operationId="index-",
+     *     tags={"Admin"},
+     *     summary="Display the list of users",
      *     @OA\Response(
      *         response=200,
-     *         description="Profile retrieved successfully.",
+     *         description="Data retrived.",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(
@@ -51,7 +64,7 @@ class ProfileAPIController extends AppBaseController
      *             ),
      *             @OA\Property(
      *                 property="data",
-     *                 ref="#/components/schemas/User"
+     *                 type="object"
      *             ),
      *             @OA\Property(
      *                 property="message",
@@ -68,22 +81,23 @@ class ProfileAPIController extends AppBaseController
      *     }
      * )
      */
-    public function show()
+    public function index()
     {
-        $user = new UserResource( auth()->user() );
+        $users = $this->userRepository->all();
 
-        return $this->sendResponse( $user, 'Profile retrieved successfully.' );
+        return $this->sendResponse( $users, 'Users data retrived.' );
     }
 
     /**
-     * @param UpdateProfileAPIRequest $request
+     * @param  int $userId
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Put(
-     *     path="/api/dashboard/profile",
+     *     path="/api/admin/admin/users/{userId}",
      *     operationId="update",
-     *     tags={"Profile"},
-     *     summary="Update the authenticated user's Profile with given data",
+     *     tags={"Admin"},
+     *     summary="Update the specified user's with given data",
      *     @OA\Parameter(
      *         name="name",
      *         required=true,
@@ -133,16 +147,26 @@ class ProfileAPIController extends AppBaseController
      *         )
      *     ),
      *     @OA\Parameter(
-     *         name="old_password",
-     *         required=true,
+     *         name="accessible_projects",
+     *         required=false,
      *         in="query",
      *         @OA\Schema(
-     *             type="string"
+     *             type="array",
+     *             @OA\Items()
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="roles",
+     *         required=false,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="array",
+     *             @OA\Items()
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Profile updated successfully.",
+     *         description="Data updated successfully.",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(
@@ -151,7 +175,7 @@ class ProfileAPIController extends AppBaseController
      *             ),
      *             @OA\Property(
      *                 property="data",
-     *                 ref="#/components/schemas/User"
+     *                 type="object"
      *             ),
      *             @OA\Property(
      *                 property="message",
@@ -164,6 +188,10 @@ class ProfileAPIController extends AppBaseController
      *         description="Unauthenticated."
      *     ),
      *     @OA\Response(
+     *         response=404,
+     *         description="Data not found."
+     *     ),
+     *     @OA\Response(
      *         response=422,
      *         description="The given data was invalid."
      *     ),
@@ -172,11 +200,19 @@ class ProfileAPIController extends AppBaseController
      *     }
      * )
      */
-    public function update( Request $request )
+    public function update( $userId, Request $request )
     {
-        $input = $request->only( [ 'name', 'lastname', 'phone_number1', 'address_line1', 'address_line2', 'password', 'old_password' ] );
+        $input = $request->only( [
+            'name', 'lastname', 'phone_number1', 'address_line1', 'address_line2', 'password',
 
-        $user = auth()->user();
+            'accessible_projects',
+
+            'roles',
+        ] );
+
+        $projects = array_column( $this->projectRepository->all( [], null, null, [ 'code' ] )->toArray(), 'code' );
+
+        $roles = array_column( $this->roleRepository->all( [], null, null, [ 'slug' ] )->toArray(), 'slug' );
 
         Validator::make( $input, [
             'name' => [ 'required', 'string', 'min:2', 'max:30' ],
@@ -185,20 +221,24 @@ class ProfileAPIController extends AppBaseController
             'address_line1' => [ 'nullable', 'string', 'min:5', 'max:50' ],
             'address_line2' => [ 'nullable', 'string', 'min:5', 'max:50' ],
             'password' => [ 'nullable', 'string', 'min:8', 'max:30' ],
-            'old_password' => [
-                'bail',
-                Rule::requiredIf( function () use ( $request ) {
-                    return $request->get( 'password' ) !== null;
-                } ),
-                'string',
-                new CurrentPassword
-            ],
+
+            'accessible_projects' => [ 'nullable', 'array', 'filled', Rule::in( $projects ) ],
+
+            'roles' => [ 'nullable', 'array', 'filled', Rule::in( $roles ) ],
         ] )->validate();
 
-        $profile = $this->userRepository->update( $input, $user->id );
+        $user = $this->userRepository->find( $userId );
 
-        $user = new UserResource( $profile );
+        if ( empty( $user ) === true ) {
+            return $this->sendError( 'User not found.', [], 404 );
+        }
 
-        return $this->sendResponse( $user, 'Profile updated successfully.' );
+        $user = $this->userRepository->update( $input, $userId );
+
+        if ( $request->get( 'roles' ) !== null ) {
+            $user->syncRoles( $request->get( 'roles' ) );
+        }
+
+        return $this->sendResponse( $user->append( 'role_list' )->toArray(), 'User updated successfully.' );
     }
 }

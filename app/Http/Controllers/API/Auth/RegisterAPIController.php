@@ -3,14 +3,46 @@
 namespace App\Http\Controllers\API\Auth;
 
 use App\Http\Controllers\AppBaseController;
-use App\Models\Dashboard\User;
 use App\Http\Resources\User as UserResource;
+use App\Repositories\Dashboard\ProjectRepository;
+use App\Repositories\Dashboard\UserRepository;
+use App\Repositories\Tokens\DataTokenRepository;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class RegisterAPIController extends AppBaseController
 {
+    /**
+     * @var  UserRepository
+     */
+    private $userRepository;
+
+    /**
+     * @var  DataTokenRepository
+     */
+    private $dataTokenRepository;
+
+    /**
+     * @var  ProjectRepository
+     */
+    private $projectRepository;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct( UserRepository $userRepo,
+        DataTokenRepository $dataTokenRepo,
+        ProjectRepository $projectRepo )
+    {
+        $this->userRepository = $userRepo;
+        $this->dataTokenRepository = $dataTokenRepo;
+        $this->projectRepository = $projectRepo;
+    }
+
     /**
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
@@ -60,6 +92,14 @@ class RegisterAPIController extends AppBaseController
      *             type="string"
      *         )
      *     ),
+     *     @OA\Parameter(
+     *         name="token",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
      *      @OA\Response(
      *          response=200,
      *          description="User registered successfully.",
@@ -95,9 +135,21 @@ class RegisterAPIController extends AppBaseController
      */
     public function register( Request $request )
     {
-        $this->validator( $request->all() )->validate();
+        $input = $request->only( [ 'name', 'lastname', 'email', 'password', 'password_confirmation', 'token' ] );
 
-        event( new Registered( $user = $this->create( $request->all() ) ) );
+        $this->validator( $input )->validate();
+
+        $dataToken = $this->dataTokenRepository->findAndDelete( $request->get( 'token' ) )[ 'data' ];
+
+        $projects = array_column( $this->projectRepository->all( [], null, null, [ 'code' ] )->toArray(), 'code' );
+
+        Validator::make( $dataToken, [
+            'project' => [ 'required', 'string', Rule::in( $projects ) ],
+        ] )->validate();
+
+        $input[ 'project' ] = $dataToken[ 'project' ];
+
+        event( new Registered( $user = $this->create( $input ) ) );
 
         // # ver que scopes asignar/crear
         $scopes = [];
@@ -121,11 +173,16 @@ class RegisterAPIController extends AppBaseController
     protected function validator( array $data )
     {
         return Validator::make( $data, [
-            'name' => ['required', 'string', 'min:2', 'max:30'],
-            'lastname' => ['required', 'string', 'min:2', 'max:30'],
-            'email' => ['required', 'string', 'email', 'max:30', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'max:30', 'confirmed'],
-        ] );
+                'name'      => [ 'required', 'string', 'min:2', 'max:30' ],
+                'lastname'  => [ 'required', 'string', 'min:2', 'max:30' ],
+                'email'     => [ 'required', 'string', 'email', 'max:50', 'unique:users' ],
+                'password'  => [ 'required', 'string', 'min:8', 'max:30', 'confirmed' ],
+                'token'     => [ 'required', 'string', 'exists:data_tokens,token' ],
+            ],
+            [
+                'token.exists' => 'Token no valido.',
+            ]
+        );
     }
 
     /**
@@ -136,16 +193,15 @@ class RegisterAPIController extends AppBaseController
      */
     protected function create( array $data )
     {
-        $user = User::create( [
+        $user = $this->userRepository->create( [
             'name' => $data[ 'name' ],
             'lastname' => $data[ 'lastname' ],
             'email' => $data[ 'email' ],
             'password' => $data[ 'password' ],
+            'accessible_projects' => [ $data[ 'project' ] ],
         ] );
 
-        # probar con assignRole() como en luxury
-        // attach default role_id=2 to the new user
-        $user->roles()->attach( 2 );
+        $user->assignRoles( 'regular-user' );
 
         return $user;
     }

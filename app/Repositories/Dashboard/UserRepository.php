@@ -7,11 +7,10 @@ use Illuminate\Support\Facades\Auth;
 use App\Repositories\BaseRepository;
 
 /**
- * Class ProfileRepository
+ * Class UserRepository
  * @package App\Repositories\Dashboard
- * @version March 2, 2019, 3:36 am UTC
 */
-class ProfileRepository extends BaseRepository
+class UserRepository extends BaseRepository
 {
     /**
      * @var array

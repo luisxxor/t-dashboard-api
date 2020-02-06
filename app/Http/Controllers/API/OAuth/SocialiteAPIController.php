@@ -4,14 +4,64 @@ namespace App\Http\Controllers\API\OAuth;
 
 use App\Http\Controllers\AppBaseController;
 use App\Http\Resources\User as UserResource;
-use App\Models\Dashboard\User;
+use App\Providers\GoogleProvider;
+use App\Repositories\Dashboard\ProjectRepository;
+use App\Repositories\Dashboard\UserRepository;
+use App\Repositories\Tokens\DataTokenRepository;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Socialite;
 
 class SocialiteAPIController extends AppBaseController
 {
     /**
+     * @var  UserRepository
+     */
+    private $userRepository;
+
+    /**
+     * @var  DataTokenRepository
+     */
+    private $dataTokenRepository;
+
+    /**
+     * @var  ProjectRepository
+     */
+    private $projectRepository;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct( UserRepository $userRepo,
+        DataTokenRepository $dataTokenRepo,
+        ProjectRepository $projectRepo )
+    {
+        $this->userRepository = $userRepo;
+        $this->dataTokenRepository = $dataTokenRepo;
+        $this->projectRepository = $projectRepo;
+
+        Socialite::extend( 'google', function ( $container ) {
+            $config = $container[ 'config' ][ 'services.google' ];
+            $redirect = value( $config[ 'redirect' ] );
+            return new GoogleProvider(
+                $container[ 'request' ],
+                $config[ 'client_id' ],
+                $config[ 'client_secret' ],
+                Str::startsWith( $redirect, '/' ) ? $container[ 'url' ]->to( $redirect ) : $redirect,
+                Arr::get( $config, 'guzzle', [] )
+            );
+        } );
+    }
+
+    /**
+     * @param  string $provider
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
@@ -23,6 +73,14 @@ class SocialiteAPIController extends AppBaseController
      *         name="provider",
      *         required=true,
      *         in="path",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="token",
+     *         required=true,
+     *         in="query",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -48,14 +106,22 @@ class SocialiteAPIController extends AppBaseController
      *      )
      * )
      */
-    public function redirect( $provider )
+    public function redirect( $provider, Request $request )
     {
-        $urlRedirect = Socialite::driver( $provider )->stateless()->redirect()->getTargetUrl();
+        $request->validate( [
+            'token' => [ 'required', 'string', 'exists:data_tokens,token' ],
+        ] );
+
+        $token = $request->get( 'token' );
+
+        $urlRedirect = Socialite::driver( $provider )->setFakeState( $token )->redirect()->getTargetUrl();
 
         return $this->sendResponse( $urlRedirect, 'Provider redirect url retrieve successfully.' );
     }
 
     /**
+     * @param  string $provider
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
@@ -73,6 +139,14 @@ class SocialiteAPIController extends AppBaseController
      *     ),
      *     @OA\Parameter(
      *         name="code",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="token",
      *         required=true,
      *         in="query",
      *         @OA\Schema(
@@ -108,8 +182,24 @@ class SocialiteAPIController extends AppBaseController
      *     ),
      * )
      */
-    public function callback( $provider )
+    public function callback( $provider, Request $request )
     {
+        Validator::make( $request->toArray(), [
+                'state' => [ 'required', 'string', 'exists:data_tokens,token' ],
+            ],
+            [
+                'state.exists' => 'Token no valido.',
+            ]
+        )->validate();
+
+        $dataToken = $this->dataTokenRepository->findAndDelete( $request->get( 'state' ) )[ 'data' ];
+
+        $projects = array_column( $this->projectRepository->all( [], null, null, [ 'code' ] )->toArray(), 'code' );
+
+        Validator::make( $dataToken, [
+            'project' => [ 'required', 'string', Rule::in( $projects ) ],
+        ] )->validate();
+
         // get user info through provider
         $userProvider = Socialite::driver( $provider )->stateless()->user();
 
@@ -129,10 +219,8 @@ class SocialiteAPIController extends AppBaseController
             // get user email through provider
             $email = $userProvider->getEmail();
 
-            // if provider has user email
-            if ( $email !== null ) {
-                $user = User::where( 'email', $email )->first();
-            }
+            // get user if exists
+            $user = $this->userRepository->findByField( 'email', $email )->first();
 
             // create user if it is not created yet
             if ( $user === null ) {
@@ -145,7 +233,7 @@ class SocialiteAPIController extends AppBaseController
                         $userData = [
                             'name' => $userRaw[ 'given_name' ],
                             'lastname' => $userRaw[ 'family_name' ],
-                            'email' => $userProvider->getEmail()
+                            'email' => $email
                         ];
 
                         break;
@@ -156,7 +244,7 @@ class SocialiteAPIController extends AppBaseController
                         $userData = [
                             'name' => $userRaw[ 'first_name' ],
                             'lastname' => $userRaw[ 'last_name' ],
-                            'email' => $userProvider->getEmail()
+                            'email' => $email
                         ];
 
                         break;
@@ -165,18 +253,15 @@ class SocialiteAPIController extends AppBaseController
                         $userData = [
                             'name' => $userProvider->getName() ?? '',
                             'lastname' => '',
-                            'email' => $userProvider->getEmail()
+                            'email' => $email
                         ];
                         break;
                 }
 
-                // create user
-                $user = User::create( $userData );
-                $user->email_verified_at = now();
-                $user->save();
+                $userData[ 'email_verified_at' ] = now();
+                $userData[ 'project' ] = $dataToken[ 'project' ];
 
-                // attach default role_id=2 to the new user
-                $user->roles()->attach( 2 );
+                $user = $this->create( $userData );
             }
 
             // create linked social account for user
@@ -200,6 +285,27 @@ class SocialiteAPIController extends AppBaseController
         ];
 
         return $this->sendResponse( $response, 'User logged successfully.' );
+    }
+
+    /**
+     * Create a new user instance after a valid registration.
+     *
+     * @param  array  $data
+     * @return \App\Models\Dashboard\User
+     */
+    protected function create( array $data )
+    {
+        $user = $this->userRepository->create( [
+            'name' => $data[ 'name' ],
+            'lastname' => $data[ 'lastname' ],
+            'email' => $data[ 'email' ],
+            'email_verified_at' => $data[ 'email_verified_at' ],
+            'accessible_projects' => [ $data[ 'project' ] ],
+        ] );
+
+        $user->assignRoles( 'regular-user' );
+
+        return $user;
     }
 
     /**

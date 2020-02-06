@@ -9,7 +9,6 @@ use App\Projects\PeruProperties\Repositories\PropertyTypeRepository;
 use App\Projects\PeruProperties\Repositories\SearchRepository;
 use App\Repositories\Dashboard\OrderRepository;
 use DateTime;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use GuzzleHttp\Client as GuzzleClient;
@@ -67,13 +66,13 @@ class PropertiesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
-     *     path="/api/peru_properties/index",
-     *     operationId="index",
+     *     path="/api/peru_properties/filters/property_type",
+     *     operationId="getPropertyTypeFilterData",
      *     tags={"Peru Properties"},
-     *     summary="Display the necessary data for filters",
+     *     summary="Return the necessary data for property type filter",
      *     @OA\Response(
      *         response=200,
-     *         description="Filters data retrived.",
+     *         description="Data retrived.",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(
@@ -84,14 +83,9 @@ class PropertiesAPIController extends AppBaseController
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="filters",
+     *                     property="data",
      *                     type="array",
-     *                     @OA\Items(
-     *                         @OA\Property(
-     *                             property="field-1",
-     *                             type="string"
-     *                         )
-     *                     )
+     *                     @OA\Items()
      *                 ),
      *             ),
      *             @OA\Property(
@@ -109,7 +103,7 @@ class PropertiesAPIController extends AppBaseController
      *     }
      * )
      */
-    public function index()
+    public function getPropertyTypeFilterData()
     {
         // select
         $propertyTypes = $this->propertyTypeRepository->distinct( 'owner_name' );
@@ -120,7 +114,7 @@ class PropertiesAPIController extends AppBaseController
         // sort
         sort( $propertyTypes );
 
-        return $this->sendResponse( $propertyTypes, 'Filters data retrived.' );
+        return $this->sendResponse( $propertyTypes, 'Data retrieved.' );
     }
 
     /**
@@ -598,8 +592,8 @@ class PropertiesAPIController extends AppBaseController
         // update the search to save selected ids by user
         $this->propertyRepository->updateSelectedSearchedProperties( $searchId, $ids );
 
-        // if admin, generate file. else, return payment init point link
-        if ( $user->hasRole( 'admin' ) === true ) {
+        // if user has permission to release order without paying, generate file
+        if ( $user->hasPermissionTo( 'release.order.without.paying' ) === true ) {
 
             // generate files request
             $guzzleClient = new GuzzleClient( [ 'base_uri' => url( '/' ), 'timeout' => 30.0 ] );
@@ -616,10 +610,9 @@ class PropertiesAPIController extends AppBaseController
 
             return $this->sendResponse( $order, 'Ordered successfully, file generated.', 202 );
         }
-        else {
 
-            return $this->sendResponse( $order, 'Ordered successfully.' );
-        }
+        // return payment init point link
+        return $this->sendResponse( $order, 'Ordered successfully.' );
     }
 
     /**
@@ -686,7 +679,7 @@ class PropertiesAPIController extends AppBaseController
 
         // validate order
         if ( empty( $order ) === true ) {
-            \Log::info( 'Order not found.', $orderCode );
+            \Log::info( 'Order not found.', [ $orderCode ] );
 
             return $this->sendError( 'Order not found.', [], 404 );
         }
@@ -742,115 +735,5 @@ class PropertiesAPIController extends AppBaseController
         $order->save();
 
         return $this->sendResponse( 'OK', 'Properties\' file generated successfully.' );
-    }
-
-    /**
-     * @param   string $orderCode
-     * @param   \Illuminate\Http\Request $request
-     * @return  \Illuminate\Http\JsonResponse
-     * @throws  \Illuminate\Auth\Access\AuthorizationException
-     *
-     * @OA\Get(
-     *     path="api/peru_properties/orders/{orderCode}/download",
-     *     operationId="downloadOrderedFile",
-     *     tags={"Peru Properties"},
-     *     summary="Download the export file",
-     *     description="Returns the download link of file",
-     *     @OA\Parameter(
-     *         name="orderCode",
-     *         description="code of order",
-     *         required=true,
-     *         in="path",
-     *         @OA\Schema(
-     *             type="string"
-     *         )
-     *     ),
-     *     @OA\Parameter(
-     *         name="format",
-     *         required=true,
-     *         in="query",
-     *         @OA\Schema(
-     *             type="string"
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="download link retrived.",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(
-     *                 property="success",
-     *                 type="boolean"
-     *             ),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(
-     *                     property="data",
-     *                     type="string"
-     *                 ),
-     *             ),
-     *             @OA\Property(
-     *                 property="message",
-     *                 type="string"
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthenticated."
-     *     ),
-     *     @OA\Response(
-     *         response=403,
-     *         description="Access Denied."
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Order not found."
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="The given data was invalid."
-     *     ),
-     *     security={
-     *         {"": {}}
-     *     }
-     * )
-     */
-    public function downloadOrderedFile( $orderCode, Request $request )
-    {
-        $request->validate( [
-            'format' => [ 'required', 'string', 'in:csv,xlsx,ods' ],
-        ] );
-
-        // input
-        $format = $request->get( 'format' );
-
-        // get order
-        $order = $this->orderRepository->findByField( 'code', $orderCode )->first();
-
-        // validate order
-        if ( empty( $order ) === true ) {
-            \Log::info( 'Order not found.', $orderCode );
-
-            return $this->sendError( 'Order not found.', [], 404 );
-        }
-
-        // validate if the order belongs to the user
-        if ( $order->user_id != auth()->user()->getKey() ) {
-            throw new AuthorizationException;
-        }
-
-        $fileInfo = collect( $order->files_info )->filter( function ( $item, $index ) use ( $format ) {
-            return $item[ 'type' ] === $format;
-        } )->first();
-
-        // get file
-        $filePath = $this->fileHandler->downloadFile( $fileInfo[ 'bucket' ], $fileInfo[ 'name' ], false );
-
-        // path to download the file
-        $routeFilePath = route( 'downloadFiles', [ 'fileName' => basename( $filePath ) ] );
-
-        return $this->sendResponse( $routeFilePath, 'Download link retrived.' );
     }
 }

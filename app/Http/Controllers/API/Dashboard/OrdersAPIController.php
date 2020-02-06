@@ -4,8 +4,10 @@ namespace App\Http\Controllers\API\Dashboard;
 
 use App\Http\Controllers\AppBaseController;
 use App\Lib\Handlers\FileHandler;
-use App\Repositories\Dashboard\ProjectRepository;
 use App\Repositories\Dashboard\OrderRepository;
+use App\Repositories\Dashboard\ProjectRepository;
+use App\Repositories\Dashboard\UserRepository;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Response;
 
@@ -31,16 +33,23 @@ class OrdersAPIController extends AppBaseController
     private $projectRepository;
 
     /**
+     * @var  UserRepository
+     */
+    private $userRepository;
+
+    /**
      * Create a new controller instance.
      *
      * @return void
      */
     public function __construct( OrderRepository $orderRepo,
-        ProjectRepository $projectRepo )
+        ProjectRepository $projectRepo,
+        UserRepository $userRepo )
     {
         $this->fileHandler = new FileHandler();
         $this->orderRepository = $orderRepo;
         $this->projectRepository = $projectRepo;
+        $this->userRepository = $userRepo;
     }
 
     /**
@@ -58,6 +67,14 @@ class OrdersAPIController extends AppBaseController
      *         in="query",
      *         @OA\Schema(
      *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="userId",
+     *         required=false,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="int"
      *         )
      *     ),
      *     @OA\Response(
@@ -96,10 +113,12 @@ class OrdersAPIController extends AppBaseController
     public function index( Request $request )
     {
         $request->validate( [
-            'project' => 'required|string',
+            'project' => [ 'required', 'string' ],
+            'userId' => [ 'nullable', 'integer' ],
         ] );
 
-        $projectCode = $request->get( 'project' );
+        $projectCode    = $request->get( 'project' );
+        $userId         = $request->get( 'userId' );
 
         $project = $this->projectRepository->findByField( 'code', $projectCode );
 
@@ -108,11 +127,24 @@ class OrdersAPIController extends AppBaseController
             return $this->sendError( 'Project not found.', [], 404 );
         }
 
-        $orders = auth()->user()->orders()->get()->sortByDesc( 'created_at' );
+        $user = auth()->user();
 
-        // solo las compras concretadas y del project actual
+        // if user has permission to see foreign orders list
+        if ( $userId !== null && $user->hasPermissionTo( 'see.foreign.orders.list' ) === true ) {
+            $user = $this->userRepository->find( $userId );
+
+            if ( empty( $user ) === true ) {
+                \Log::info( 'User not found.', [ $id ] );
+
+                return $this->sendError( 'User not found.', [], 404 );
+            }
+        }
+
+        $orders = $user->orders()->get()->sortByDesc( 'created_at' );
+
+        // only consistent orders and from given project
         $orders = $orders->filter( function ( $item, $index ) use ( $projectCode ) {
-            return $item->status === config( 'constants.ORDERS_RELEASED_STATUS' )
+            return $item->status !== null
                 && $item->project === $projectCode;
         } );
 
@@ -126,9 +158,9 @@ class OrdersAPIController extends AppBaseController
      *
      * @OA\Get(
      *     path="/api/dashboard/orders/{orderCode}/records",
-     *     operationId="show",
+     *     operationId="getJson",
      *     tags={"Orders"},
-     *     summary="Display the specified user's order",
+     *     summary="Return the specified user's order data",
      *     @OA\Parameter(
      *         name="orderCode",
      *         description="code of order",
@@ -140,7 +172,7 @@ class OrdersAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Order retrived successfully.",
+     *         description="Data successfully.",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(
@@ -168,27 +200,27 @@ class OrdersAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Order File not found."
+     *         description="Data not found."
      *     ),
      *     security={
      *         {"": {}}
      *     }
      * )
      */
-    public function show( $orderCode )
+    public function getJson( $orderCode )
     {
         // get order
         $order = $this->orderRepository->findByField( 'code', $orderCode )->first();
 
         // validate order
         if ( empty( $order ) === true ) {
-            \Log::info( 'Order not found.', $orderCode );
+            \Log::info( 'Order not found.', [ $orderCode ] );
 
             return $this->sendError( 'Order not found.', [], 404 );
         }
 
-        // validate if the order belongs to the user
-        if ( $order->user_id != auth()->user()->getKey() ) {
+        // validate if the order belongs to the user, or user has permission to see foreign order
+        if ( $order->user_id != auth()->user()->getKey() || $user->hasPermissionTo( 'see.foreign.order' ) === true ) {
             throw new AuthorizationException;
         }
 
@@ -211,5 +243,115 @@ class OrdersAPIController extends AppBaseController
         ];
 
         return $this->sendResponse( $output, 'Order retrived successfully.' );
+    }
+
+    /**
+     * @param   string $orderCode
+     * @param   \Illuminate\Http\Request $request
+     * @return  \Illuminate\Http\JsonResponse
+     * @throws  \Illuminate\Auth\Access\AuthorizationException
+     *
+     * @OA\Get(
+     *     path="api/dashboard/orders/{orderCode}/download",
+     *     operationId="downloadFile",
+     *     tags={"Orders"},
+     *     summary="Download the export file",
+     *     description="Returns the download link of file",
+     *     @OA\Parameter(
+     *         name="orderCode",
+     *         description="code of order",
+     *         required=true,
+     *         in="path",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="format",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Data retrieved.",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean"
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="data",
+     *                     type="string"
+     *                 ),
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated."
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Access Denied."
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Data not found."
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="The given data was invalid."
+     *     ),
+     *     security={
+     *         {"": {}}
+     *     }
+     * )
+     */
+    public function downloadFile( $orderCode, Request $request )
+    {
+        $request->validate( [
+            'format' => [ 'required', 'string', 'in:csv,xlsx,ods' ],
+        ] );
+
+        // input
+        $format = $request->get( 'format' );
+
+        // get order
+        $order = $this->orderRepository->findByField( 'code', $orderCode )->first();
+
+        // validate order
+        if ( empty( $order ) === true ) {
+            \Log::info( 'Order not found.', [ $orderCode ] );
+
+            return $this->sendError( 'Order not found.', [], 404 );
+        }
+
+        // validate if the order belongs to the user, or user has permission to download foreign order
+        if ( $order->user_id != auth()->user()->getKey() || $user->hasPermissionTo( 'download.foreign.order' ) === true ) {
+            throw new AuthorizationException;
+        }
+
+        $fileInfo = collect( $order->files_info )->filter( function ( $item, $index ) use ( $format ) {
+            return $item[ 'type' ] === $format;
+        } )->first();
+
+        // get file
+        $filePath = $this->fileHandler->downloadFile( $fileInfo[ 'bucket' ], $fileInfo[ 'name' ], false );
+
+        // path to download the file
+        $routeFilePath = route( 'downloadFiles', [ 'fileName' => basename( $filePath ) ] );
+
+        return $this->sendResponse( $routeFilePath, 'Download link retrived.' );
     }
 }
