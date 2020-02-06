@@ -107,7 +107,7 @@ class SocialiteAPIController extends AppBaseController
     public function redirect( $provider, Request $request )
     {
         $request->validate( [
-            'token' => [ 'required', 'string', 'filled' ],
+            'token' => [ 'required', 'string', 'exists:data_tokens,token' ],
         ] );
 
         $token = $request->get( 'token' );
