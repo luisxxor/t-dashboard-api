@@ -34,7 +34,7 @@ class RolesTableSeeder extends Seeder
 
         $role2 = new Role();
         $role2->name = 'Regular User';
-        $role2->slug = 'regular-User';
+        $role2->slug = 'regular-user';
         $role2->description = null;
         $role2->special = null;
         $role2->save();
