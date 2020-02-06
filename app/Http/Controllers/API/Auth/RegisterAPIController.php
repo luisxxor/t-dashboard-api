@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\Auth;
 
 use App\Http\Controllers\AppBaseController;
 use App\Http\Resources\User as UserResource;
+use App\Repositories\Dashboard\ProjectRepository;
 use App\Repositories\Dashboard\UserRepository;
 use App\Repositories\Tokens\DataTokenRepository;
 use Illuminate\Auth\Events\Registered;
@@ -24,15 +25,22 @@ class RegisterAPIController extends AppBaseController
     private $dataTokenRepository;
 
     /**
+     * @var  ProjectRepository
+     */
+    private $projectRepository;
+
+    /**
      * Create a new controller instance.
      *
      * @return void
      */
     public function __construct( UserRepository $userRepo,
-        DataTokenRepository $dataTokenRepo )
+        DataTokenRepository $dataTokenRepo,
+        ProjectRepository $projectRepo )
     {
         $this->userRepository = $userRepo;
         $this->dataTokenRepository = $dataTokenRepo;
+        $this->projectRepository = $projectRepo;
     }
 
     /**
@@ -133,8 +141,10 @@ class RegisterAPIController extends AppBaseController
 
         $dataToken = $this->dataTokenRepository->findAndDelete( $request->get( 'token' ) )[ 'data' ];
 
+        $projects = array_column( $this->projectRepository->all( [], null, null, [ 'code' ] )->toArray(), 'code' );
+
         Validator::make( $dataToken, [
-            'project' => [ 'required', 'string', Rule::in( array_keys( config( 'multi-api' ) ) ) ],
+            'project' => [ 'required', 'string', Rule::in( $projects ) ],
         ] )->validate();
 
         $input[ 'project' ] = $dataToken[ 'project' ];
