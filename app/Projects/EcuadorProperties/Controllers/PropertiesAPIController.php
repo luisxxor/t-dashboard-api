@@ -66,9 +66,9 @@ class PropertiesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
-     *     path="/api/peru_properties/filters/property_type",
+     *     path="/api/ecuador_properties/filters/property_type",
      *     operationId="getPropertyTypeFilterData",
-     *     tags={"Peru Properties"},
+     *     tags={"Ecuador Properties"},
      *     summary="Return the necessary data for property type filter",
      *     @OA\Response(
      *         response=200,
@@ -122,9 +122,9 @@ class PropertiesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
-     *     path="/api/peru_properties/ghost_search",
+     *     path="/api/ecuador_properties/ghost_search",
      *     operationId="ghostSearch",
-     *     tags={"Peru Properties"},
+     *     tags={"Ecuador Properties"},
      *     summary="Make the ghost search",
      *     @OA\Parameter(
      *         name="lat",
@@ -212,9 +212,9 @@ class PropertiesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Post(
-     *     path="/api/peru_properties/properties_ajax",
+     *     path="/api/ecuador_properties/properties_ajax",
      *     operationId="searchProperties",
-     *     tags={"Peru Properties"},
+     *     tags={"Ecuador Properties"},
      *     summary="Return the properties that math with given filters",
      *     @OA\Parameter(
      *         name="vertices",
@@ -372,9 +372,9 @@ class PropertiesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Post(
-     *     path="/api/peru_properties/properties_paginate",
+     *     path="/api/ecuador_properties/properties_paginate",
      *     operationId="paginateProperties",
-     *     tags={"Peru Properties"},
+     *     tags={"Ecuador Properties"},
      *     summary="Return the properties that math with given search id",
      *     @OA\Parameter(
      *         name="searchId",
@@ -481,9 +481,9 @@ class PropertiesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Post(
-     *     path="/api/peru_properties/order",
+     *     path="/api/ecuador_properties/order",
      *     operationId="order",
-     *     tags={"Peru Properties"},
+     *     tags={"Ecuador Properties"},
      *     summary="Order items",
      *     description="Create order in case it does not, and update the 'ids' value of search",
      *     @OA\Parameter(
@@ -620,9 +620,9 @@ class PropertiesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
-     *     path="/api/peru_properties/generate_file",
+     *     path="/api/ecuador_properties/generate_file",
      *     operationId="generatePropertiesFile",
-     *     tags={"Peru Properties"},
+     *     tags={"Ecuador Properties"},
      *     summary="Build the order files",
      *     @OA\Parameter(
      *         name="orderCode",
