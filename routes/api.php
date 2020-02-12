@@ -92,6 +92,26 @@ Route::prefix( 'peru_properties' )->middleware( 'auth:api', 'verified' )->group(
 // generate peru properties profile
 Route::get( 'peru_properties/generate_file', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@generatePropertiesFile' )->name( config( 'multi-api.pe-properties.backend-info.generate_file_url' ) );
 
+Route::prefix( 'peru_vehicles' )->middleware( 'auth:api', 'verified' )->group( function () {
+
+    // peru autos
+
+    Route::get( 'filters/publication_type', '\App\Projects\PeruVehicles\Controllers\VehiclesAPIController@getPublicationTypeFilterData' )->name( 'peru_vehicles.filters.publicationType' );
+
+    Route::get( 'filters/make_type/{publication_type}', '\App\Projects\PeruVehicles\Controllers\VehiclesAPIController@getMakeTypeFilterData' )->name( 'peru_vehicles.filters.publicationType' );
+
+    Route::post( 'search', '\App\Projects\PeruVehicles\Controllers\VehiclesAPIController@searchProperties' )->name( 'peru_vehicles.searchProperties' )
+        ->middleware( 'can:search.properties' );
+
+    Route::post( 'paginate', '\App\Projects\PeruVehicles\Controllers\VehiclesAPIController@paginateProperties' )->name( 'peru_vehicles.paginateProperties' )
+        ->middleware( 'can:search.properties' );
+
+    Route::post( 'order', '\App\Projects\PeruVehicles\Controllers\VehiclesAPIController@order' )->name( 'peru_vehicles.processOrder' )
+        ->middleware( 'can:order.properties' );
+} );
+
+
+
 
 
 

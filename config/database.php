@@ -90,6 +90,19 @@ return [
             ]
         ],
 
+        'peru_vehicles' => [
+            'driver'   => 'mongodb',
+            'host'     => env( 'DB_PERU_VEHICLES_HOST', '127.0.0.1' ),
+            'port'     => env( 'DB_PERU_VEHICLES_PORT', 27017 ),
+            'database' => env( 'DB_PERU_VEHICLES_DATABASE' ),
+            'username' => env( 'DB_PERU_VEHICLES_USERNAME' ),
+            'password' => env( 'DB_PERU_VEHICLES_PASSWORD' ),
+            'options'  => [
+                // sets the authentication database required by mongo 3
+                'database' => env( 'DB_PERU_VEHICLES_DATABASE' )
+            ]
+        ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DATABASE_URL'),

@@ -1,22 +1,19 @@
 <?php
 
+$constants = config( 'multi-api.pe-vehicles.constants' );
+
 return [
 
     /*
     |--------------------------------------------------------------------------
-    | Peru Properties Front-End Info Config
+    | Peru Vehicles Front-End Info Config
     |--------------------------------------------------------------------------
     |
     */
 
-    'baseURL' => [
-        'method' => 'get',
-        'path' => env( 'APP_URL' ) . '/api/peru_vehicles/index',
-    ],
-
     'searchURL' => [
         'method' => 'post',
-        'path' => env( 'APP_URL' ) . '/api/peru_vehicles/ajax',
+        'path' => env( 'APP_URL' ) . '/api/peru_vehicles/search',
     ],
 
     'paginationURL' => [
@@ -24,18 +21,20 @@ return [
         'path' => env( 'APP_URL' ) . '/api/peru_vehicles/paginate',
     ],
 
-    'processPurchaseURL' => [
+    'processOrderURL' => [
         'method' => 'post',
-        'path' => env( 'APP_URL' ) . '/api/peru_vehicles/process_purchase',
+        'path' => env( 'APP_URL' ) . '/api/peru_vehicles/order',
     ],
 
-    'exportFileURL' => [
-        'method' => 'post',
-        'path' => env( 'APP_URL' ) . '/api/peru_vehicles/purchase_files/{id}/export',
+    'paymentTypes' => [
+        [
+            'paymentType' => config( 'constants.payment_gateways.MERCADOPAGO' ),
+            'currency' => config( 'constants.payment_currencies.PEN' )
+        ],
     ],
 
     'mapMarkers' => [
-        'visible' => false,
+        'visible' => false
     ],
 
     'containerItems' => [
@@ -45,7 +44,35 @@ return [
 
     'filters' => [
         'visible' => true,
-        'fields' => [],
+        'fields' => [
+            [
+                'field' => $constants[ 'FILTER_FIELD_PUBLICATION_TYPE' ],
+                'label' => 'Tipo de Busqueda',
+                'type' => 'dropdown',
+                'placeholder' => 'Seleccione el tipo de busqueda',
+                'valuesURL' => env( 'APP_URL' ) . '/api/peru_vehicles/filters/publication_type',
+            ],
+            [
+                'field' => $constants[ 'FILTER_FIELD_MAKE_TYPE' ],
+                'label' => 'Marca de Vehiculo',
+                'type' => 'dropdown',
+                'placeholder' => 'Seleccione el tipo de marca',
+                'valuesURL' => env( 'APP_URL' ) . '/api/peru_vehicles/filters/make_type/{publication_type}',
+            ],
+            [
+                'field' => $constants[ 'FILTER_FIELD_CONDITION_TYPE' ],
+                'label' => 'Tipo de Condición',
+                'type' => 'dropdown',
+                'placeholder' => 'Seleccione el tipo de publicación',
+                'values' =>
+                [
+                    [
+                        'value' => 'venta',
+                        'text' => 'Venta',
+                    ]
+                ],
+            ],
+        ],
     ],
 
 ];
