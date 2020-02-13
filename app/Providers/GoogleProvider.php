@@ -45,7 +45,7 @@ class GoogleProvider extends GoogleProviderSocialite
      *
      * @return string
      */
-    public function setFakeState( string $value )
+    public function setState( string $value )
     {
         $this->state = $value;
 
