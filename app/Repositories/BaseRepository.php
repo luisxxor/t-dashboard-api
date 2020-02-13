@@ -140,18 +140,18 @@ abstract class BaseRepository
     }
 
     /**
-     * Find model record for given id
+     * Find model record for given primaryKey
      *
-     * @param int $id
+     * @param mixed $primaryKey
      * @param array $columns
      *
      * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection|Model|null
      */
-    public function find($id, $columns = ['*'])
+    public function find($primaryKey, $columns = ['*'])
     {
         $query = $this->model->newQuery();
 
-        return $query->find($id, $columns);
+        return $query->find($primaryKey, $columns);
     }
 
     /**

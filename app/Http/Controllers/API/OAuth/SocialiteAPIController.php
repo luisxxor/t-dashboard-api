@@ -4,14 +4,48 @@ namespace App\Http\Controllers\API\OAuth;
 
 use App\Http\Controllers\AppBaseController;
 use App\Http\Resources\User as UserResource;
-use App\Models\Dashboard\User;
+use App\Providers\GoogleProvider;
+use App\Repositories\Dashboard\UserRepository;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Socialite;
 
 class SocialiteAPIController extends AppBaseController
 {
     /**
+     * @var  UserRepository
+     */
+    private $userRepository;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct( UserRepository $userRepo )
+    {
+        $this->userRepository = $userRepo;
+
+        Socialite::extend( 'google', function ( $container ) {
+            $config = $container[ 'config' ][ 'services.google' ];
+            $redirect = value( $config[ 'redirect' ] );
+            return new GoogleProvider(
+                $container[ 'request' ],
+                $config[ 'client_id' ],
+                $config[ 'client_secret' ],
+                Str::startsWith( $redirect, '/' ) ? $container[ 'url' ]->to( $redirect ) : $redirect,
+                Arr::get( $config, 'guzzle', [] )
+            );
+        } );
+    }
+
+    /**
+     * @param  string $provider
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
@@ -48,7 +82,7 @@ class SocialiteAPIController extends AppBaseController
      *      )
      * )
      */
-    public function redirect( $provider )
+    public function redirect( $provider, Request $request )
     {
         $urlRedirect = Socialite::driver( $provider )->stateless()->redirect()->getTargetUrl();
 
@@ -56,6 +90,8 @@ class SocialiteAPIController extends AppBaseController
     }
 
     /**
+     * @param  string $provider
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
@@ -129,10 +165,8 @@ class SocialiteAPIController extends AppBaseController
             // get user email through provider
             $email = $userProvider->getEmail();
 
-            // if provider has user email
-            if ( $email !== null ) {
-                $user = User::where( 'email', $email )->first();
-            }
+            // get user if exists
+            $user = $this->userRepository->findByField( 'email', $email )->first();
 
             // create user if it is not created yet
             if ( $user === null ) {
@@ -145,7 +179,7 @@ class SocialiteAPIController extends AppBaseController
                         $userData = [
                             'name' => $userRaw[ 'given_name' ],
                             'lastname' => $userRaw[ 'family_name' ],
-                            'email' => $userProvider->getEmail()
+                            'email' => $email
                         ];
 
                         break;
@@ -156,7 +190,7 @@ class SocialiteAPIController extends AppBaseController
                         $userData = [
                             'name' => $userRaw[ 'first_name' ],
                             'lastname' => $userRaw[ 'last_name' ],
-                            'email' => $userProvider->getEmail()
+                            'email' => $email
                         ];
 
                         break;
@@ -165,18 +199,17 @@ class SocialiteAPIController extends AppBaseController
                         $userData = [
                             'name' => $userProvider->getName() ?? '',
                             'lastname' => '',
-                            'email' => $userProvider->getEmail()
+                            'email' => $email
                         ];
                         break;
                 }
 
-                // create user
-                $user = User::create( $userData );
-                $user->email_verified_at = now();
-                $user->save();
+                $userData[ 'email_verified_at' ] = now();
 
-                // attach default role_id=2 to the new user
-                $user->roles()->attach( 2 );
+                # TODO: put here the array of accessible projects for user
+                $userData[ 'accessible_projects' ] = [ '*' ];
+
+                $user = $this->create( $userData );
             }
 
             // create linked social account for user
@@ -200,6 +233,27 @@ class SocialiteAPIController extends AppBaseController
         ];
 
         return $this->sendResponse( $response, 'User logged successfully.' );
+    }
+
+    /**
+     * Create a new user instance after a valid registration.
+     *
+     * @param  array  $data
+     * @return \App\Models\Dashboard\User
+     */
+    protected function create( array $data )
+    {
+        $user = $this->userRepository->create( [
+            'name' => $data[ 'name' ],
+            'lastname' => $data[ 'lastname' ],
+            'email' => $data[ 'email' ],
+            'email_verified_at' => $data[ 'email_verified_at' ],
+            'accessible_projects' => $data[ 'accessible_projects' ],
+        ] );
+
+        $user->assignRoles( 'regular-user' );
+
+        return $user;
     }
 
     /**

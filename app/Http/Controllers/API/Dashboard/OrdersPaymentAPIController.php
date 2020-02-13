@@ -7,14 +7,15 @@ use App\Billing\PaymentGatewayContract;
 use App\Http\Controllers\AppBaseController;
 use App\Models\Dashboard\Order;
 use App\Repositories\Dashboard\OrderRepository;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 /**
- * Class PayOrderAPIController
+ * Class OrdersPaymentAPIController
  * @package App\Http\Controllers\API\Dashboard
  */
-class PayOrderAPIController extends AppBaseController
+class OrdersPaymentAPIController extends AppBaseController
 {
     /**
      * @const float
@@ -74,6 +75,7 @@ class PayOrderAPIController extends AppBaseController
      * @param \Illuminate\Http\Request              $request
      * @param \App\Billing\PaymentGatewayContract   $paymentGateway
      * @return \Illuminate\Http\JsonResponse
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      *
      * @OA\Post(
      *     path="/api/dashboard/payments/process",
@@ -141,6 +143,10 @@ class PayOrderAPIController extends AppBaseController
      *         description="Unauthenticated."
      *     ),
      *     @OA\Response(
+     *         response=403,
+     *         description="Access Denied."
+     *     ),
+     *     @OA\Response(
      *         response=404,
      *         description="Order not found."
      *     ),
@@ -171,9 +177,14 @@ class PayOrderAPIController extends AppBaseController
 
         // validate order
         if ( empty( $order ) === true ) {
-            \Log::info( 'Order not found.', $orderCode );
+            \Log::info( 'Order not found.', [ $orderCode ] );
 
             return $this->sendError( 'Order not found.', [], 404 );
+        }
+
+        // validate if the order belongs to the user
+        if ( $order->user_id != auth()->user()->getKey() ) {
+            throw new AuthorizationException;
         }
 
         // if order is already released

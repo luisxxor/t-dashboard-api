@@ -3,14 +3,29 @@
 namespace App\Http\Controllers\API\Auth;
 
 use App\Http\Controllers\AppBaseController;
-use App\Models\Dashboard\User;
 use App\Http\Resources\User as UserResource;
+use App\Repositories\Dashboard\UserRepository;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class RegisterAPIController extends AppBaseController
 {
+    /**
+     * @var  UserRepository
+     */
+    private $userRepository;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct( UserRepository $userRepo )
+    {
+        $this->userRepository = $userRepo;
+    }
+
     /**
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
@@ -95,9 +110,14 @@ class RegisterAPIController extends AppBaseController
      */
     public function register( Request $request )
     {
-        $this->validator( $request->all() )->validate();
+        $input = $request->only( [ 'name', 'lastname', 'email', 'password', 'password_confirmation' ] );
 
-        event( new Registered( $user = $this->create( $request->all() ) ) );
+        $this->validator( $input )->validate();
+
+        # TODO: put here the array of accessible projects for user
+        $input[ 'accessible_projects' ] = [ '*' ];
+
+        event( new Registered( $user = $this->create( $input ) ) );
 
         // # ver que scopes asignar/crear
         $scopes = [];
@@ -121,10 +141,10 @@ class RegisterAPIController extends AppBaseController
     protected function validator( array $data )
     {
         return Validator::make( $data, [
-            'name' => ['required', 'string', 'min:2', 'max:30'],
-            'lastname' => ['required', 'string', 'min:2', 'max:30'],
-            'email' => ['required', 'string', 'email', 'max:30', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'max:30', 'confirmed'],
+            'name'      => [ 'required', 'string', 'min:2', 'max:30' ],
+            'lastname'  => [ 'required', 'string', 'min:2', 'max:30' ],
+            'email'     => [ 'required', 'string', 'email', 'max:50', 'unique:users' ],
+            'password'  => [ 'required', 'string', 'min:8', 'max:30', 'confirmed' ],
         ] );
     }
 
@@ -136,16 +156,15 @@ class RegisterAPIController extends AppBaseController
      */
     protected function create( array $data )
     {
-        $user = User::create( [
+        $user = $this->userRepository->create( [
             'name' => $data[ 'name' ],
             'lastname' => $data[ 'lastname' ],
             'email' => $data[ 'email' ],
             'password' => $data[ 'password' ],
+            'accessible_projects' => $data[ 'accessible_projects' ],
         ] );
 
-        # probar con assignRole() como en luxury
-        // attach default role_id=2 to the new user
-        $user->roles()->attach( 2 );
+        $user->assignRoles( 'regular-user' );
 
         return $user;
     }

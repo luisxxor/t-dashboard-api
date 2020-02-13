@@ -11,6 +11,200 @@
         }
     ],
     "paths": {
+        "/api/admin/roles": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Display the list of roles",
+                "operationId": "index",
+                "responses": {
+                    "200": {
+                        "description": "Data retrived.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
+                    }
+                },
+                "security": [
+                    {
+                        "": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/users": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Display the list of users",
+                "operationId": "index-",
+                "responses": {
+                    "200": {
+                        "description": "Data retrived.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
+                    }
+                },
+                "security": [
+                    {
+                        "": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/admin/users/{userId}": {
+            "put": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Update the specified user's with given data",
+                "operationId": "update",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "lastname",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "phone_number1",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "address_line1",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "address_line2",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "password",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "accessible_projects",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {}
+                        }
+                    },
+                    {
+                        "name": "roles",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {}
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Data updated successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
+                    },
+                    "404": {
+                        "description": "Data not found."
+                    },
+                    "422": {
+                        "description": "The given data was invalid."
+                    }
+                },
+                "security": [
+                    {
+                        "": []
+                    }
+                ]
+            }
+        },
         "/api/password/email": {
             "post": {
                 "tags": [
@@ -454,6 +648,14 @@
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    {
+                        "name": "userId",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "int"
+                        }
                     }
                 ],
                 "responses": {
@@ -498,8 +700,8 @@
                 "tags": [
                     "Orders"
                 ],
-                "summary": "Display the specified user's order",
-                "operationId": "show",
+                "summary": "Return the specified user's order data",
+                "operationId": "getJson",
                 "parameters": [
                     {
                         "name": "orderCode",
@@ -513,7 +715,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Order retrived successfully.",
+                        "description": "Data successfully.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -541,7 +743,81 @@
                         "description": "Access Denied."
                     },
                     "404": {
-                        "description": "Order File not found."
+                        "description": "Data not found."
+                    }
+                },
+                "security": [
+                    {
+                        "": []
+                    }
+                ]
+            }
+        },
+        "api/dashboard/orders/{orderCode}/download": {
+            "get": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Download the export file",
+                "description": "Returns the download link of file",
+                "operationId": "downloadFile",
+                "parameters": [
+                    {
+                        "name": "orderCode",
+                        "in": "path",
+                        "description": "code of order",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "format",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Data retrieved.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "data": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
+                    },
+                    "403": {
+                        "description": "Access Denied."
+                    },
+                    "404": {
+                        "description": "Data not found."
+                    },
+                    "422": {
+                        "description": "The given data was invalid."
                     }
                 },
                 "security": [
@@ -620,6 +896,9 @@
                     },
                     "401": {
                         "description": "Unauthenticated."
+                    },
+                    "403": {
+                        "description": "Access Denied."
                     },
                     "404": {
                         "description": "Order not found."
@@ -984,16 +1263,62 @@
                 }
             }
         },
-        "/api/peru_properties/index": {
+        "/api/tokens/auth_token": {
+            "post": {
+                "tags": [
+                    "Tokens"
+                ],
+                "summary": "Generate auth token",
+                "operationId": "create",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {}
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Data retrieved.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
+                    }
+                }
+            }
+        },
+        "/api/peru_properties/filters/property_type": {
             "get": {
                 "tags": [
                     "Peru Properties"
                 ],
-                "summary": "Display the necessary data for filters",
-                "operationId": "index",
+                "summary": "Return the necessary data for property type filter",
+                "operationId": "getPropertyTypeFilterData",
                 "responses": {
                     "200": {
-                        "description": "Filters data retrived.",
+                        "description": "Data retrived.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1003,16 +1328,9 @@
                                         },
                                         "data": {
                                             "properties": {
-                                                "filters": {
+                                                "data": {
                                                     "type": "array",
-                                                    "items": {
-                                                        "properties": {
-                                                            "field-1": {
-                                                                "type": "string"
-                                                            }
-                                                        },
-                                                        "type": "object"
-                                                    }
+                                                    "items": {}
                                                 }
                                             },
                                             "type": "object"
@@ -1430,80 +1748,6 @@
                         "description": "The given data was invalid."
                     }
                 }
-            }
-        },
-        "api/peru_properties/orders/{orderCode}/download": {
-            "get": {
-                "tags": [
-                    "Peru Properties"
-                ],
-                "summary": "Download the export file",
-                "description": "Returns the download link of file",
-                "operationId": "downloadOrderedFile",
-                "parameters": [
-                    {
-                        "name": "orderCode",
-                        "in": "path",
-                        "description": "code of order",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "format",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "download link retrived.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "data": {
-                                                    "type": "string"
-                                                }
-                                            },
-                                            "type": "object"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthenticated."
-                    },
-                    "403": {
-                        "description": "Access Denied."
-                    },
-                    "404": {
-                        "description": "Order not found."
-                    },
-                    "422": {
-                        "description": "The given data was invalid."
-                    }
-                },
-                "security": [
-                    {
-                        "": []
-                    }
-                ]
             }
         }
     },

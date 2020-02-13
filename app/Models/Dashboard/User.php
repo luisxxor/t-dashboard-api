@@ -29,6 +29,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'phone_number1', 'address_line1', 'address_line2',
 
         'password',
+
+        'email_verified_at',
+
+        'accessible_projects',
     ];
 
     /**
@@ -47,6 +51,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'address_line2' => 'string',
 
         'password' => 'string',
+
+        'accessible_projects' => 'array',
     ];
 
     /**
@@ -97,6 +103,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function setPasswordAttribute( $value )
     {
         $this->attributes[ 'password' ] = Hash::make( $value );
+    }
+
+    /**
+     * Get the user's roles.
+     *
+     * @return array
+     */
+    public function getRoleListAttribute()
+    {
+        return array_column( $this->roles()->get( [ 'slug' ] )->toArray(), 'slug' );
     }
 
     /**
