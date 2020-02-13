@@ -68,7 +68,7 @@ class VehiclesAPIController extends AppBaseController
         // select
         $publicationTypes = $this->publicationTypeRepository->distinct( 'name' );
 
-        // property types
+        // publication types
         $publicationTypes = array_column( $publicationTypes->toArray(), 0 );
 
         // sort
@@ -82,7 +82,7 @@ class VehiclesAPIController extends AppBaseController
         $make = $this->vehicleRepository->distinct( 'make' ,$publication_type);
 
         if (!empty($make)) {
-            // property types
+            // make types
             $make = array_column( $make->toArray(), 0 );
 
             // sort
@@ -92,28 +92,7 @@ class VehiclesAPIController extends AppBaseController
         return $this->sendResponse( $make, 'Data retrieved.' );
     }
 
-    
-    public function ghostSearch( Request $request )
-    {
-        $request->validate( [
-            'lat'           => [ 'required', 'numeric' ],
-            'lng'           => [ 'required', 'numeric' ],
-            'maxDistance'   => [ 'required', 'integer', 'min:1', 'max:5000' ],
-        ] );
-
-        // input
-        $lat            = $request->get( 'lat' );
-        $lng            = $request->get( 'lng' );
-        $maxDistance    = $request->get( 'maxDistance' );
-
-        // construct and execute query.
-        // search properties
-        $this->propertyRepository->searchPropertiesOnlyByGeonear( $lat, $lng, $maxDistance );
-
-        return $this->sendResponse( [], 'Success.' );
-    }
-
-    public function searchProperties( Request $request )
+    public function searchVehicles( Request $request )
     {
         $request->validate( [
             'vertices'  => [ 'required', 'array', 'filled' ],
@@ -262,77 +241,5 @@ class VehiclesAPIController extends AppBaseController
 
         // return payment init point link
         return $this->sendResponse( $order, 'Ordered successfully.' );
-    }
-    
-    public function generatePropertiesFile( Request $request )
-    {
-        $request->validate( [
-            'orderCode'  => [ 'required', 'string' ],
-        ] );
-
-        // input
-        $orderCode = $request->get( 'orderCode' );
-
-        // get order
-        $order = $this->orderRepository->findByField( 'code', $orderCode )->first();
-
-        // validate order
-        if ( empty( $order ) === true ) {
-            \Log::info( 'Order not found.', [ $orderCode ] );
-
-            return $this->sendError( 'Order not found.', [], 404 );
-        }
-
-        $filesInfo = [];
-
-        // quantity of rows
-        $rowsQuantity = $this->propertyRepository->countSelectedSearchedProperties( $order->search_id );
-
-        // create json
-        try {
-
-            // get search
-            $search = $this->searchRepository->findOrFail( $order->search_id );
-
-            // get selected searched properties by user
-            $selectedSearchedProperties = $this->propertyRepository->getSelectedSearchedProperties( $order->search_id );
-
-            $filesInfo[] = $this->fileHandler->createAndUploadFile(
-                array_merge( $search->toArray(), [ 'data' => $selectedSearchedProperties ] ),
-                $rowsQuantity,
-                $orderCode,
-                'json'
-            );
-
-            // free memory
-            unset( $search );
-            unset( $selectedSearchedProperties );
-            gc_collect_cycles();
-        } catch ( \Exception $e ) {
-            return $this->sendError( $e->getMessage() );
-        }
-
-        // create excel
-        try {
-
-            $filesInfo[] = $this->fileHandler->createAndUploadFile(
-                [
-                    'header'    => $this->propertyRepository->header,
-                    'body'      => $this->propertyRepository->getSelectedSearchedPropertiesExcelFormat( $order->search_id ),
-                ],
-                $rowsQuantity,
-                $orderCode,
-                'xlsx'
-            );
-
-            gc_collect_cycles();
-        } catch ( \Exception $e ) {
-            return $this->sendError( $e->getMessage() );
-        }
-
-        $order->files_info = $filesInfo;
-        $order->save();
-
-        return $this->sendResponse( 'OK', 'Properties\' file generated successfully.' );
     }
 }
