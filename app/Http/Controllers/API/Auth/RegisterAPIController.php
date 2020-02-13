@@ -4,13 +4,10 @@ namespace App\Http\Controllers\API\Auth;
 
 use App\Http\Controllers\AppBaseController;
 use App\Http\Resources\User as UserResource;
-use App\Repositories\Dashboard\ProjectRepository;
 use App\Repositories\Dashboard\UserRepository;
-use App\Repositories\Tokens\DataTokenRepository;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class RegisterAPIController extends AppBaseController
 {
@@ -20,27 +17,13 @@ class RegisterAPIController extends AppBaseController
     private $userRepository;
 
     /**
-     * @var  DataTokenRepository
-     */
-    private $dataTokenRepository;
-
-    /**
-     * @var  ProjectRepository
-     */
-    private $projectRepository;
-
-    /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct( UserRepository $userRepo,
-        DataTokenRepository $dataTokenRepo,
-        ProjectRepository $projectRepo )
+    public function __construct( UserRepository $userRepo )
     {
         $this->userRepository = $userRepo;
-        $this->dataTokenRepository = $dataTokenRepo;
-        $this->projectRepository = $projectRepo;
     }
 
     /**
@@ -92,14 +75,6 @@ class RegisterAPIController extends AppBaseController
      *             type="string"
      *         )
      *     ),
-     *     @OA\Parameter(
-     *         name="token",
-     *         required=true,
-     *         in="query",
-     *         @OA\Schema(
-     *             type="string"
-     *         )
-     *     ),
      *      @OA\Response(
      *          response=200,
      *          description="User registered successfully.",
@@ -135,19 +110,12 @@ class RegisterAPIController extends AppBaseController
      */
     public function register( Request $request )
     {
-        $input = $request->only( [ 'name', 'lastname', 'email', 'password', 'password_confirmation', 'token' ] );
+        $input = $request->only( [ 'name', 'lastname', 'email', 'password', 'password_confirmation' ] );
 
         $this->validator( $input )->validate();
 
-        $dataToken = $this->dataTokenRepository->findAndDelete( $request->get( 'token' ) )[ 'data' ];
-
-        $projects = array_column( $this->projectRepository->all( [], null, null, [ 'code' ] )->toArray(), 'code' );
-
-        Validator::make( $dataToken, [
-            'project' => [ 'required', 'string', Rule::in( $projects ) ],
-        ] )->validate();
-
-        $input[ 'project' ] = $dataToken[ 'project' ];
+        # TODO: put here the array of accessible projects for user
+        $input[ 'accessible_projects' ] = [ '*' ];
 
         event( new Registered( $user = $this->create( $input ) ) );
 
@@ -173,16 +141,11 @@ class RegisterAPIController extends AppBaseController
     protected function validator( array $data )
     {
         return Validator::make( $data, [
-                'name'      => [ 'required', 'string', 'min:2', 'max:30' ],
-                'lastname'  => [ 'required', 'string', 'min:2', 'max:30' ],
-                'email'     => [ 'required', 'string', 'email', 'max:50', 'unique:users' ],
-                'password'  => [ 'required', 'string', 'min:8', 'max:30', 'confirmed' ],
-                'token'     => [ 'required', 'string', 'exists:data_tokens,token' ],
-            ],
-            [
-                'token.exists' => 'Token no valido.',
-            ]
-        );
+            'name'      => [ 'required', 'string', 'min:2', 'max:30' ],
+            'lastname'  => [ 'required', 'string', 'min:2', 'max:30' ],
+            'email'     => [ 'required', 'string', 'email', 'max:50', 'unique:users' ],
+            'password'  => [ 'required', 'string', 'min:8', 'max:30', 'confirmed' ],
+        ] );
     }
 
     /**
@@ -198,7 +161,7 @@ class RegisterAPIController extends AppBaseController
             'lastname' => $data[ 'lastname' ],
             'email' => $data[ 'email' ],
             'password' => $data[ 'password' ],
-            'accessible_projects' => [ $data[ 'project' ] ],
+            'accessible_projects' => $data[ 'accessible_projects' ],
         ] );
 
         $user->assignRoles( 'regular-user' );
