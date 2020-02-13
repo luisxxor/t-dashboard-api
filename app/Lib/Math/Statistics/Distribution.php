@@ -190,35 +190,36 @@ class Distribution
 //         250,
 //         280
 //     ];
-//     $stats = MathPHP\Statistics\Descriptive::describe($numbers, true);
 
-//     // return [ $stats ];
+//     // $stats = MathPHP\Statistics\Descriptive::describe($numbers, true);
 
-//     $p = 0.1;
-//     // Beta distribution
-//     $α      = 1; // shape parameter
-//     $β      = 1; // shape parameter
-//     $x      = 1;
-//     $beta   = new MathPHP\Probability\Distribution\Continuous\Beta($α, $β);
-//     $pdf    = $beta->pdf($x);
-//     $cdf    = $beta->cdf($x);
-//     $icdf   = $beta->inverse($p);
-//     $μ      = $beta->mean();
-//     $median = $beta->median();
-//     // $mode   = $beta->mode();
-//     $σ²     = $beta->variance();
+//     // // return [ $stats ];
 
-//     // return compact( 'α','β','x','beta','pdf','cdf','icdf','μ','median','mode','σ²' );
+//     // $p = 0.1;
+//     // // Beta distribution
+//     // $α      = 1; // shape parameter
+//     // $β      = 1; // shape parameter
+//     // $x      = 1;
+//     // $beta   = new MathPHP\Probability\Distribution\Continuous\Beta($α, $β);
+//     // $pdf    = $beta->pdf($x);
+//     // $cdf    = $beta->cdf($x);
+//     // $icdf   = $beta->inverse($p);
+//     // $μ      = $beta->mean();
+//     // $median = $beta->median();
+//     // // $mode   = $beta->mode();
+//     // $σ²     = $beta->variance();
 
-//     $distribution = [
-//         'frequency' => MathPHP\Statistics\Distribution::frequency($numbers),
-//         'relativeFrequency' => MathPHP\Statistics\Distribution::relativeFrequency($numbers),
-//         'cumulativeFrequency' => MathPHP\Statistics\Distribution::cumulativeFrequency($numbers),
-//         'cumulativeRelativeFrequency' => MathPHP\Statistics\Distribution::cumulativeRelativeFrequency($numbers),
-//         'stemAndLeafPlot' => MathPHP\Statistics\Distribution::stemAndLeafPlot($numbers),
-//     ];
+//     // // return compact( 'α','β','x','beta','pdf','cdf','icdf','μ','median','mode','σ²' );
 
-//     // return [ $distribution ];
+//     // $distribution = [
+//     //     'frequency' => MathPHP\Statistics\Distribution::frequency($numbers),
+//     //     'relativeFrequency' => MathPHP\Statistics\Distribution::relativeFrequency($numbers),
+//     //     'cumulativeFrequency' => MathPHP\Statistics\Distribution::cumulativeFrequency($numbers),
+//     //     'cumulativeRelativeFrequency' => MathPHP\Statistics\Distribution::cumulativeRelativeFrequency($numbers),
+//     //     'stemAndLeafPlot' => MathPHP\Statistics\Distribution::stemAndLeafPlot($numbers),
+//     // ];
+
+//     // // return [ $distribution ];
 
 //     $distribution = new App\Lib\Math\Statistics\Distribution( $numbers );
 
