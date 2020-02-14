@@ -222,7 +222,7 @@ class OrdersAPIController extends AppBaseController
         $user = auth()->user();
 
         // validate if the order belongs to the user, or user has permission to see foreign order
-        if ( $order->user_id != auth()->user()->getKey() || $user->hasPermissionTo( 'see.foreign.order' ) === false ) {
+        if ( $order->user_id != auth()->user()->getKey() && $user->hasPermissionTo( 'see.foreign.order' ) === false ) {
             throw new AuthorizationException;
         }
 
@@ -342,7 +342,7 @@ class OrdersAPIController extends AppBaseController
         $user = auth()->user();
 
         // validate if the order belongs to the user, or user has permission to download foreign order
-        if ( $order->user_id != auth()->user()->getKey() || $user->hasPermissionTo( 'download.foreign.order' ) === false ) {
+        if ( $order->user_id != auth()->user()->getKey() && $user->hasPermissionTo( 'download.foreign.order' ) === false ) {
             throw new AuthorizationException;
         }
 
