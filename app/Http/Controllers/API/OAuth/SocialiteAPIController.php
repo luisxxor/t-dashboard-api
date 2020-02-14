@@ -5,9 +5,7 @@ namespace App\Http\Controllers\API\OAuth;
 use App\Http\Controllers\AppBaseController;
 use App\Http\Resources\User as UserResource;
 use App\Providers\GoogleProvider;
-use App\Repositories\Dashboard\ProjectRepository;
 use App\Repositories\Dashboard\UserRepository;
-use App\Repositories\Tokens\DataTokenRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
@@ -24,27 +22,13 @@ class SocialiteAPIController extends AppBaseController
     private $userRepository;
 
     /**
-     * @var  DataTokenRepository
-     */
-    private $dataTokenRepository;
-
-    /**
-     * @var  ProjectRepository
-     */
-    private $projectRepository;
-
-    /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct( UserRepository $userRepo,
-        DataTokenRepository $dataTokenRepo,
-        ProjectRepository $projectRepo )
+    public function __construct( UserRepository $userRepo )
     {
         $this->userRepository = $userRepo;
-        $this->dataTokenRepository = $dataTokenRepo;
-        $this->projectRepository = $projectRepo;
 
         Socialite::extend( 'google', function ( $container ) {
             $config = $container[ 'config' ][ 'services.google' ];
@@ -77,14 +61,6 @@ class SocialiteAPIController extends AppBaseController
      *             type="string"
      *         )
      *     ),
-     *     @OA\Parameter(
-     *         name="token",
-     *         required=true,
-     *         in="query",
-     *         @OA\Schema(
-     *             type="string"
-     *         )
-     *     ),
      *      @OA\Response(
      *          response=200,
      *          description="Provider redirect url retrieve successfully.",
@@ -108,13 +84,7 @@ class SocialiteAPIController extends AppBaseController
      */
     public function redirect( $provider, Request $request )
     {
-        $request->validate( [
-            'token' => [ 'required', 'string', 'exists:data_tokens,token' ],
-        ] );
-
-        $token = $request->get( 'token' );
-
-        $urlRedirect = Socialite::driver( $provider )->setFakeState( $token )->redirect()->getTargetUrl();
+        $urlRedirect = Socialite::driver( $provider )->stateless()->redirect()->getTargetUrl();
 
         return $this->sendResponse( $urlRedirect, 'Provider redirect url retrieve successfully.' );
     }
@@ -139,14 +109,6 @@ class SocialiteAPIController extends AppBaseController
      *     ),
      *     @OA\Parameter(
      *         name="code",
-     *         required=true,
-     *         in="query",
-     *         @OA\Schema(
-     *             type="string"
-     *         )
-     *     ),
-     *     @OA\Parameter(
-     *         name="token",
      *         required=true,
      *         in="query",
      *         @OA\Schema(
@@ -182,24 +144,8 @@ class SocialiteAPIController extends AppBaseController
      *     ),
      * )
      */
-    public function callback( $provider, Request $request )
+    public function callback( $provider )
     {
-        Validator::make( $request->toArray(), [
-                'state' => [ 'required', 'string', 'exists:data_tokens,token' ],
-            ],
-            [
-                'state.exists' => 'Token no valido.',
-            ]
-        )->validate();
-
-        $dataToken = $this->dataTokenRepository->findAndDelete( $request->get( 'state' ) )[ 'data' ];
-
-        $projects = array_column( $this->projectRepository->all( [], null, null, [ 'code' ] )->toArray(), 'code' );
-
-        Validator::make( $dataToken, [
-            'project' => [ 'required', 'string', Rule::in( $projects ) ],
-        ] )->validate();
-
         // get user info through provider
         $userProvider = Socialite::driver( $provider )->stateless()->user();
 
@@ -259,7 +205,9 @@ class SocialiteAPIController extends AppBaseController
                 }
 
                 $userData[ 'email_verified_at' ] = now();
-                $userData[ 'project' ] = $dataToken[ 'project' ];
+
+                # TODO: put here the array of accessible projects for user
+                $userData[ 'accessible_projects' ] = [ '*' ];
 
                 $user = $this->create( $userData );
             }
@@ -300,7 +248,7 @@ class SocialiteAPIController extends AppBaseController
             'lastname' => $data[ 'lastname' ],
             'email' => $data[ 'email' ],
             'email_verified_at' => $data[ 'email_verified_at' ],
-            'accessible_projects' => [ $data[ 'project' ] ],
+            'accessible_projects' => $data[ 'accessible_projects' ],
         ] );
 
         $user->assignRoles( 'regular-user' );

@@ -358,14 +358,6 @@
                         "schema": {
                             "type": "string"
                         }
-                    },
-                    {
-                        "name": "token",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
                     }
                 ],
                 "responses": {
@@ -1186,14 +1178,6 @@
                         "schema": {
                             "type": "string"
                         }
-                    },
-                    {
-                        "name": "token",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
                     }
                 ],
                 "responses": {
@@ -1239,14 +1223,6 @@
                     },
                     {
                         "name": "code",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "token",
                         "in": "query",
                         "required": true,
                         "schema": {
