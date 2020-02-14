@@ -702,7 +702,8 @@ class PropertiesAPIController extends AppBaseController
                 array_merge( $search->toArray(), [ 'data' => $selectedSearchedProperties ] ),
                 $rowsQuantity,
                 $orderCode,
-                'json'
+                'json',
+                config( 'app.cl_export_file_bucket' )
             );
 
             // free memory
@@ -723,7 +724,8 @@ class PropertiesAPIController extends AppBaseController
                 ],
                 $rowsQuantity,
                 $orderCode,
-                'xlsx'
+                'xlsx',
+                config( 'app.cl_export_file_bucket' )
             );
 
             gc_collect_cycles();
