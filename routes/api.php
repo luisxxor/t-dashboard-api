@@ -98,7 +98,7 @@ Route::prefix( 'peru_vehicles' )->middleware( 'auth:api', 'verified' )->group( f
 
     Route::get( 'filters/publication_type', '\App\Projects\PeruVehicles\Controllers\VehiclesAPIController@getPublicationTypeFilterData' )->name( 'peru_vehicles.filters.publicationType' );
 
-    Route::get( 'filters/make_type/{publication_type}', '\App\Projects\PeruVehicles\Controllers\VehiclesAPIController@getMakeTypeFilterData' )->name( 'peru_vehicles.filters.publicationType' );
+    Route::get( 'filters/{field}/{publication_type}', '\App\Projects\PeruVehicles\Controllers\VehiclesAPIController@getFieldFilterData' )->name( 'peru_vehicles.filters.field' );
 
     Route::post( 'search', '\App\Projects\PeruVehicles\Controllers\VehiclesAPIController@searchProperties' )->name( 'peru_vehicles.searchProperties' )
         ->middleware( 'can:search.properties' );

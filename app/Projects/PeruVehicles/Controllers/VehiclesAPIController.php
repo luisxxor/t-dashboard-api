@@ -77,9 +77,9 @@ class VehiclesAPIController extends AppBaseController
         return $this->sendResponse( $publicationTypes, 'Data retrieved.' );
     }
 
-    public function getMakeTypeFilterData($publication_type)
+    public function getFieldFilterData($field,$publication_type)
     {
-        $make = $this->vehicleRepository->distinct( 'make' ,$publication_type);
+        $make = $this->vehicleRepository->distinct( $field ,$publication_type);
 
         if (!empty($make)) {
             // make types
