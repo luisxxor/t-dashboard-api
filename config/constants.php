@@ -20,5 +20,6 @@ return [
 
     'payment_currencies' => [
         'PEN' => 'PEN',
+        'CLP' => 'CLP',
     ],
 ];

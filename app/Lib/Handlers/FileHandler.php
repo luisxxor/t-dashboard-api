@@ -48,7 +48,7 @@ class FileHandler
      * @return array
      * @throws \Exception
      */
-    public function createAndUploadFile( $fileData, int $rowsQuantity, string $name, string $fileType ): array
+    public function createAndUploadFile( $fileData, int $rowsQuantity, string $name, string $fileType, $bucket ): array
     {
         try {
             $filePath = $this->exportFileName( $name, $fileType );
@@ -95,7 +95,7 @@ class FileHandler
         $googleStorage = new GoogleStorage( config( 'app.google_key_file_path' ) );
 
         // upload to google storage
-        $uploadedObject = $googleStorage->uploadObject( config( 'app.pe_export_file_bucket' ), basename( $filePath ), $filePath );
+        $uploadedObject = $googleStorage->uploadObject( $bucket, basename( $filePath ), $filePath );
 
         return [
             'name' => $uploadedObject[ 'name' ],
