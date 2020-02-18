@@ -273,6 +273,8 @@ return [
 
     'pe_export_file_bucket' => env( 'PE_EXPORT_FILE_BUCKET', null ),
 
+    'ec_export_file_bucket' => env( 'EC_EXPORT_FILE_BUCKET', null ),
+
     'cl_export_file_bucket' => env( 'CL_EXPORT_FILE_BUCKET', null ),
 
 ];
