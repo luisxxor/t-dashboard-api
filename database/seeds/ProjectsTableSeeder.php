@@ -23,6 +23,10 @@ class ProjectsTableSeeder extends Seeder
             [
                 'code' => 'cl-properties',
                 'name' => 'Chile Propiedades',
+            ],
+            [
+                'code' => 'ec-properties',
+                'name' => 'Ecuador Propiedades',
             ]
         ] );
     }

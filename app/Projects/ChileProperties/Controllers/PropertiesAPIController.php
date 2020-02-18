@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Projects\PeruProperties\Controllers;
+namespace App\Projects\ChileProperties\Controllers;
 
 use App\Http\Controllers\AppBaseController;
 use App\Lib\Handlers\FileHandler;
-use App\Projects\PeruProperties\Repositories\PropertyRepository;
-use App\Projects\PeruProperties\Repositories\PropertyTypeRepository;
-use App\Projects\PeruProperties\Repositories\SearchRepository;
+use App\Projects\ChileProperties\Repositories\PropertyRepository;
+use App\Projects\ChileProperties\Repositories\PropertyTypeRepository;
+use App\Projects\ChileProperties\Repositories\SearchRepository;
 use App\Repositories\Dashboard\OrderRepository;
 use DateTime;
 use Illuminate\Http\Request;
@@ -16,7 +16,7 @@ use GuzzleHttp\Psr7\Request as GuzzleRequest;
 
 /**
  * Class PropertiesAPIController
- * @package App\Projects\PeruProperties\Controllers
+ * @package App\Projects\ChileProperties\Controllers
  */
 class PropertiesAPIController extends AppBaseController
 {
@@ -66,9 +66,9 @@ class PropertiesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
-     *     path="/api/peru_properties/filters/property_type",
+     *     path="/api/chile_properties/filters/property_type",
      *     operationId="getPropertyTypeFilterData",
-     *     tags={"Peru Properties"},
+     *     tags={"Chile Properties"},
      *     summary="Return the necessary data for property type filter",
      *     @OA\Response(
      *         response=200,
@@ -106,7 +106,7 @@ class PropertiesAPIController extends AppBaseController
     public function getPropertyTypeFilterData()
     {
         // select
-        $propertyTypes = $this->propertyTypeRepository->distinct( 'owner_name' );
+        $propertyTypes = $this->propertyTypeRepository->distinct( 'name' );
 
         // property types
         $propertyTypes = array_column( $propertyTypes->toArray(), 0 );
@@ -122,9 +122,9 @@ class PropertiesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
-     *     path="/api/peru_properties/ghost_search",
+     *     path="/api/chile_properties/ghost_search",
      *     operationId="ghostSearch",
-     *     tags={"Peru Properties"},
+     *     tags={"Chile Properties"},
      *     summary="Make the ghost search",
      *     @OA\Parameter(
      *         name="lat",
@@ -212,9 +212,9 @@ class PropertiesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Post(
-     *     path="/api/peru_properties/properties_ajax",
+     *     path="/api/chile_properties/properties_ajax",
      *     operationId="searchProperties",
-     *     tags={"Peru Properties"},
+     *     tags={"Chile Properties"},
      *     summary="Return the properties that math with given filters",
      *     @OA\Parameter(
      *         name="vertices",
@@ -372,9 +372,9 @@ class PropertiesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Post(
-     *     path="/api/peru_properties/properties_paginate",
+     *     path="/api/chile_properties/properties_paginate",
      *     operationId="paginateProperties",
-     *     tags={"Peru Properties"},
+     *     tags={"Chile Properties"},
      *     summary="Return the properties that math with given search id",
      *     @OA\Parameter(
      *         name="searchId",
@@ -481,9 +481,9 @@ class PropertiesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Post(
-     *     path="/api/peru_properties/order",
+     *     path="/api/chile_properties/order",
      *     operationId="order",
-     *     tags={"Peru Properties"},
+     *     tags={"Chile Properties"},
      *     summary="Order items",
      *     description="Create order in case it does not, and update the 'ids' value of search",
      *     @OA\Parameter(
@@ -578,7 +578,7 @@ class PropertiesAPIController extends AppBaseController
             $order = $this->orderRepository->create( [
                 'user_id'               => $user->id,
                 'search_id'             => $searchId,
-                'project'               => config( 'multi-api.pe-properties.backend-info.code' ),
+                'project'               => config( 'multi-api.cl-properties.backend-info.code' ),
                 'total_rows_quantity'   => $total,
                 'status'                => config( 'constants.ORDERS_OPENED_STATUS' ),
             ] );
@@ -599,7 +599,7 @@ class PropertiesAPIController extends AppBaseController
             $guzzleClient = new GuzzleClient( [ 'base_uri' => url( '/' ), 'timeout' => 30.0 ] );
             $guzzleClient->sendAsync( new GuzzleRequest(
                 'GET',
-                route( 'api.' . config( 'multi-api.pe-properties.backend-info.generate_file_url' ), [], false ),
+                route( 'api.' . config( 'multi-api.cl-properties.backend-info.generate_file_url' ), [], false ),
                 [ 'Content-type' => 'application/json' ],
                 json_encode( [ 'orderCode' => $order->code ] )
             ) )->wait( false );
@@ -620,9 +620,9 @@ class PropertiesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
-     *     path="/api/peru_properties/generate_file",
+     *     path="/api/chile_properties/generate_file",
      *     operationId="generatePropertiesFile",
-     *     tags={"Peru Properties"},
+     *     tags={"Chile Properties"},
      *     summary="Build the order files",
      *     @OA\Parameter(
      *         name="orderCode",
@@ -703,7 +703,7 @@ class PropertiesAPIController extends AppBaseController
                 $rowsQuantity,
                 $orderCode,
                 'json',
-                config( 'app.pe_export_file_bucket' )
+                config( 'app.cl_export_file_bucket' )
             );
 
             // free memory
@@ -725,7 +725,7 @@ class PropertiesAPIController extends AppBaseController
                 $rowsQuantity,
                 $orderCode,
                 'xlsx',
-                config( 'app.pe_export_file_bucket' )
+                config( 'app.cl_export_file_bucket' )
             );
 
             gc_collect_cycles();

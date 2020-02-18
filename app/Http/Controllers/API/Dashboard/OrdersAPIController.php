@@ -130,7 +130,7 @@ class OrdersAPIController extends AppBaseController
         $user = auth()->user();
 
         // if user has permission to see foreign orders list
-        if ( $userId !== null && $user->hasPermissionTo( 'see.foreign.orders.list' ) === true ) {
+        if ( $userId !== null && $user->hasPermissionTo( 'see.foreign.orders.list' ) === false ) {
             $user = $this->userRepository->find( $userId );
 
             if ( empty( $user ) === true ) {
@@ -219,8 +219,10 @@ class OrdersAPIController extends AppBaseController
             return $this->sendError( 'Order not found.', [], 404 );
         }
 
+        $user = auth()->user();
+
         // validate if the order belongs to the user, or user has permission to see foreign order
-        if ( $order->user_id != auth()->user()->getKey() || $user->hasPermissionTo( 'see.foreign.order' ) === true ) {
+        if ( $order->user_id != auth()->user()->getKey() && $user->hasPermissionTo( 'see.foreign.order' ) === false ) {
             throw new AuthorizationException;
         }
 
@@ -337,8 +339,10 @@ class OrdersAPIController extends AppBaseController
             return $this->sendError( 'Order not found.', [], 404 );
         }
 
+        $user = auth()->user();
+
         // validate if the order belongs to the user, or user has permission to download foreign order
-        if ( $order->user_id != auth()->user()->getKey() || $user->hasPermissionTo( 'download.foreign.order' ) === true ) {
+        if ( $order->user_id != auth()->user()->getKey() && $user->hasPermissionTo( 'download.foreign.order' ) === false ) {
             throw new AuthorizationException;
         }
 

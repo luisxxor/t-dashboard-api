@@ -113,6 +113,52 @@ Route::prefix( 'peru_vehicles' )->middleware( 'auth:api', 'verified' )->group( f
 
 
 
+Route::prefix( 'ecuador_properties' )->middleware( 'auth:api', 'verified' )->group( function () {
+
+    // ecuador properties
+
+    Route::get( 'filters/property_type', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@getPropertyTypeFilterData' )->name( 'ecuador_properties.filters.propertyType' );
+
+    Route::get( 'ghost_search', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@ghostSearch' )->name( 'ecuador_properties.ghostSearch' )
+        ->middleware( 'can:search.properties' );
+
+    Route::post( 'search', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@searchProperties' )->name( 'ecuador_properties.searchProperties' )
+        ->middleware( 'can:search.properties' );
+
+    Route::post( 'paginate', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@paginateProperties' )->name( 'ecuador_properties.paginateProperties' )
+        ->middleware( 'can:search.properties' );
+
+    Route::post( 'order', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@order' )->name( 'ecuador_properties.processOrder' )
+        ->middleware( 'can:order.properties' );
+} );
+
+// generate ecuador properties profile
+Route::get( 'ecuador_properties/generate_file', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@generatePropertiesFile' )->name( config( 'multi-api.ec-properties.backend-info.generate_file_url' ) );
+
+
+Route::prefix( 'chile_properties' )->middleware( 'auth:api', 'verified' )->group( function () {
+
+    // chile properties
+
+    Route::get( 'filters/property_type', '\App\Projects\ChileProperties\Controllers\PropertiesAPIController@getPropertyTypeFilterData' )->name( 'chile_properties.filters.propertyType' );
+
+    Route::get( 'ghost_search', '\App\Projects\ChileProperties\Controllers\PropertiesAPIController@ghostSearch' )->name( 'chile_properties.ghostSearch' )
+        ->middleware( 'can:search.properties' );
+
+    Route::post( 'search', '\App\Projects\ChileProperties\Controllers\PropertiesAPIController@searchProperties' )->name( 'chile_properties.searchProperties' )
+        ->middleware( 'can:search.properties' );
+
+    Route::post( 'paginate', '\App\Projects\ChileProperties\Controllers\PropertiesAPIController@paginateProperties' )->name( 'chile_properties.paginateProperties' )
+        ->middleware( 'can:search.properties' );
+
+    Route::post( 'order', '\App\Projects\ChileProperties\Controllers\PropertiesAPIController@order' )->name( 'chile_properties.processOrder' )
+        ->middleware( 'can:order.properties' );
+} );
+
+// generate chile properties profile
+Route::get( 'chile_properties/generate_file', '\App\Projects\ChileProperties\Controllers\PropertiesAPIController@generatePropertiesFile' )->name( config( 'multi-api.cl-properties.backend-info.generate_file_url' ) );
+
+
 
 
 # DOCUMENTAR
