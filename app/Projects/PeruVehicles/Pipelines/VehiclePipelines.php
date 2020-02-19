@@ -47,7 +47,7 @@ trait VehiclePipelines
      *
      * @return array
      */
-    protected function pipelinePropertiesToSearch( string $searchId, array $metadata ): array
+    protected function pipelineVehiclesToSearch( string $searchId, array $metadata ): array
     {
         // pipeline
         $pipeline = [];

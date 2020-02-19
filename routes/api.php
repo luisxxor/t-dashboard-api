@@ -100,7 +100,7 @@ Route::prefix( 'peru_vehicles' )->middleware( 'auth:api', 'verified' )->group( f
 
     Route::get( 'filters/{field}/{publication_type}', '\App\Projects\PeruVehicles\Controllers\VehiclesAPIController@getFieldFilterData' )->name( 'peru_vehicles.filters.field' );
 
-    Route::post( 'search', '\App\Projects\PeruVehicles\Controllers\VehiclesAPIController@searchProperties' )->name( 'peru_vehicles.searchProperties' )
+    Route::post( 'search', '\App\Projects\PeruVehicles\Controllers\VehiclesAPIController@searchVehicles' )->name( 'peru_vehicles.searchVehicles' )
         ->middleware( 'can:search.properties' );
 
     Route::post( 'paginate', '\App\Projects\PeruVehicles\Controllers\VehiclesAPIController@paginateProperties' )->name( 'peru_vehicles.paginateProperties' )

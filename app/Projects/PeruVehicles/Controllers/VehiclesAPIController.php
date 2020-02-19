@@ -95,20 +95,13 @@ class VehiclesAPIController extends AppBaseController
     public function searchVehicles( Request $request )
     {
         $request->validate( [
-            'vertices'  => [ 'required', 'array', 'filled' ],
+            'publication_type'   => [ 'required', 'string' ],
             'filters'   => [ 'nullable', 'array' ],
-            'lat'       => [ 'required', 'numeric' ],
-            'lng'       => [ 'required', 'numeric' ],
-            'address'   => [ 'nullable', 'string' ],
             'perpage'   => [ 'required', 'integer', 'min:10', 'max:500'],
         ] );
 
         // input
-        $vertices   = $request->get( 'vertices' );
         $filters    = $request->get( 'filters' );
-        $lat        = $request->get( 'lat' );
-        $lng        = $request->get( 'lng' );
-        $address    = $request->get( 'address' );
         $perpage    = $request->get( 'perpage' ) ?? 500;
 
         // get user
@@ -117,14 +110,9 @@ class VehiclesAPIController extends AppBaseController
         // metadata data
         $searchData = [
             'user_id' => $user->id,
+            'publication_type' => $request->publication_type,
             'metadata' => [
-                'vertices' => $vertices,
                 'filters' => (object)$filters,
-                'initPoint' => [
-                    'lat' => (float)$lat,
-                    'lng' => (float)$lng,
-                    'address' => $address,
-                ],
             ],
             'created_at' => new DateTime( 'now' )
         ];
@@ -135,7 +123,7 @@ class VehiclesAPIController extends AppBaseController
         // construct and execute query.
         // this will store the matched properties
         // in searched_properties collection.
-        $this->propertyRepository->storeSearchedProperties( $search );
+        $this->vehicleRepository->storeSearchedVehicle( $search );
 
         // paginate data (default)
         $page   = 1;
@@ -143,7 +131,7 @@ class VehiclesAPIController extends AppBaseController
         $sort   = -1;
 
         // construct and execute query
-        $results = $this->propertyRepository->getSearchedProperties( $search->_id, compact( 'page', 'perpage', 'field', 'sort' ) );
+        $results = $this->vehicleRepository->getSearchedProperties( $search->_id, compact( 'page', 'perpage', 'field', 'sort' ) );
 
         if ( empty( $results ) === true ) {
             return $this->sendError( 'Properties retrieved successfully.', $results, 204 );
@@ -170,7 +158,7 @@ class VehiclesAPIController extends AppBaseController
         $sort       = $request->get( 'sort' )       ?? -1;
 
         // construct and execute query
-        $results = $this->propertyRepository->getSearchedProperties( $searchId, compact( 'page', 'perpage', 'field', 'sort' ) );
+        $results = $this->vehicleRepository->getSearchedProperties( $searchId, compact( 'page', 'perpage', 'field', 'sort' ) );
 
         return $this->sendResponse( $results, 'Properties retrieved successfully.' );
     }
@@ -194,7 +182,7 @@ class VehiclesAPIController extends AppBaseController
 
         // get selected ids by user
         if ( $ids === [ '*' ] ) {
-            $total = $this->propertyRepository->countSearchedProperties( $searchId );
+            $total = $this->vehicleRepository->countSearchedProperties( $searchId );
         }
         else {
             $total = count( $ids );
@@ -218,7 +206,7 @@ class VehiclesAPIController extends AppBaseController
         }
 
         // update the search to save selected ids by user
-        $this->propertyRepository->updateSelectedSearchedProperties( $searchId, $ids );
+        $this->vehicleRepository->updateSelectedSearchedProperties( $searchId, $ids );
 
         // if user has permission to release order without paying, generate file
         if ( $user->hasPermissionTo( 'release.order.without.paying' ) === true ) {

@@ -27,6 +27,6 @@ class Search extends Moloquent
      * @var array
      */
     protected $fillable = [
-        'user_id', 'selected_properties', 'metadata', 'created_at'
+        'user_id', 'selected_properties', 'metadata', 'created_at','publication_type'
     ];
 }
