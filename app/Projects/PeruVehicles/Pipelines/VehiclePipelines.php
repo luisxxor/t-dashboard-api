@@ -52,11 +52,6 @@ trait VehiclePipelines
         // pipeline
         $pipeline = [];
 
-        // geo distance ($geoNear)
-        $pipeline[] = [
-            '$geoNear' => $metadata[ 'distance' ]
-        ];
-
         // join con regions ($lookup)
         $pipeline[] = [
             '$lookup' => [
@@ -70,25 +65,25 @@ trait VehiclePipelines
         // join con property_types ($lookup)
         $pipeline[] = [
             '$lookup' => [
-                'from' => 'property_types',
-                'localField' => 'property_type_id',
+                'from' => 'publication_types',
+                'localField' => 'publication_type_id',
                 'foreignField' => '_id',
-                'as' => 'property_types_docs'
+                'as' => 'publication_types_docs'
             ]
         ];
 
         // geo within and filters ($match)
         $pipeline[] = [
-            '$match' => $metadata[ 'propertiesWithin' ] + $metadata[ 'filters' ]
+            '$match' => $metadata
         ];
 
         // fields ($addFields)
         $pipeline[] = [
             '$addFields' => [
-                'property_id' => '$_id',
+                'vehicle_id' => '$_id',
                 'search_id' => new ObjectID( $searchId ),
-                'property_type' => [ '$ifNull' => [
-                    [ '$arrayElemAt' => [ '$property_types_docs.name', 0 ] ],
+                'publication_type' => [ '$ifNull' => [
+                    [ '$arrayElemAt' => [ '$publication_types_docs.name', 0 ] ],
                     null
                 ] ],
                 'region' => [
@@ -107,18 +102,18 @@ trait VehiclePipelines
         $pipeline[] = [
             '$project' => [
                 '_id' => 0,
-                'property_type_id' => 0,
-                'property_types_docs' => 0,
                 'region_id' => 0,
                 'regions_docs' => 0,
+                'publication_type_id' => 0,
+                'publication_types_docs' => 0,
             ]
         ];
 
         // insert into select ($merge)
         $pipeline[] = [
             '$merge' => [
-                'into' => 'searched_properties',
-                'on' => [ 'property_id', 'search_id' ],
+                'into' => 'searched_vehicles',
+                'on' => [ 'vehicle_id', 'search_id' ],
                 'whenMatched' => 'merge',
                 'whenNotMatched' => 'insert',
             ],

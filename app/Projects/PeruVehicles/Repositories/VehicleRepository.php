@@ -6,7 +6,7 @@ use App\Projects\PeruVehicles\Models\Car;
 use App\Projects\PeruVehicles\Models\MotorCycle;
 use App\Projects\PeruVehicles\Models\BusesTruck;
 use App\Projects\PeruVehicles\Models\Search;
-use App\Projects\PeruVehicles\Models\SearchedProperty;
+use App\Projects\PeruVehicles\Models\SearchedVehicles;
 use App\Projects\PeruVehicles\Pipelines\FilterPipelines;
 use App\Projects\PeruVehicles\Pipelines\VehiclePipelines;
 use App\Projects\PeruVehicles\Pipelines\SearchedVehiclePipelines;
@@ -49,8 +49,75 @@ class VehicleRepository
     public function __construct() {
         $this->constants = config( 'multi-api.pe-vehicles.constants' );
     }
+    /**
+     * Return (paginated) searched vehicles from the given search.
+     *
+     * @param string $searchId The id of the current search.
+     * @param array $pagination {
+     *     The values of the pagination
+     *
+     *     @type int $page [required] The page needed to return.
+     *     @type int $perpage [required] The number of rows per each
+     *           page of the pagination.
+     *     @type string $field [optional] The field needed to be sorted.
+     *     @type string $sort [optional] The 'asc' or 'desc' to be sorted.
+     * }
+     *
+     * @return array
+     */
+    public function getSearchedVehicles( string $searchId, array $pagination ): array
+    {
+        // get total searched vehicles
+        $total = $this->countSearchedVehicles( $searchId );
 
+        if ( empty( $total ) === true ) {
+            return [];
+        }
 
+        // calculo la cantidad de paginas del resultado a partir de la cantidad
+        // de registros '$total' y la cantidad de registros por pagina '$pagination[ 'perpage' ]'
+        $pages = ceil( $total / $pagination[ 'perpage' ] );
+
+        // valido que la ultima pagina no este fuera de rango
+        $page = $pagination[ 'page' ] > $pages ? $pages : $pagination[ 'page' ];
+
+        // validacion cero
+        $page = $page === 0.0 ? 1 : $page;
+
+        // limit y offset para paginar, define el número 0 para empezar
+        // a paginar multiplicado por la cantidad de registros por pagina 'perpage'
+        $offset = ( $page - 1 ) * $pagination[ 'perpage' ];
+
+        // agrego offset al pagination
+        $pagination[ 'offset' ] = $offset;
+
+        // pipeline
+        $pipeline = $this->pipelinePropertiesFromSearch( $searchId, $pagination );
+
+        // select paginated
+        $pagitatedItems = SearchedVehicles::raw( ( function ( $collection ) use ( $pipeline ) {
+            return $collection->aggregate( $pipeline );
+        } ) );
+
+        // new instance of LengthAwarePaginator
+        $paginator = new LengthAwarePaginator( $pagitatedItems, $total, $pagination[ 'perpage' ], $page );
+
+        // cast to array
+        $paginator = $paginator->toArray();
+
+        // search id
+        $paginator[ 'searchId' ] = $searchId;
+
+        return $paginator;
+    }
+
+    /**
+     * Store matched vehicles as searched vehicles from given search.
+     *
+     * @param Search $search The search model to store the matched vehicles.
+     *
+     * @return array
+     */
     public function storeSearchedVehicle( Search $search ): array
     {
         // pipeline to get filters (parameters)
@@ -59,28 +126,56 @@ class VehicleRepository
         // pipeline
         $pipeline = $this->pipelineVehiclesToSearch( $search->_id, $filters );
 
-        // exec query
-        if ($this->constants['CAR'] == $search->publication_type) {
-           $toTemp = Car::raw( ( function ( $collection ) use ( $pipeline ) {
-                return $collection->aggregate( $pipeline );
-            } ) );
+        switch ($search->publication_type) {
+            case $this->constants['CAR']:
+                $toTemp = Car::raw( ( function ( $collection ) use ( $pipeline ) {
+                    return $collection->aggregate( $pipeline );
+                } ) );
+                break;
+            case $this->constants['MOTORCYCLES']:
+                $toTemp = MotorCycle::raw( ( function ( $collection ) use ( $pipeline ) {
+                    return $collection->aggregate( $pipeline );
+                } ) );
+                break;
+            case $this->constants['BUSESTRUCK']:
+                $toTemp = BusesTruck::raw( ( function ( $collection ) use ( $pipeline ) {
+                    return $collection->aggregate( $pipeline );
+                } ) );
+                break;
+            default:
+                break;
         }
-
-        if ($this->constants['MOTORCYCLES'] == $search->publication_type) {
-            $toTemp = MotorCycle::raw( ( function ( $collection ) use ( $pipeline ) {
-                return $collection->aggregate( $pipeline );
-            } ) );
-        }        
-
-        if ($this->constants['BUSESTRUCK'] == $search->publication_type) {
-            $toTemp = BusesTruck::raw( ( function ( $collection ) use ( $pipeline ) {
-                return $collection->aggregate( $pipeline );
-            } ) );
-        }
-
         return $toTemp->toArray(); // empty if ok
     }
 
+    /**
+     * Return count of searched properties for given search.
+     *
+     * @param string $searchId The id of the current search.
+     *
+     * @return int
+     */
+    public function countSearchedVehicles( string $searchId ): int
+    {
+        $query = SearchedVehicles::raw( ( function ( $collection ) use ( $searchId ) {
+            return $collection->aggregate( [
+                [
+                    '$match' => [
+                        'search_id' => [ '$eq' => new ObjectID( $searchId ) ]
+                    ]
+                ],
+                [
+                    '$count' => "total"
+                ]
+            ] );
+        } ) )->toArray();
+
+        try {
+            return $query[ 0 ][ 'total' ];
+        } catch ( \ErrorException $e ) {
+            return 0;
+        }
+    }
 
     public function distinct( string $field ,$publication_type): Collection
     {

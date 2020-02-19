@@ -4,7 +4,7 @@ namespace App\Projects\PeruVehicles\Models;
 
 use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
 
-class SearchedProperty extends Moloquent
+class SearchedVehicles extends Moloquent
 {
     /**
      * @var string
@@ -14,7 +14,7 @@ class SearchedProperty extends Moloquent
     /**
      * @var string
      */
-    protected $collection = 'searched_properties';
+    protected $collection = 'searched_vehicles';
 
     /**
      * @var string

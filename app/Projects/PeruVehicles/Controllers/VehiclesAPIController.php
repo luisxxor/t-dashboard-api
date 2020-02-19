@@ -62,7 +62,13 @@ class VehiclesAPIController extends AppBaseController
         $this->orderRepository = $orderRepo;
     }
 
-   
+    /**
+     * Store matched properties as searched properties from given search.
+     *
+     * @param Search $search The search model to store the matched properties.
+     *
+     * @return array
+     */
     public function getPublicationTypeFilterData()
     {
         // select
@@ -131,7 +137,7 @@ class VehiclesAPIController extends AppBaseController
         $sort   = -1;
 
         // construct and execute query
-        $results = $this->vehicleRepository->getSearchedProperties( $search->_id, compact( 'page', 'perpage', 'field', 'sort' ) );
+        $results = $this->vehicleRepository->getSearchedVehicles( $search->_id, compact( 'page', 'perpage', 'field', 'sort' ) );
 
         if ( empty( $results ) === true ) {
             return $this->sendError( 'Properties retrieved successfully.', $results, 204 );

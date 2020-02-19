@@ -56,21 +56,22 @@ trait SearchedVehiclePipelines
         // geo fields ($project)
         $pipeline[] = [
             '$project' => [
-                '_id' => '$property_id',
-                'type' => 'Feature',
+                '_id' => '$vehicle_id',
+                'publication_type' => '$publication_type',
                 'properties' => [
-                    'address' => [ '$ifNull' => [ '$address', null ] ],
+                    'make' => [ '$ifNull' => [ '$make', null ] ],
+                    'model' => [ '$ifNull' => [ '$model', null ] ],
+                    'category' => [ '$ifNull' => [ '$category', null ] ],
+                    'year' => [ '$ifNull' => [ '$year', null ] ],
+                    'mileage' => [ '$ifNull' => [ '$mileage', null ] ],
+                    'fuel_type' => [ '$ifNull' => [ '$fuel_type', null ] ],
+                    'transmission' => [ '$ifNull' => [ '$transmission', null ] ],
+                    'engine_displacement' => [ '$ifNull' => [ '$engine_displacement', null ] ],
                     'dollars_price' => [ '$ifNull' => [ '$dollars_price', null ] ],
-                    'others_price' => [ '$ifNull' => [ '$others_price', null ] ],
-                    'bedrooms' => [ '$ifNull' => [ '$bedrooms', null ] ],
-                    'bathrooms' => [ '$ifNull' => [ '$bathrooms', null ] ],
-                    'parkings' => [ '$ifNull' => [ '$parkings', null ] ],
-                    'property_type' => [ '$ifNull' => [ '$property_type', null ] ],
                     'publication_date' => [ '$toString' => [ '$publication_date' ] ],
                     'image_list' => [ '$ifNull' => [ '$image_list', null ] ],
-                    'distance' => [ '$convert' => [ 'input' => '$distance', 'to' => 'int', 'onError' => 'Error', 'onNull' => null ] ],
+                    'temp_images' => [ '$ifNull' => [ '$temp_images', null ] ],
                 ],
-                'geometry' => '$geo_location'
             ]
         ];
 

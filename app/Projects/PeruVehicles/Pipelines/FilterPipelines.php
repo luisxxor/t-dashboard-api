@@ -22,230 +22,234 @@ trait FilterPipelines
      */
     protected function pipelineFiltersToQuery( $filters , $publication_type): array
     {   
-        if ($publication_type == $this->constants[ 'CAR' ]) {
-            $filterFields = [
-                'slidersFields' => [
-                    $this->constants[ 'FILTER_FIELD_NUMBER_OF_DOORS' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_NUMBER_OF_DOORS' ],
-                        'clousure' => function ( $field ) {
-                            return ( $field === '5' ) ? 5.1 : (float)$field;
-                        }
+        switch ($publication_type) {
+            case $this->constants[ 'CAR' ]:
+                $filterFields = [
+                    'slidersFields' => [
+                        $this->constants[ 'FILTER_FIELD_NUMBER_OF_DOORS' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_NUMBER_OF_DOORS' ],
+                            'clousure' => function ( $field ) {
+                                return ( $field === '5' ) ? 5.1 : (float)$field;
+                            }
+                        ]
+                    ],
+                    'numericFields' => [
+                        $this->constants[ 'FILTER_FIELD_MILEAGE' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_MILEAGE' ],
+                            'clousure' => function ( $field ) {
+                                return (int)$field;
+                            }
+                        ],
+                        $this->constants[ 'FILTER_FIELD_YEAR' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_YEAR' ],
+                            'clousure' => function ( $field ) {
+                                return (float)$field;
+                            }
+                        ],
+                        $this->constants[ 'FILTER_FIELD_ENGINE_DISPLACEMENT' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_ENGINE_DISPLACEMENT' ],
+                            'clousure' => function ( $field ) {
+                                return (float)$field;
+                            }
+                        ],
+                        $this->constants[ 'FILTER_FIELD_NUMBER_OF_CYLINDERS' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_NUMBER_OF_CYLINDERS' ],
+                            'clousure' => function ( $field ) {
+                                return (float)$field;
+                            }
+                        ]
+                    ],
+                    'combosFields' => [
+                        $this->constants[ 'FILTER_FIELD_MAKE' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_MAKE' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_MODEL' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_MODEL' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_CATEGORY' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_CATEGORY' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_TRANSMISSION' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_TRANSMISSION' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_FUEL_TYPE' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_FUEL_TYPE' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_STEERING_WHEEL' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_STEERING_WHEEL' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_DRIVE_TYPE' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_DRIVE_TYPE' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_COLOR' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_COLOR' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_CONDITION_TYPE' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_CONDITION_TYPE' ],
+                        ]
                     ]
-                ],
-                'numericFields' => [
-                    $this->constants[ 'FILTER_FIELD_MILEAGE' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_MILEAGE' ],
-                        'clousure' => function ( $field ) {
-                            return (int)$field;
-                        }
+                ];
+                break;
+            
+            case $this->constants[ 'MOTORCYCLES' ]:
+                $filterFields = [
+                    'numericFields' => [
+                        $this->constants[ 'FILTER_FIELD_MILEAGE' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_MILEAGE' ],
+                            'clousure' => function ( $field ) {
+                                return (int)$field;
+                            }
+                        ],
+                        $this->constants[ 'FILTER_FIELD_YEAR' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_YEAR' ],
+                            'clousure' => function ( $field ) {
+                                return (float)$field;
+                            }
+                        ],
+                        $this->constants[ 'FILTER_FIELD_ENGINE_DISPLACEMENT' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_ENGINE_DISPLACEMENT' ],
+                            'clousure' => function ( $field ) {
+                                return (float)$field;
+                            }
+                        ],
+                        $this->constants[ 'FILTER_FIELD_NUMBER_OF_CYLINDERS' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_NUMBER_OF_CYLINDERS' ],
+                            'clousure' => function ( $field ) {
+                                return (float)$field;
+                            }
+                        ]
                     ],
-                    $this->constants[ 'FILTER_FIELD_YEAR' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_YEAR' ],
-                        'clousure' => function ( $field ) {
-                            return (float)$field;
-                        }
-                    ],
-                    $this->constants[ 'FILTER_FIELD_ENGINE_DISPLACEMENT' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_ENGINE_DISPLACEMENT' ],
-                        'clousure' => function ( $field ) {
-                            return (float)$field;
-                        }
-                    ],
-                    $this->constants[ 'FILTER_FIELD_NUMBER_OF_CYLINDERS' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_NUMBER_OF_CYLINDERS' ],
-                        'clousure' => function ( $field ) {
-                            return (float)$field;
-                        }
+                    'combosFields' => [
+                        $this->constants[ 'FILTER_FIELD_MAKE' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_MAKE' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_MODEL' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_MODEL' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_CATEGORY' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_CATEGORY' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_TRANSMISSION' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_TRANSMISSION' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_FUEL_TYPE' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_FUEL_TYPE' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_BRAKES' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_BRAKES' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_STARTER_TYPE' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_STARTER_TYPE' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_DRIVE_TYPE' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_DRIVE_TYPE' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_COLOR' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_COLOR' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_CONDITION_TYPE' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_CONDITION_TYPE' ],
+                        ]
                     ]
-                ],
-                'combosFields' => [
-                    $this->constants[ 'FILTER_FIELD_MAKE' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_MAKE' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_MODEL' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_MODEL' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_CATEGORY' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_CATEGORY' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_TRANSMISSION' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_TRANSMISSION' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_FUEL_TYPE' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_FUEL_TYPE' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_STEERING_WHEEL' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_STEERING_WHEEL' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_DRIVE_TYPE' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_DRIVE_TYPE' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_COLOR' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_COLOR' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_CONDITION_TYPE' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_CONDITION_TYPE' ],
-                    ]
-                ]
-            ];
-        }        
+                ];
+                break;
 
-        if ($publication_type == $this->constants[ 'MOTORCYCLES' ]) {
-            $filterFields = [
-                'numericFields' => [
-                    $this->constants[ 'FILTER_FIELD_MILEAGE' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_MILEAGE' ],
-                        'clousure' => function ( $field ) {
-                            return (int)$field;
-                        }
+            case $this->constants[ 'MOTORCYCLES' ]:
+                $filterFields = [
+                    'slidersFields' => [
+                        $this->constants[ 'FILTER_FIELD_NUMBER_OF_DOORS' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_NUMBER_OF_DOORS' ],
+                            'clousure' => function ( $field ) {
+                                return ( $field === '5' ) ? 5.1 : (float)$field;
+                            }
+                        ]
                     ],
-                    $this->constants[ 'FILTER_FIELD_YEAR' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_YEAR' ],
-                        'clousure' => function ( $field ) {
-                            return (float)$field;
-                        }
+                    'numericFields' => [
+                        $this->constants[ 'FILTER_FIELD_MILEAGE' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_MILEAGE' ],
+                            'clousure' => function ( $field ) {
+                                return (int)$field;
+                            }
+                        ],
+                        $this->constants[ 'FILTER_FIELD_YEAR' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_YEAR' ],
+                            'clousure' => function ( $field ) {
+                                return (float)$field;
+                            }
+                        ],
+                        $this->constants[ 'FILTER_FIELD_ENGINE_DISPLACEMENT' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_ENGINE_DISPLACEMENT' ],
+                            'clousure' => function ( $field ) {
+                                return (float)$field;
+                            }
+                        ],
+                        $this->constants[ 'FILTER_FIELD_NUMBER_OF_CYLINDERS' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_NUMBER_OF_CYLINDERS' ],
+                            'clousure' => function ( $field ) {
+                                return (float)$field;
+                            }
+                        ],
+                        $this->constants[ 'FILTER_FIELD_MAX_POWER' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_MAX_POWER' ],
+                            'clousure' => function ( $field ) {
+                                return (float)$field;
+                            }
+                        ],
+                        $this->constants[ 'FILTER_FIELD_TIRE_SIZE' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_TIRE_SIZE' ],
+                            'clousure' => function ( $field ) {
+                                return (float)$field;
+                            }
+                        ],
+                        $this->constants[ 'FILTER_FIELD_MAX_CARGO' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_MAX_CARGO' ],
+                            'clousure' => function ( $field ) {
+                                return (float)$field;
+                            }
+                        ],
+                        $this->constants[ 'FILTER_FIELD_MAX_PASSENGERS' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_MAX_PASSENGERS' ],
+                            'clousure' => function ( $field ) {
+                                return (float)$field;
+                            }
+                        ]
                     ],
-                    $this->constants[ 'FILTER_FIELD_ENGINE_DISPLACEMENT' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_ENGINE_DISPLACEMENT' ],
-                        'clousure' => function ( $field ) {
-                            return (float)$field;
-                        }
-                    ],
-                    $this->constants[ 'FILTER_FIELD_NUMBER_OF_CYLINDERS' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_NUMBER_OF_CYLINDERS' ],
-                        'clousure' => function ( $field ) {
-                            return (float)$field;
-                        }
+                    'combosFields' => [
+                        $this->constants[ 'FILTER_FIELD_MAKE' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_MAKE' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_MODEL' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_MODEL' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_CATEGORY' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_CATEGORY' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_TRANSMISSION' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_TRANSMISSION' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_FUEL_TYPE' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_FUEL_TYPE' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_BRAKES' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_BRAKES' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_STEERING_WHEEL' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_STEERING_WHEEL' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_DRIVE_TYPE' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_DRIVE_TYPE' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_COLOR' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_COLOR' ],
+                        ],
+                        $this->constants[ 'FILTER_FIELD_CONDITION_TYPE' ] => [
+                            'name' => $this->constants[ 'FILTER_FIELD_CONDITION_TYPE' ],
+                        ]
                     ]
-                ],
-                'combosFields' => [
-                    $this->constants[ 'FILTER_FIELD_MAKE' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_MAKE' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_MODEL' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_MODEL' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_CATEGORY' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_CATEGORY' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_TRANSMISSION' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_TRANSMISSION' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_FUEL_TYPE' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_FUEL_TYPE' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_BRAKES' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_BRAKES' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_STARTER_TYPE' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_STARTER_TYPE' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_DRIVE_TYPE' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_DRIVE_TYPE' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_COLOR' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_COLOR' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_CONDITION_TYPE' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_CONDITION_TYPE' ],
-                    ]
-                ]
-            ];
-        }
-
-        if ($publication_type == $this->constants[ 'BUSESTRUCK' ]) {
-            $filterFields = [
-                'slidersFields' => [
-                    $this->constants[ 'FILTER_FIELD_NUMBER_OF_DOORS' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_NUMBER_OF_DOORS' ],
-                        'clousure' => function ( $field ) {
-                            return ( $field === '5' ) ? 5.1 : (float)$field;
-                        }
-                    ]
-                ],
-                'numericFields' => [
-                    $this->constants[ 'FILTER_FIELD_MILEAGE' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_MILEAGE' ],
-                        'clousure' => function ( $field ) {
-                            return (int)$field;
-                        }
-                    ],
-                    $this->constants[ 'FILTER_FIELD_YEAR' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_YEAR' ],
-                        'clousure' => function ( $field ) {
-                            return (float)$field;
-                        }
-                    ],
-                    $this->constants[ 'FILTER_FIELD_ENGINE_DISPLACEMENT' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_ENGINE_DISPLACEMENT' ],
-                        'clousure' => function ( $field ) {
-                            return (float)$field;
-                        }
-                    ],
-                    $this->constants[ 'FILTER_FIELD_NUMBER_OF_CYLINDERS' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_NUMBER_OF_CYLINDERS' ],
-                        'clousure' => function ( $field ) {
-                            return (float)$field;
-                        }
-                    ],
-                    $this->constants[ 'FILTER_FIELD_MAX_POWER' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_MAX_POWER' ],
-                        'clousure' => function ( $field ) {
-                            return (float)$field;
-                        }
-                    ],
-                    $this->constants[ 'FILTER_FIELD_TIRE_SIZE' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_TIRE_SIZE' ],
-                        'clousure' => function ( $field ) {
-                            return (float)$field;
-                        }
-                    ],
-                    $this->constants[ 'FILTER_FIELD_MAX_CARGO' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_MAX_CARGO' ],
-                        'clousure' => function ( $field ) {
-                            return (float)$field;
-                        }
-                    ],
-                    $this->constants[ 'FILTER_FIELD_MAX_PASSENGERS' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_MAX_PASSENGERS' ],
-                        'clousure' => function ( $field ) {
-                            return (float)$field;
-                        }
-                    ]
-                ],
-                'combosFields' => [
-                    $this->constants[ 'FILTER_FIELD_MAKE' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_MAKE' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_MODEL' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_MODEL' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_CATEGORY' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_CATEGORY' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_TRANSMISSION' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_TRANSMISSION' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_FUEL_TYPE' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_FUEL_TYPE' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_BRAKES' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_BRAKES' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_STEERING_WHEEL' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_STEERING_WHEEL' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_DRIVE_TYPE' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_DRIVE_TYPE' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_COLOR' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_COLOR' ],
-                    ],
-                    $this->constants[ 'FILTER_FIELD_CONDITION_TYPE' ] => [
-                        'name' => $this->constants[ 'FILTER_FIELD_CONDITION_TYPE' ],
-                    ]
-                ]
-            ];
+                ];
+                break;
+            default:
+                break;
         }
 
         $output = [];
