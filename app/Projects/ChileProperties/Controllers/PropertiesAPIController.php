@@ -1,11 +1,11 @@
 <?php
-
 namespace App\Projects\ChileProperties\Controllers;
 
 use App\Http\Controllers\AppBaseController;
 use App\Lib\Handlers\FileHandler;
 use App\Projects\ChileProperties\Repositories\PropertyRepository;
 use App\Projects\ChileProperties\Repositories\PropertyTypeRepository;
+use App\Projects\ChileProperties\Repositories\PublicationTypeRepository;
 use App\Projects\ChileProperties\Repositories\SearchRepository;
 use App\Repositories\Dashboard\OrderRepository;
 use DateTime;
@@ -29,6 +29,10 @@ class PropertiesAPIController extends AppBaseController
      * @var PropertyTypeRepository
      */
     private $propertyTypeRepository;
+    /**
+     * @var PublicationTypeRepository
+     */
+    private $publicationTypeRepository;
 
     /**
      * @var PropertyRepository
@@ -51,12 +55,14 @@ class PropertiesAPIController extends AppBaseController
      * @return void
      */
     public function __construct( PropertyTypeRepository $propertyTypeRepo,
+        PublicationTypeRepository $publicationTypeRepo,
         PropertyRepository $propertyRepo,
         SearchRepository $searchRepo,
         OrderRepository $orderRepo )
     {
         $this->fileHandler = new FileHandler();
         $this->propertyTypeRepository = $propertyTypeRepo;
+        $this->publicationTypeRepository = $publicationTypeRepo;
         $this->propertyRepository = $propertyRepo;
         $this->searchRepository = $searchRepo;
         $this->orderRepository = $orderRepo;
@@ -66,9 +72,9 @@ class PropertiesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
-     *     path="/api/chile_properties/filters/property_type",
+     *     path="/api/ecuador_properties/filters/property_type",
      *     operationId="getPropertyTypeFilterData",
-     *     tags={"Chile Properties"},
+     *     tags={"Ecuador Properties"},
      *     summary="Return the necessary data for property type filter",
      *     @OA\Response(
      *         response=200,
@@ -115,6 +121,20 @@ class PropertiesAPIController extends AppBaseController
         sort( $propertyTypes );
 
         return $this->sendResponse( $propertyTypes, 'Data retrieved.' );
+    }
+
+    public function getPublicationTypeFilterData()
+    {
+        // select
+        $publicationTypes = $this->publicationTypeRepository->distinct( 'name' );
+
+        // publication types
+        $publicationTypes = array_column( $publicationTypes->toArray(), 0 );
+
+        // sort
+        sort( $publicationTypes );
+
+        return $this->sendResponse( $publicationTypes, 'Data retrieved.' );
     }
 
     /**

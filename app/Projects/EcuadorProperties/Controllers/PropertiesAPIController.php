@@ -6,6 +6,7 @@ use App\Http\Controllers\AppBaseController;
 use App\Lib\Handlers\FileHandler;
 use App\Projects\EcuadorProperties\Repositories\PropertyRepository;
 use App\Projects\EcuadorProperties\Repositories\PropertyTypeRepository;
+use App\Projects\EcuadorProperties\Repositories\PublicationTypeRepository;
 use App\Projects\EcuadorProperties\Repositories\SearchRepository;
 use App\Repositories\Dashboard\OrderRepository;
 use DateTime;
@@ -29,6 +30,10 @@ class PropertiesAPIController extends AppBaseController
      * @var PropertyTypeRepository
      */
     private $propertyTypeRepository;
+    /**
+     * @var PublicationTypeRepository
+     */
+    private $publicationTypeRepository;
 
     /**
      * @var PropertyRepository
@@ -51,12 +56,14 @@ class PropertiesAPIController extends AppBaseController
      * @return void
      */
     public function __construct( PropertyTypeRepository $propertyTypeRepo,
+        PublicationTypeRepository $publicationTypeRepo,
         PropertyRepository $propertyRepo,
         SearchRepository $searchRepo,
         OrderRepository $orderRepo )
     {
         $this->fileHandler = new FileHandler();
         $this->propertyTypeRepository = $propertyTypeRepo;
+        $this->publicationTypeRepository = $publicationTypeRepo;
         $this->propertyRepository = $propertyRepo;
         $this->searchRepository = $searchRepo;
         $this->orderRepository = $orderRepo;
@@ -115,6 +122,20 @@ class PropertiesAPIController extends AppBaseController
         sort( $propertyTypes );
 
         return $this->sendResponse( $propertyTypes, 'Data retrieved.' );
+    }
+
+    public function getPublicationTypeFilterData()
+    {
+        // select
+        $publicationTypes = $this->publicationTypeRepository->distinct( 'name' );
+
+        // publication types
+        $publicationTypes = array_column( $publicationTypes->toArray(), 0 );
+
+        // sort
+        sort( $publicationTypes );
+
+        return $this->sendResponse( $publicationTypes, 'Data retrieved.' );
     }
 
     /**

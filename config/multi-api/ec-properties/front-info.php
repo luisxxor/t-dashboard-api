@@ -69,6 +69,13 @@ return [
                 'valuesURL' => env( 'APP_URL' ) . '/api/ecuador_properties/filters/property_type',
             ],
             [
+                'field' => $constants[ 'FILTER_FIELD_PUBLICATION_TYPE' ],
+                'label' => 'Tipo',
+                'type' => 'dropdown',
+                'placeholder' => 'Seleccione el tipo de propiedad',
+                'valuesURL' => env( 'APP_URL' ) . '/api/ecuador_properties/filters/publication_type',
+            ],
+            [
                 'field' => $constants[ 'FILTER_FIELD_PUBLICATION_DATE' ],
                 'label' => 'Fecha',
                 'type' => 'date',
@@ -194,40 +201,6 @@ return [
                 'step' => 0.01,
                 'minValue' => 0.00,
                 'maxValue' => null,
-            ],
-            [
-                'field' => $constants[ 'FILTER_FIELD_PUBLICATION_TYPE' ],
-                'label' => 'Tipo publicación',
-                'type' => 'dropdown',
-                'placeholder' => 'Seleccione el tipo de publicación',
-                'values' =>
-                [
-                    [
-                        'value' => 'venta',
-                        'text' => 'Venta',
-                    ],
-                    [
-                        'value' => 'alquiler',
-                        'text' => 'Alquiler',
-                    ],
-                ],
-            ],
-            [
-                'field' => $constants[ 'FILTER_FIELD_PROPERTY_NEW' ],
-                'label' => 'Nuevo/Usado',
-                'type' => 'dropdown',
-                'placeholder' => 'Seleccione la condición',
-                'values' =>
-                [
-                    [
-                        'value' => true,
-                        'text' => 'Nuevo',
-                    ],
-                    [
-                        'value' => false,
-                        'text' => 'Usado',
-                    ],
-                ],
             ],
         ],
     ],

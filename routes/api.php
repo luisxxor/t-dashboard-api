@@ -99,6 +99,8 @@ Route::prefix( 'ecuador_properties' )->middleware( 'auth:api', 'verified' )->gro
 
     Route::get( 'filters/property_type', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@getPropertyTypeFilterData' )->name( 'ecuador_properties.filters.propertyType' );
 
+    Route::get( 'filters/publication_type', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@getPublicationTypeFilterData' )->name( 'ecuador_properties.filters.publicationType' );
+
     Route::get( 'ghost_search', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@ghostSearch' )->name( 'ecuador_properties.ghostSearch' )
         ->middleware( 'can:search.properties' );
 
@@ -121,6 +123,8 @@ Route::prefix( 'chile_properties' )->middleware( 'auth:api', 'verified' )->group
     // chile properties
 
     Route::get( 'filters/property_type', '\App\Projects\ChileProperties\Controllers\PropertiesAPIController@getPropertyTypeFilterData' )->name( 'chile_properties.filters.propertyType' );
+
+    Route::get( 'filters/publication_type', '\App\Projects\ChileProperties\Controllers\PropertiesAPIController@getPublicationTypeFilterData' )->name( 'ecuador_properties.filters.publicationType' );
 
     Route::get( 'ghost_search', '\App\Projects\ChileProperties\Controllers\PropertiesAPIController@ghostSearch' )->name( 'chile_properties.ghostSearch' )
         ->middleware( 'can:search.properties' );

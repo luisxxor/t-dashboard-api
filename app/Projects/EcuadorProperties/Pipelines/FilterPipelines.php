@@ -3,6 +3,7 @@
 namespace App\Projects\EcuadorProperties\Pipelines;
 
 use App\Projects\EcuadorProperties\Models\PropertyType;
+use App\Projects\EcuadorProperties\Models\PublicationType;
 use Carbon\Carbon;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\BSON\ObjectID;
@@ -45,12 +46,6 @@ trait FilterPipelines
                 ]
             ],
             'numericFields' => [
-                'antiquity_years' => [
-                    'name' => $this->constants[ 'FILTER_FIELD_ANTIQUITY_YEARS' ],
-                    'clousure' => function ( $field ) {
-                        return (int)$field;
-                    }
-                ],
                 'total_area_m2' => [
                     'name' => $this->constants[ 'FILTER_FIELD_TOTAL_AREA_M2' ],
                     'clousure' => function ( $field ) {
@@ -89,15 +84,33 @@ trait FilterPipelines
                         return $ids;
                     },
                 ],
-                'publication_type' => [
+                'publication_type_id' => [
                     'name' => $this->constants[ 'FILTER_FIELD_PUBLICATION_TYPE' ],
+                    'clousure' => function ( $field ) {
+                        // select
+                        $results = PublicationType::where( 'name', $field )->get();
+                        
+                        $ids = array_column( $results->toArray(), '_id' );
+
+                        foreach ($ids as $key => $id) {
+                           $ids[$key] =  new ObjectID( $id );
+                        }
+                        
+                        return $ids;
+                    },
                 ],
                 'property_new' => [
                     'name' => $this->constants[ 'FILTER_FIELD_PROPERTY_NEW' ],
                     'clousure' => function ( $field ) {
                         return (bool)$field;
                     },
-                ]
+                ],
+                'antiquity_years' => [
+                    'name' => $this->constants[ 'FILTER_FIELD_ANTIQUITY_YEARS' ],
+                    'clousure' => function ( $field ) {
+                        return (string)$field;
+                    }
+                ],
             ]
         ];
 

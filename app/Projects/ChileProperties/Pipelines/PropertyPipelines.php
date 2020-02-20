@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Projects\ChileProperties\Pipelines;
+namespace App\Projects\EcuadorProperties\Pipelines;
 
 use MongoDB\BSON\ObjectID;
 
 /**
  * Trait PropertyPipelines
- * @package App\Projects\ChileProperties\Pipelines
+ * @package App\Projects\EcuadorProperties\Pipelines
  * @version Dec 24, 2019, 15:31 UTC
 */
 trait PropertyPipelines
@@ -77,6 +77,16 @@ trait PropertyPipelines
             ]
         ];
 
+        // join con property_types ($lookup)
+        $pipeline[] = [
+            '$lookup' => [
+                'from' => 'publication_types',
+                'localField' => 'publication_type_id',
+                'foreignField' => '_id',
+                'as' => 'publication_types_docs'
+            ]
+        ];
+
         // geo within and filters ($match)
         $pipeline[] = [
             '$match' => $metadata[ 'propertiesWithin' ] + $metadata[ 'filters' ]
@@ -89,6 +99,10 @@ trait PropertyPipelines
                 'search_id' => new ObjectID( $searchId ),
                 'property_type' => [ '$ifNull' => [
                     [ '$arrayElemAt' => [ '$property_types_docs.name', 0 ] ],
+                    null
+                ] ],
+                'publication_type' => [ '$ifNull' => [
+                    [ '$arrayElemAt' => [ '$publication_types_docs.name', 0 ] ],
                     null
                 ] ],
                 'region' => [
@@ -109,6 +123,8 @@ trait PropertyPipelines
                 '_id' => 0,
                 'property_type_id' => 0,
                 'property_types_docs' => 0,
+                'publication_type_id' => 0,
+                'publication_types_docs' => 0,
                 'region_id' => 0,
                 'regions_docs' => 0,
             ]

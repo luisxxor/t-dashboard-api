@@ -69,10 +69,17 @@ return [
                 'valuesURL' => env( 'APP_URL' ) . '/api/chile_properties/filters/property_type',
             ],
             [
+                'field' => $constants[ 'FILTER_FIELD_PUBLICATION_TYPE' ],
+                'label' => 'Tipo de publicación',
+                'type' => 'dropdown',
+                'placeholder' => 'Seleccione el tipo de publicación',
+                'valuesURL' => env( 'APP_URL' ) . '/api/ecuador_properties/filters/publication_type',
+            ],
+            [
                 'field' => $constants[ 'FILTER_FIELD_PUBLICATION_DATE' ],
                 'label' => 'Fecha',
                 'type' => 'date',
-                'placeholder' => 'Seleccione el tipo de propiedad',
+                'placeholder' => 'Seleccione la fecha',
                 'minDate' => null,
                 'maxDate' => now()->toDateString(),
             ],
@@ -170,15 +177,6 @@ return [
                     ],
                 ],
             ],
-
-            [
-                'field' => $constants[ 'FILTER_FIELD_ANTIQUITY_YEARS' ],
-                'label' => 'Antigüedad (años)',
-                'type' => 'numerical_range',
-                'step' => 1,
-                'minValue' => 0,
-                'maxValue' => null,
-            ],
             [
                 'field' => $constants[ 'FILTER_FIELD_TOTAL_AREA_M2' ],
                 'label' => 'Área exclusiva (m2)',
@@ -194,40 +192,6 @@ return [
                 'step' => 0.01,
                 'minValue' => 0.00,
                 'maxValue' => null,
-            ],
-            [
-                'field' => $constants[ 'FILTER_FIELD_PUBLICATION_TYPE' ],
-                'label' => 'Tipo publicación',
-                'type' => 'dropdown',
-                'placeholder' => 'Seleccione el tipo de publicación',
-                'values' =>
-                [
-                    [
-                        'value' => 'venta',
-                        'text' => 'Venta',
-                    ],
-                    [
-                        'value' => 'alquiler',
-                        'text' => 'Alquiler',
-                    ],
-                ],
-            ],
-            [
-                'field' => $constants[ 'FILTER_FIELD_PROPERTY_NEW' ],
-                'label' => 'Nuevo/Usado',
-                'type' => 'dropdown',
-                'placeholder' => 'Seleccione la condición',
-                'values' =>
-                [
-                    [
-                        'value' => true,
-                        'text' => 'Nuevo',
-                    ],
-                    [
-                        'value' => false,
-                        'text' => 'Usado',
-                    ],
-                ],
             ],
         ],
     ],
