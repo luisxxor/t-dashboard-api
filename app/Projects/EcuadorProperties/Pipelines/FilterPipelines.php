@@ -52,6 +52,12 @@ trait FilterPipelines
                         return (float)$field;
                     }
                 ],
+                'antiquity_years' => [
+                    'name' => $this->constants[ 'FILTER_FIELD_ANTIQUITY_YEARS' ],
+                    'clousure' => function ( $field ) {
+                        return (string)$field;
+                    }
+                ],
                 'build_area_m2' => [
                     'name' => $this->constants[ 'FILTER_FIELD_BUILD_AREA_M2' ],
                     'clousure' => function ( $field ) {
@@ -99,18 +105,12 @@ trait FilterPipelines
                         return $ids;
                     },
                 ],
-                'property_new' => [
-                    'name' => $this->constants[ 'FILTER_FIELD_PROPERTY_NEW' ],
-                    'clousure' => function ( $field ) {
-                        return (bool)$field;
-                    },
-                ],
-                'antiquity_years' => [
-                    'name' => $this->constants[ 'FILTER_FIELD_ANTIQUITY_YEARS' ],
-                    'clousure' => function ( $field ) {
-                        return (string)$field;
-                    }
-                ],
+                // 'property_new' => [
+                //     'name' => $this->constants[ 'FILTER_FIELD_PROPERTY_NEW' ],
+                //     'clousure' => function ( $field ) {
+                //         return (bool)$field;
+                //     },
+                // ],
             ]
         ];
 

@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Projects\EcuadorProperties\Pipelines;
+namespace App\Projects\ChileProperties\Pipelines;
 
 use MongoDB\BSON\ObjectID;
 
 /**
  * Trait PropertyPipelines
- * @package App\Projects\EcuadorProperties\Pipelines
+ * @package App\Projects\ChileProperties\Pipelines
  * @version Dec 24, 2019, 15:31 UTC
 */
 trait PropertyPipelines

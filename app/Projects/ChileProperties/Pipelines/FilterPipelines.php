@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Projects\EcuadorProperties\Pipelines;
+namespace App\Projects\ChileProperties\Pipelines;
 
-use App\Projects\EcuadorProperties\Models\PropertyType;
-use App\Projects\EcuadorProperties\Models\PublicationType;
+use App\Projects\ChileProperties\Models\PropertyType;
+use App\Projects\ChileProperties\Models\PublicationType;
 use Carbon\Carbon;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\BSON\ObjectID;
 
 /**
  * Trait FilterPipelines
- * @package App\Projects\EcuadorProperties\Pipelines
+ * @package App\Projects\ChileProperties\Pipelines
  * @version Dec 24, 2019, 16:37 UTC
 */
 trait FilterPipelines
@@ -98,19 +98,7 @@ trait FilterPipelines
                         
                         return $ids;
                     },
-                ],
-                'property_new' => [
-                    'name' => $this->constants[ 'FILTER_FIELD_PROPERTY_NEW' ],
-                    'clousure' => function ( $field ) {
-                        return (bool)$field;
-                    },
-                ],
-                'antiquity_years' => [
-                    'name' => $this->constants[ 'FILTER_FIELD_ANTIQUITY_YEARS' ],
-                    'clousure' => function ( $field ) {
-                        return (string)$field;
-                    }
-                ],
+                ]
             ]
         ];
 
