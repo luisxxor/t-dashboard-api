@@ -146,7 +146,7 @@ class VehiclesAPIController extends AppBaseController
         return $this->sendResponse( $results, 'Properties retrieved successfully.' );
     }
 
-    public function paginateProperties( Request $request )
+    public function paginateVehicles( Request $request )
     {
         $request->validate( [
             'searchId'  => [ 'required', 'string' ],
@@ -164,7 +164,7 @@ class VehiclesAPIController extends AppBaseController
         $sort       = $request->get( 'sort' )       ?? -1;
 
         // construct and execute query
-        $results = $this->vehicleRepository->getSearchedProperties( $searchId, compact( 'page', 'perpage', 'field', 'sort' ) );
+        $results = $this->vehicleRepository->getSearchedVehicles( $searchId, compact( 'page', 'perpage', 'field', 'sort' ) );
 
         return $this->sendResponse( $results, 'Properties retrieved successfully.' );
     }
@@ -188,7 +188,7 @@ class VehiclesAPIController extends AppBaseController
 
         // get selected ids by user
         if ( $ids === [ '*' ] ) {
-            $total = $this->vehicleRepository->countSearchedProperties( $searchId );
+            $total = $this->vehicleRepository->countSearchedVehicles( $searchId );
         }
         else {
             $total = count( $ids );
@@ -200,7 +200,7 @@ class VehiclesAPIController extends AppBaseController
             $order = $this->orderRepository->create( [
                 'user_id'               => $user->id,
                 'search_id'             => $searchId,
-                'project'               => config( 'multi-api.pe-properties.backend-info.code' ),
+                'project'               => config( 'multi-api.pe-vehicles.backend-info.code' ),
                 'total_rows_quantity'   => $total,
                 'status'                => config( 'constants.ORDERS_OPENED_STATUS' ),
             ] );
@@ -212,7 +212,7 @@ class VehiclesAPIController extends AppBaseController
         }
 
         // update the search to save selected ids by user
-        $this->vehicleRepository->updateSelectedSearchedProperties( $searchId, $ids );
+        $this->vehicleRepository->updateSelectedSearchedVehicles( $searchId, $ids );
 
         // if user has permission to release order without paying, generate file
         if ( $user->hasPermissionTo( 'release.order.without.paying' ) === true ) {
@@ -221,7 +221,7 @@ class VehiclesAPIController extends AppBaseController
             $guzzleClient = new GuzzleClient( [ 'base_uri' => url( '/' ), 'timeout' => 30.0 ] );
             $guzzleClient->sendAsync( new GuzzleRequest(
                 'GET',
-                route( 'api.' . config( 'multi-api.pe-properties.backend-info.generate_file_url' ), [], false ),
+                route( 'api.' . config( 'multi-api.pe-vehicles.backend-info.generate_file_url' ), [], false ),
                 [ 'Content-type' => 'application/json' ],
                 json_encode( [ 'orderCode' => $order->code ] )
             ) )->wait( false );
@@ -235,5 +235,129 @@ class VehiclesAPIController extends AppBaseController
 
         // return payment init point link
         return $this->sendResponse( $order, 'Ordered successfully.' );
+    }
+
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     *
+     * @OA\Get(
+     *     path="/api/peru_properties/generate_file",
+     *     operationId="generatePropertiesFile",
+     *     tags={"Peru Properties"},
+     *     summary="Build the order files",
+     *     @OA\Parameter(
+     *         name="orderCode",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Properties' file generated successfully.",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean"
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="string"
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated."
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Order not found."
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="The given data was invalid."
+     *     )
+     * )
+     */
+    public function generateVehiclesFile( Request $request )
+    {
+        $request->validate( [
+            'orderCode'  => [ 'required', 'string' ],
+        ] );
+
+        // input
+        $orderCode = $request->get( 'orderCode' );
+
+        // get order
+        $order = $this->orderRepository->findByField( 'code', $orderCode )->first();
+        // validate order
+        if ( empty( $order ) === true ) {
+            \Log::info( 'Order not found.', [ $orderCode ] );
+
+            return $this->sendError( 'Order not found.', [], 404 );
+        }
+
+        $filesInfo = [];
+
+        // quantity of rows
+        $rowsQuantity = $this->vehicleRepository->countSelectedSearchedVehicles( $order->search_id );
+
+        // create json
+        try {
+
+            // get search
+            $search = $this->searchRepository->findOrFail( $order->search_id );
+
+            // get selected searched properties by user
+            $selectedSearchedVehicles = $this->vehicleRepository->getSelectedSearchedVehicles( $order->search_id );
+
+            $filesInfo[] = $this->fileHandler->createAndUploadFile(
+                array_merge( $search->toArray(), [ 'data' => $selectedSearchedVehicles ] ),
+                $rowsQuantity,
+                $orderCode,
+                'json',
+                config( 'app.pe_export_file_bucket' )
+            );
+        
+
+            // free memory
+            unset( $search );
+            unset( $selectedSearchedVehicles );
+            gc_collect_cycles();
+        } catch ( \Exception $e ) {
+            return $this->sendError( $e->getMessage() );
+        }
+
+        // create excel
+        try {
+
+            $filesInfo[] = $this->fileHandler->createAndUploadFile(
+                [
+                    'header'    => $this->vehicleRepository->header,
+                    'body'      => $this->vehicleRepository->getSelectedSearchedVehiclesExcelFormat( $order->search_id ),
+                ],
+                $rowsQuantity,
+                $orderCode,
+                'xlsx',
+                config( 'app.pe_export_file_bucket' )
+            );
+
+            gc_collect_cycles();
+        } catch ( \Exception $e ) {
+            return $this->sendError( $e->getMessage() );
+        }
+
+        $order->files_info = $filesInfo;
+        $order->save();
+
+        return $this->sendResponse( 'OK', 'Properties\' file generated successfully.' );
     }
 }

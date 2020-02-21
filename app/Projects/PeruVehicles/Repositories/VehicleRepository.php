@@ -32,19 +32,25 @@ class VehicleRepository
      */
     protected $outputFields = [ ];
 
-    /**
-     * Fields and its order to sort the vehicles.
+       /**
+     * Fields and its order to sort the properties.
      *
      * @var string
      */
-    protected $sortFields = [ ];
+    protected $sortFields = [
+        'publication_date' => -1,
+        '_id' => -1,
+    ];
 
     /**
      * Header for export files.
      *
      * @var array
      */
-    public $header = [ ];
+    public $header = [
+        '_id'                   => 'Código',
+        
+    ];
 
     public function __construct() {
         $this->constants = config( 'multi-api.pe-vehicles.constants' );
@@ -112,6 +118,49 @@ class VehicleRepository
     }
 
     /**
+     * Update selected searched properties of given search.
+     *
+     * @param string $searchId The id of the current search.
+     * @param array $ids Array of property's ids selected by user.
+     *        [ '*' ] in case all were selected.
+     *
+     * @return void
+     */
+    public function updateSelectedSearchedVehicles( string $searchId, array $ids ): void
+    {
+        // query by which to filter documents
+        $filter = [
+            'search_id' => [ '$eq' => new ObjectID( $searchId ) ],
+        ];
+
+        // update
+        $update = [
+            '$set' => [ 'selected' => false ]
+        ];
+
+        // unselect all properties
+        SearchedVehicles::raw( ( function ( $collection ) use ( $filter, $update ) {
+            return $collection->updateMany( $filter, $update );
+        } ) );
+
+        // in case all where not selected, query only they who are ($in) '$ids'
+        if ( $ids !== [ '*' ] ) {
+            $filter[ 'vehicle_id' ] = [ '$in' => $ids ];
+        }
+
+        // update to apply to the matched document
+        $update = [
+            '$set' => [ 'selected' => true ]
+        ];
+
+        // exec query
+        SearchedVehicles::raw( ( function ( $collection ) use ( $filter, $update ) {
+            return $collection->updateMany( $filter, $update );
+        } ) );
+    }
+
+
+    /**
      * Store matched vehicles as searched vehicles from given search.
      *
      * @param Search $search The search model to store the matched vehicles.
@@ -149,6 +198,32 @@ class VehicleRepository
     }
 
     /**
+     * Return properties that were selected by user in given search.
+     *
+     * @param string $searchId The id of the current search.
+     *
+     * @return array
+     * @throws \Exception
+     */
+    public function getSelectedSearchedVehicles( string $searchId ): array
+    {
+        // pipeline
+        $pipeline = $this->pipelineSelectedVehiclessFromSearch( $searchId );
+
+        // get selected data in final format
+        $results = SearchedVehicles::raw( ( function ( $collection ) use ( $pipeline ) {
+            return $collection->aggregate( $pipeline );
+        } ) );
+
+        if ( $results->isEmpty() === true ) {
+            throw new \Exception( 'No properties selected in given search.' );
+
+        }
+
+        return $results->toArray();
+    }
+
+    /**
      * Return count of searched properties for given search.
      *
      * @param string $searchId The id of the current search.
@@ -162,6 +237,63 @@ class VehicleRepository
                 [
                     '$match' => [
                         'search_id' => [ '$eq' => new ObjectID( $searchId ) ]
+                    ]
+                ],
+                [
+                    '$count' => "total"
+                ]
+            ] );
+        } ) )->toArray();
+
+        try {
+            return $query[ 0 ][ 'total' ];
+        } catch ( \ErrorException $e ) {
+            return 0;
+        }
+    }
+
+    /**
+     * Return properties that were selected by user in given search
+     * in excel format.
+     *
+     * @param string $searchId The id of the current search.
+     *
+     * @return array
+     * @throws \Exception
+     */
+    public function getSelectedSearchedVehiclesExcelFormat( string $searchId ): array
+    {
+        // pipeline
+        $pipeline = $this->pipelineSelectedVehiclesFromSearchExcelFormat( $searchId );
+
+        // get selected data in final format
+        $results = SearchedVehicles::raw( ( function ( $collection ) use ( $pipeline ) {
+            return $collection->aggregate( $pipeline );
+        } ) );
+
+        if ( $results->isEmpty() === true ) {
+            throw new \Exception( 'No properties selected in given search.' );
+
+        }
+
+        return $results->toArray();
+    }
+
+     /**
+     * Return count of selected searched properties for given search.
+     *
+     * @param string $searchId The id of the current search.
+     *
+     * @return int
+     */
+    public function countSelectedSearchedVehicles( string $searchId ): int
+    {
+        $query = SearchedVehicles::raw( ( function ( $collection ) use ( $searchId ) {
+            return $collection->aggregate( [
+                [
+                    '$match' => [
+                        'search_id' => [ '$eq' => new ObjectID( $searchId ) ],
+                        'selected' => [ '$eq' => true ]
                     ]
                 ],
                 [

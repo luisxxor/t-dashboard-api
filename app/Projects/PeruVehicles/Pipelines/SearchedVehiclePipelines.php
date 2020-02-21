@@ -100,7 +100,7 @@ trait SearchedVehiclePipelines
      *
      * @return array
      */
-    protected function pipelineSelectedPropertiesFromSearch( string $searchId ): array
+    protected function pipelineSelectedVehiclessFromSearch( string $searchId ): array
     {
         // pipeline
         $pipeline = [];
@@ -150,7 +150,7 @@ trait SearchedVehiclePipelines
      *
      * @return array
      */
-    protected function pipelineSelectedPropertiesFromSearchExcelFormat( string $searchId ): array
+    protected function pipelineSelectedVehiclesFromSearchExcelFormat( string $searchId ): array
     {
         // pipeline
         $pipeline = [];

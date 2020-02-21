@@ -103,15 +103,15 @@ Route::prefix( 'peru_vehicles' )->middleware( 'auth:api', 'verified' )->group( f
     Route::post( 'search', '\App\Projects\PeruVehicles\Controllers\VehiclesAPIController@searchVehicles' )->name( 'peru_vehicles.searchVehicles' )
         ->middleware( 'can:search.properties' );
 
-    Route::post( 'paginate', '\App\Projects\PeruVehicles\Controllers\VehiclesAPIController@paginateProperties' )->name( 'peru_vehicles.paginateProperties' )
+    Route::post( 'paginate', '\App\Projects\PeruVehicles\Controllers\VehiclesAPIController@paginateVehicles' )->name( 'peru_vehicles.paginateVehicles' )
         ->middleware( 'can:search.properties' );
 
     Route::post( 'order', '\App\Projects\PeruVehicles\Controllers\VehiclesAPIController@order' )->name( 'peru_vehicles.processOrder' )
         ->middleware( 'can:order.properties' );
+    
 } );
 
-
-
+Route::get( 'peru_vehicles/generate_file', '\App\Projects\PeruVehicles\Controllers\VehiclesAPIController@generateVehiclesFile' )->name( config( 'multi-api.pe-vehicles.backend-info.generate_file_url' ) );
 
 Route::prefix( 'ecuador_properties' )->middleware( 'auth:api', 'verified' )->group( function () {
 
