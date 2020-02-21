@@ -93,6 +93,7 @@ trait FilterPipelines
             
             case $this->constants[ 'MOTORCYCLES' ]:
                 $filterFields = [
+                    'slidersFields' => [ ],
                     'numericFields' => [
                         $this->constants[ 'FILTER_FIELD_MILEAGE' ] => [
                             'name' => $this->constants[ 'FILTER_FIELD_MILEAGE' ],
@@ -154,7 +155,7 @@ trait FilterPipelines
                 ];
                 break;
 
-            case $this->constants[ 'MOTORCYCLES' ]:
+            case $this->constants[ 'BUSESTRUCK' ]:
                 $filterFields = [
                     'slidersFields' => [
                         $this->constants[ 'FILTER_FIELD_NUMBER_OF_DOORS' ] => [
@@ -253,7 +254,7 @@ trait FilterPipelines
         }
 
         $output = [];
-
+        
         // para slidersFields
         foreach ( $filterFields[ 'slidersFields' ] as $key => $field ) {
 

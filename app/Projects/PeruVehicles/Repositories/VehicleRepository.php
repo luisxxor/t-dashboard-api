@@ -48,8 +48,71 @@ class VehicleRepository
      * @var array
      */
     public $header = [
-        '_id'                   => 'Código',
-        
+        'auto' => [
+            '_id'                   => 'Código',
+            'link'                  => 'Enlace',
+            'make'                  => 'Marca',
+            'model'                 => 'Modelo',
+            'category'              => 'Categoria',
+            'year'                  => 'Año',
+            'mileage'               => 'Millas Recorrida',
+            'fuel_type'             => 'Tipo de gasolina',
+            'transmission'          => 'Transmisión',
+            'engine_displacement'   => 'Desplazamiento del motor',
+            'volante'               => 'Volante',
+            'drive_type'            => 'Tipo de Manejo',
+            'color'                 => 'Color',
+            'number_of_cylinders'   => 'Número de cilindros',
+            'number_of_doors'       => 'Número de puertas',
+            'dollars_price'         => 'Precio (USD)',
+            'location'              => 'Locación',
+            'publication_date'      => 'Fecha de publicación'
+         ],
+        'moto'=>[
+            '_id'                   => 'Código',
+            'link'                  => 'Enlace',
+            'make'                  => 'Marca',
+            'model'                 => 'Modelo',
+            'category'              => 'Categoria',
+            'year'                  => 'Año',
+            'mileage'               => 'Millas Recorrida',
+            'fuel_type'             => 'Tipo de gasolina',
+            'transmission'          => 'Transmisión',
+            'engine_displacement'   => 'Desplazamiento del motor',
+            'brakes'                => 'Frenos',
+            'starter_type'          => 'Tipo de Encendido',
+            'drive_type'            => 'Tipo de Manejo',
+            'color'                 => 'Color',
+            'number_of_cylinders'   => 'Número de cilindros',
+            'dollars_price'         => 'Precio (USD)',
+            'location'              => 'Locación',
+            'publication_date'      => 'Fecha de publicación'
+        ],
+        'bus-camion'=>[
+            '_id'                   => 'Código',
+            'link'                  => 'Enlace',
+            'make'                  => 'Marca',
+            'model'                 => 'Modelo',
+            'category'              => 'Categoria',
+            'year'                  => 'Año',
+            'mileage'               => 'Millas Recorrida',
+            'fuel_type'             => 'Tipo de gasolina',
+            'transmission'          => 'Transmisión',
+            'engine_displacement'   => 'Desplazamiento del motor',
+            'volante'               => 'Volante',
+            'number_of_doors'       => 'Número de puertas',
+            'drive_type'            => 'Tipo de Manejo',
+            'color'                 => 'Color',
+            'number_of_cylinders'   => 'Número de cilindros',
+            'max_passengers'        => 'Max pasajeros',
+            'max_cargo'             => 'Max peso',
+            'tire_size'             => 'Tamaño de llanta',
+            'brakes'                => 'Frenos',
+            'max_power'             => 'Maximo Poder',
+            'dollars_price'         => 'Precio (USD)',
+            'location'              => 'Locación',
+            'publication_date'      => 'Fecha de publicación'
+        ]
     ];
 
     public function __construct() {
@@ -261,10 +324,10 @@ class VehicleRepository
      * @return array
      * @throws \Exception
      */
-    public function getSelectedSearchedVehiclesExcelFormat( string $searchId ): array
+    public function getSelectedSearchedVehiclesExcelFormat( string $searchId, string $publication_type ): array
     {
         // pipeline
-        $pipeline = $this->pipelineSelectedVehiclesFromSearchExcelFormat( $searchId );
+        $pipeline = $this->pipelineSelectedVehiclesFromSearchExcelFormat( $searchId , $publication_type);
 
         // get selected data in final format
         $results = SearchedVehicles::raw( ( function ( $collection ) use ( $pipeline ) {

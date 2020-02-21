@@ -128,7 +128,7 @@ trait SearchedVehiclePipelines
         // set property id as _id
         $pipeline[] = [
             '$addFields' => [
-                '_id' => '$property_id',
+                '_id' => '$vehicle_id',
             ]
         ];
 
@@ -150,7 +150,7 @@ trait SearchedVehiclePipelines
      *
      * @return array
      */
-    protected function pipelineSelectedVehiclesFromSearchExcelFormat( string $searchId ): array
+    protected function pipelineSelectedVehiclesFromSearchExcelFormat( string $searchId, string $publication_type ): array
     {
         // pipeline
         $pipeline = [];
@@ -169,36 +169,90 @@ trait SearchedVehiclePipelines
         ];
 
         // fields ($project)
-        $pipeline[] = [
-            '$project' => [
-                '_id'                       => '$property_id',
-                'link'                      => [ '$ifNull' => [ '$link', '' ] ],
-                'antiquity_years'           => [ '$ifNull' => [ '$antiquity_years', '' ] ],
-                'bedrooms'                  => [ '$ifNull' => [ '$bedrooms', 0.0 ] ],
-                'bathrooms'                 => [ '$ifNull' => [ '$bathrooms', 0.0 ] ],
-                'parkings'                  => [ '$ifNull' => [ '$parkings', 0.0 ] ],
-                'total_area_m2'             => [ '$ifNull' => [ '$total_area_m2', 0.0 ] ],
-                'build_area_m2'             => [ '$ifNull' => [ '$build_area_m2', 0.0 ] ],
-                'address'                   => [ '$ifNull' => [ '$address', '' ] ],
-                'publication_date_custom'   => [ '$dateToString' => [ 'date' => '$publication_date', 'format' => '%d-%m-%Y', 'onNull' => '' ] ],
-                'dollars_price'             => [ '$ifNull' => [ '$dollars_price', 0.0 ] ],
-                'others_price'              => [ '$ifNull' => [ '$others_price', 0.0 ] ],
-                'region'                    => [ '$ifNull' => [ '$region', '' ] ],
-                'publication_type'          => [ '$ifNull' => [ '$publication_type', '' ] ],
-                'urbanization'              => [ '$ifNull' => [ '$urbanization', '' ] ],
-                'location'                  => [ '$ifNull' => [ '$location', '' ] ],
-                'reference_place'           => [ '$ifNull' => [ '$reference_place', '' ] ],
-                'comment_subtitle'          => [ '$ifNull' => [ '$comment_subtitle', '' ] ],
-                'comment_description'       => [ '$ifNull' => [ '$comment_description', '' ] ],
-                'pool'                      => [ '$ifNull' => [ '$pool', 0.0 ] ],
-                'elevator'                  => [ '$ifNull' => [ '$elevator', 0.0 ] ],
-                'property_type'             => [ '$ifNull' => [ '$property_type', '' ] ],
-                'property_new'              => [ '$ifNull' => [ '$property_new', '' ] ],
-                'longitude'                 => [ '$ifNull' => [ '$longitude', 0.0 ] ],
-                'latitude'                  => [ '$ifNull' => [ '$latitude', 0.0 ] ],
-                'distance'                  => [ '$convert' => [ 'input' => '$distance', 'to' => 'int', 'onError' => 'Error', 'onNull' => null ] ],
-            ]
-        ];
+        switch ($publication_type) {
+            case 'auto':
+                $pipeline[] = [
+                    '$project' => [
+                        '_id'                       => '$vehicle_id',
+                        'link'                      => [ '$ifNull' => [ '$link', '' ] ],
+                        'make'                      => [ '$ifNull' => [ '$make', '' ] ],
+                        'model'                     => [ '$ifNull' => [ '$model', '' ] ],
+                        'category'                  => [ '$ifNull' => [ '$category', '' ] ],
+                        'year'                      => [ '$ifNull' => [ '$year', '' ] ],
+                        'mileage'                   => [ '$ifNull' => [ '$mileage', 0.0 ] ],
+                        'fuel_type'                 => [ '$ifNull' => [ '$fuel_type', '' ] ],
+                        'transmission'              => [ '$ifNull' => [ '$transmission', '' ] ],
+                        'engine_displacement'       => [ '$ifNull' => [ '$engine_displacement', '' ] ],
+                        'steering_wheel'            => [ '$ifNull' => [ '$steering_wheel', '' ] ],
+                        'drive_type'                => [ '$ifNull' => [ '$drive_type', '' ] ],
+                        'color'                     => [ '$ifNull' => [ '$color', '' ] ],
+                        'number_of_cylinders'       => [ '$ifNull' => [ '$number_of_cylinders', '' ] ],
+                        'number_of_doors'           => [ '$ifNull' => [ '$number_of_doors', 0.0 ] ],
+                        'dollars_price'             => [ '$ifNull' => [ '$dollars_price', 0.0 ] ],
+                        'location'                  => [ '$ifNull' => [ '$location', '' ] ],
+                        'publication_date_custom'   => [ '$dateToString' => [ 'date' => '$publication_date', 'format' => '%d-%m-%Y', 'onNull' => '' ] ],
+                    ]
+                ];
+                break;
+            case 'moto':
+                $pipeline[] = [
+                    '$project' => [
+                        '_id'                       => '$vehicle_id',
+                        'link'                      => [ '$ifNull' => [ '$link', '' ] ],
+                        'make'                      => [ '$ifNull' => [ '$make', '' ] ],
+                        'model'                     => [ '$ifNull' => [ '$model', '' ] ],
+                        'category'                  => [ '$ifNull' => [ '$category', '' ] ],
+                        'year'                      => [ '$ifNull' => [ '$year', '' ] ],
+                        'mileage'                   => [ '$ifNull' => [ '$mileage', 0.0 ] ],
+                        'fuel_type'                 => [ '$ifNull' => [ '$fuel_type', '' ] ],
+                        'transmission'              => [ '$ifNull' => [ '$transmission', '' ] ],
+                        'engine_displacement'       => [ '$ifNull' => [ '$engine_displacement', '' ] ],
+                        'brakes'                    => [ '$ifNull' => [ '$brakes', '' ] ],
+                        'starter_type'              => [ '$ifNull' => [ '$starter_type', '' ] ],
+                        'drive_type'                => [ '$ifNull' => [ '$drive_type', '' ] ],
+                        'color'                     => [ '$ifNull' => [ '$color', '' ] ],
+                        'number_of_cylinders'       => [ '$ifNull' => [ '$number_of_cylinders', '' ] ],
+                        'dollars_price'             => [ '$ifNull' => [ '$dollars_price', 0.0 ] ],
+                        'location'                  => [ '$ifNull' => [ '$location', '' ] ],
+                        'publication_date_custom'   => [ '$dateToString' => [ 'date' => '$publication_date', 'format' => '%d-%m-%Y', 'onNull' => '' ] ],
+                    ]
+                ];
+                break;
+            case 'bus-camion':
+                $pipeline[] = [
+                    '$project' => [
+                        '_id'                       => '$vehicle_id',
+                        'link'                      => [ '$ifNull' => [ '$link', '' ] ],
+                        'make'                      => [ '$ifNull' => [ '$make', '' ] ],
+                        'model'                     => [ '$ifNull' => [ '$model', '' ] ],
+                        'category'                  => [ '$ifNull' => [ '$category', '' ] ],
+                        'year'                      => [ '$ifNull' => [ '$year', '' ] ],
+                        'mileage'                   => [ '$ifNull' => [ '$mileage', 0.0 ] ],
+                        'fuel_type'                 => [ '$ifNull' => [ '$fuel_type', '' ] ],
+                        'transmission'              => [ '$ifNull' => [ '$transmission', '' ] ],
+                        'engine_displacement'       => [ '$ifNull' => [ '$engine_displacement', '' ] ],
+                        'steering_wheel'            => [ '$ifNull' => [ '$steering_wheel', '' ] ],
+                        'number_of_doors'           => [ '$ifNull' => [ '$number_of_doors', 0.0 ] ],
+                        'drive_type'                => [ '$ifNull' => [ '$drive_type', '' ] ],
+                        'color'                     => [ '$ifNull' => [ '$color', '' ] ],
+                        'number_of_cylinders'       => [ '$ifNull' => [ '$number_of_cylinders', '' ] ],
+                        'max_passengers'            => [ '$ifNull' => [ '$max_passengers', 0.0 ] ],
+                        'max_cargo'                 => [ '$ifNull' => [ '$max_cargo', 0.0 ] ],
+                        'tire_size'                 => [ '$ifNull' => [ '$tire_size', 0.0 ] ],
+                        'brakes'                    => [ '$ifNull' => [ '$brakes', '' ] ],
+                        'max_power'                 => [ '$ifNull' => [ '$max_power', 0.0 ] ],
+                        'dollars_price'             => [ '$ifNull' => [ '$dollars_price', 0.0 ] ],
+                        'location'                  => [ '$ifNull' => [ '$location', '' ] ],
+                        'publication_date_custom'   => [ '$dateToString' => [ 'date' => '$publication_date', 'format' => '%d-%m-%Y', 'onNull' => '' ] ],
+                    ]
+                ];
+                break;
+            
+            default:
+                # code...
+                break;
+        }
+
 
         return $pipeline;
     }

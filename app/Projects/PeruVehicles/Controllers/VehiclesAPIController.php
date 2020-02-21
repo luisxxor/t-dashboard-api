@@ -309,6 +309,7 @@ class VehiclesAPIController extends AppBaseController
 
         // quantity of rows
         $rowsQuantity = $this->vehicleRepository->countSelectedSearchedVehicles( $order->search_id );
+        
 
         // create json
         try {
@@ -324,7 +325,7 @@ class VehiclesAPIController extends AppBaseController
                 $rowsQuantity,
                 $orderCode,
                 'json',
-                config( 'app.pe_export_file_bucket' )
+                config( 'app.pe_ve_export_file_bucket' )
             );
         
 
@@ -338,18 +339,20 @@ class VehiclesAPIController extends AppBaseController
 
         // create excel
         try {
+             // get search
+            $search = $this->searchRepository->findOrFail( $order->search_id );
 
             $filesInfo[] = $this->fileHandler->createAndUploadFile(
                 [
-                    'header'    => $this->vehicleRepository->header,
-                    'body'      => $this->vehicleRepository->getSelectedSearchedVehiclesExcelFormat( $order->search_id ),
+                    'header'    => $this->vehicleRepository->header[$search->publication_type],
+                    'body'      => $this->vehicleRepository->getSelectedSearchedVehiclesExcelFormat( $order->search_id , $search->publication_type),
                 ],
                 $rowsQuantity,
                 $orderCode,
                 'xlsx',
-                config( 'app.pe_export_file_bucket' )
+                config( 'app.pe_ve_export_file_bucket' )
             );
-
+            unset( $search );
             gc_collect_cycles();
         } catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage() );

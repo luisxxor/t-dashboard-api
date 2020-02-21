@@ -71,11 +71,12 @@ trait VehiclePipelines
                 'as' => 'publication_types_docs'
             ]
         ];
-
-        // geo within and filters ($match)
-        $pipeline[] = [
-            '$match' => $metadata
-        ];
+        // geo within and filters ($match)  
+        if (!empty($metadata)) {
+            $pipeline[] = [
+                '$match' => $metadata
+            ];
+        }
 
         // fields ($addFields)
         $pipeline[] = [
