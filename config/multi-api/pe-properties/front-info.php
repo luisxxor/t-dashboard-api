@@ -53,6 +53,21 @@ return [
         ]
     ],
 
+    'currencies' => [
+        [
+            'currency'=> 'Dolar Americanos',
+            'symbol'=> '$',
+            'field'=> 'dollars_price'
+        
+        ],
+        [
+            'currency'=> 'Soles Peruanos',
+            'symbol'=> 'S',
+            'field'=> 'others_price'
+        
+        ]
+    ],
+
     'containerItems' => [
         'visible' => true,
         'perpage' => 10,

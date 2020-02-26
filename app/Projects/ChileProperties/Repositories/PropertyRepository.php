@@ -67,8 +67,8 @@ class PropertyRepository
         'build_area_m2'         => 'Área construida',
         'address'               => 'Dirección',
         'publication_date'      => 'Fecha de publicación',
-        'dollars_price'         => 'Precio (USD)',
         'others_price'          => 'Precio (Soles)',
+        'extra_fields.uf_price' => 'Unidad de Fomento',
         'region'                => 'Región',
         'publication_type'      => 'Tipo de publicación',
         'urbanization'          => 'Urbanización',
@@ -86,7 +86,7 @@ class PropertyRepository
     ];
 
     public function __construct() {
-        $this->constants = config( 'multi-api.ec-properties.constants' );
+        $this->constants = config( 'multi-api.cl-properties.constants' );
     }
 
     /**

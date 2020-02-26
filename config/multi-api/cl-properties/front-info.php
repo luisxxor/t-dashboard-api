@@ -53,6 +53,20 @@ return [
         ]
     ],
 
+    'currencies' => [
+        [
+            'currency'=> 'Pesos chilenos',
+            'symbol'=> 'CLP',
+            'field'=> 'others_price'
+        
+        ],
+        [
+            'currency'=> 'Unidad de Fomento',
+            'symbol'=> 'UF',
+            'field'=> 'uf_price'
+        ]
+    ],
+
     'containerItems' => [
         'visible' => true,
         'perpage' => 10,
