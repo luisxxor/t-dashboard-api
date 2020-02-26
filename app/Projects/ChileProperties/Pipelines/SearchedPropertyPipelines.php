@@ -60,8 +60,8 @@ trait SearchedPropertyPipelines
                 'type' => 'Feature',
                 'properties' => [
                     'address' => [ '$ifNull' => [ '$address', null ] ],
-                    'dollars_price' => [ '$ifNull' => [ '$dollars_price', null ] ],
                     'others_price' => [ '$ifNull' => [ '$others_price', null ] ],
+                    'extra_fields.uf_price' => [ '$ifNull' => [ '$extra_fields.uf_price', null ] ],
                     'bedrooms' => [ '$ifNull' => [ '$bedrooms', null ] ],
                     'bathrooms' => [ '$ifNull' => [ '$bathrooms', null ] ],
                     'parkings' => [ '$ifNull' => [ '$parkings', null ] ],
