@@ -68,7 +68,7 @@ class PropertyRepository
         'address'               => 'Dirección',
         'publication_date'      => 'Fecha de publicación',
         'others_price'          => 'Precio (Soles)',
-        'extra_fields.uf_price' => 'Unidad de Fomento',
+        'uf_price'              => 'Unidad de Fomento',
         'region'                => 'Región',
         'publication_type'      => 'Tipo de publicación',
         'urbanization'          => 'Urbanización',

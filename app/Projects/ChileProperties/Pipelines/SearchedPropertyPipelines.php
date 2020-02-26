@@ -61,7 +61,7 @@ trait SearchedPropertyPipelines
                 'properties' => [
                     'address' => [ '$ifNull' => [ '$address', null ] ],
                     'others_price' => [ '$ifNull' => [ '$others_price', null ] ],
-                    'extra_fields.uf_price' => [ '$ifNull' => [ '$extra_fields.uf_price', null ] ],
+                    'uf_price' => [ '$ifNull' => [ '$extra_fields.uf_price', null ] ],
                     'bedrooms' => [ '$ifNull' => [ '$bedrooms', null ] ],
                     'bathrooms' => [ '$ifNull' => [ '$bathrooms', null ] ],
                     'parkings' => [ '$ifNull' => [ '$parkings', null ] ],
@@ -181,7 +181,7 @@ trait SearchedPropertyPipelines
                 'address'                   => [ '$ifNull' => [ '$address', '' ] ],
                 'publication_date_custom'   => [ '$dateToString' => [ 'date' => '$publication_date', 'format' => '%d-%m-%Y', 'onNull' => '' ] ],
                 'others_price'              => [ '$ifNull' => [ '$others_price', 0.0 ] ],
-                'extra_fields.uf_price'             => [ '$ifNull' => [ '$extra_fields.uf_price', 0.0 ] ],
+                'uf_price'             => [ '$ifNull' => [ '$extra_fields.uf_price', 0.0 ] ],
                 'region'                    => [ '$ifNull' => [ '$region', '' ] ],
                 'publication_type'          => [ '$ifNull' => [ '$publication_type', '' ] ],
                 'urbanization'              => [ '$ifNull' => [ '$urbanization', '' ] ],
