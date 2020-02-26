@@ -87,7 +87,7 @@ return [
                 'label' => 'Tipo de publicación',
                 'type' => 'dropdown',
                 'placeholder' => 'Seleccione el tipo de publicación',
-                'valuesURL' => env( 'APP_URL' ) . '/api/ecuador_properties/filters/publication_type',
+                'valuesURL' => env( 'APP_URL' ) . '/api/chile_properties/filters/publication_type',
             ],
             [
                 'field' => $constants[ 'FILTER_FIELD_PUBLICATION_DATE' ],
