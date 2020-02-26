@@ -67,7 +67,7 @@ class PropertyRepository
         'build_area_m2'         => 'Área construida',
         'address'               => 'Dirección',
         'publication_date'      => 'Fecha de publicación',
-        'others_price'          => 'Precio (Soles)',
+        'others_price'          => 'Precio (Chileno)',
         'uf_price'              => 'Unidad de Fomento',
         'region'                => 'Región',
         'publication_type'      => 'Tipo de publicación',

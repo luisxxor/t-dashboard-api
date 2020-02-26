@@ -68,7 +68,6 @@ class PropertyRepository
         'address'               => 'Dirección',
         'publication_date'      => 'Fecha de publicación',
         'dollars_price'         => 'Precio (USD)',
-        'others_price'          => 'Precio (Soles)',
         'region'                => 'Región',
         'publication_type'      => 'Tipo de publicación',
         'urbanization'          => 'Urbanización',
