@@ -61,7 +61,6 @@ trait SearchedPropertyPipelines
                 'properties' => [
                     'address' => [ '$ifNull' => [ '$address', null ] ],
                     'dollars_price' => [ '$ifNull' => [ '$dollars_price', null ] ],
-                    'others_price' => [ '$ifNull' => [ '$others_price', null ] ],
                     'bedrooms' => [ '$ifNull' => [ '$bedrooms', null ] ],
                     'bathrooms' => [ '$ifNull' => [ '$bathrooms', null ] ],
                     'parkings' => [ '$ifNull' => [ '$parkings', null ] ],
@@ -181,7 +180,6 @@ trait SearchedPropertyPipelines
                 'address'                   => [ '$ifNull' => [ '$address', '' ] ],
                 'publication_date_custom'   => [ '$dateToString' => [ 'date' => '$publication_date', 'format' => '%d-%m-%Y', 'onNull' => '' ] ],
                 'dollars_price'             => [ '$ifNull' => [ '$dollars_price', 0.0 ] ],
-                'others_price'              => [ '$ifNull' => [ '$others_price', 0.0 ] ],
                 'region'                    => [ '$ifNull' => [ '$region', '' ] ],
                 'publication_type'          => [ '$ifNull' => [ '$publication_type', '' ] ],
                 'urbanization'              => [ '$ifNull' => [ '$urbanization', '' ] ],
