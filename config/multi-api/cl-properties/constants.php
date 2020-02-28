@@ -20,6 +20,6 @@ return [
 
     'FILTER_FIELD_PROPERTY_TYPE' => 'property_type',
     'FILTER_FIELD_PUBLICATION_TYPE' => 'publication_type',
-    'FILTER_FIELD_PROPERTY_NEW' => 'property_new',
+    'FILTER_FIELD_IS_NEW' => 'is_new',
 
 ];

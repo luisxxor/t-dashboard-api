@@ -79,7 +79,7 @@ class PropertyRepository
         'pool'                  => 'Piscina',
         'elevator'              => 'Ascensor',
         'property_type'         => 'Tipo de propiedad',
-        'property_new'          => 'Propiedad nueva',
+        'is_new'                => 'Propiedad nueva',
         'longitude'             => 'Longitud',
         'latitude'              => 'Latitud',
         'distance'              => 'Distancia (m)',

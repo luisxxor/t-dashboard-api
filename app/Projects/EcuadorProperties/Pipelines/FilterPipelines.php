@@ -105,8 +105,8 @@ trait FilterPipelines
                         return $ids;
                     },
                 ],
-                // 'property_new' => [
-                //     'name' => $this->constants[ 'FILTER_FIELD_PROPERTY_NEW' ],
+                // 'is_new' => [
+                //     'name' => $this->constants[ 'FILTER_FIELD_IS_NEW' ],
                 //     'clousure' => function ( $field ) {
                 //         return (bool)$field;
                 //     },

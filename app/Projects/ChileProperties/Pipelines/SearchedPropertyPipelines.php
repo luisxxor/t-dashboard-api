@@ -192,7 +192,7 @@ trait SearchedPropertyPipelines
                 'pool'                      => [ '$ifNull' => [ '$pool', 0.0 ] ],
                 'elevator'                  => [ '$ifNull' => [ '$elevator', 0.0 ] ],
                 'property_type'             => [ '$ifNull' => [ '$property_type', '' ] ],
-                'property_new'              => [ '$ifNull' => [ '$property_new', '' ] ],
+                'is_new'              => [ '$ifNull' => [ '$is_new', '' ] ],
                 'longitude'                 => [ '$ifNull' => [ '$longitude', 0.0 ] ],
                 'latitude'                  => [ '$ifNull' => [ '$latitude', 0.0 ] ],
                 'distance'                  => [ '$convert' => [ 'input' => '$distance', 'to' => 'int', 'onError' => 'Error', 'onNull' => null ] ],

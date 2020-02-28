@@ -85,8 +85,8 @@ trait FilterPipelines
                 'publication_type' => [
                     'name' => $this->constants[ 'FILTER_FIELD_PUBLICATION_TYPE' ],
                 ],
-                'property_new' => [
-                    'name' => $this->constants[ 'FILTER_FIELD_PROPERTY_NEW' ],
+                'is_new' => [
+                    'name' => $this->constants[ 'FILTER_FIELD_IS_NEW' ],
                     'clousure' => function ( $field ) {
                         return (bool)$field;
                     },
