@@ -47,8 +47,8 @@ class PropertyRepository
      */
     protected $sortFields = [
         'publication_date' => -1,
-        'distance' => -1,
-        '_id' => -1,
+        'distance' => 1,
+        '_id' => 1,
     ];
 
     /**
@@ -120,7 +120,6 @@ class PropertyRepository
      * @param array $pagination {
      *     The values of the pagination
      *
-     *     @type int $page [required] The page needed to return.
      *     @type int $perpage [required] The number of rows per each
      *           page of the pagination.
      *     @type string $field [optional] The field needed to be sorted.
@@ -131,38 +130,48 @@ class PropertyRepository
      */
     public function searchProperties( Search $search, array $pagination ): array
     {
+        // pipeline to get distance (parameters)
+        $distance = $this->pipelineDistanceToQuery( $search->metadata[ 'initPoint' ][ 'lat' ], $search->metadata[ 'initPoint' ][ 'lng' ] );
+
         // pipeline to get properties within (parameters)
-        $propertiesWithin = $this->pipelinePropertiesWithinToQuery( $search[ 'metadata' ][ 'vertices' ] );
+        $propertiesWithin = $this->pipelinePropertiesWithinToQuery( $search->metadata[ 'vertices' ] );
 
         // pipeline to get filters (parameters)
-        $filters = $this->pipelineFiltersToQuery( (array)$search[ 'metadata' ][ 'filters' ] );
-
-        // pipeline to get distance (parameters)
-        $distance = $this->pipelineDistanceToQuery( $search[ 'metadata' ][ 'initPoint' ][ 'lat' ], $search[ 'metadata' ][ 'initPoint' ][ 'lng' ] );
+        $filters = $this->pipelineFiltersToQuery( (array)$search->metadata[ 'filters' ] );
 
         // metadata
         $metadata = compact( 'propertiesWithin', 'filters', 'distance' );
 
-
-
-        //
-
-
         // pipeline
-        $pipeline = $this->pipelineSearchProperties( $search->_id, $metadata );
+        $pipeline = $this->pipelineSearchProperties( $search->_id, $metadata, $pagination );
 
         // exec query
         $collect = Property::raw( ( function ( $collection ) use ( $pipeline ) {
             return $collection->aggregate( $pipeline );
         } ) );
 
-        // aca se cuantas propiedades buscadas hay
-        $total = $collect->count();
+        // // get pagination values
+        // $paginationValues = $this->getPaginationValues( $total, $pagination );
 
-        // get pagination values
-        $paginationValues = $this->getPaginationValues( $total, $pagination );
+        // return $collect->toArray();
 
-        return $collect->toArray();
+
+
+
+
+
+
+
+        // new instance of LengthAwarePaginator
+        $paginator = new LengthAwarePaginator( $collect, 0, $pagination[ 'perpage' ], 1 );
+
+        // cast to array
+        $paginator = $paginator->toArray();
+
+        // search id
+        $paginator[ 'searchId' ] = $search->id;
+
+        return $paginator;
     }
 
     protected function getPaginationValues( int $total, array $pagination )

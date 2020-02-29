@@ -44,10 +44,18 @@ trait PropertyPipelines
      *     @type array $propertiesWithin [required] Pipeline $match.
      *     @type array $filters [required] Pipeline $match.
      * }
+     * @param array $pagination {
+     *     The values of the pagination
+     *
+     *     @type int $perpage [required] The number of rows per each
+     *           page of the pagination.
+     *     @type string $field [required] The field needed to be sorted.
+     *     @type string $sort [required] The 'asc' or 'desc' to be sorted.
+     * }
      *
      * @return array
      */
-    protected function pipelineSearchProperties( string $searchId, array $metadata ): array
+    protected function pipelineSearchProperties( string $searchId, array $metadata, array $pagination ): array
     {
         // pipeline
         $pipeline = [];
@@ -55,6 +63,32 @@ trait PropertyPipelines
         // geo distance ($geoNear)
         $pipeline[] = [
             '$geoNear' => $metadata[ 'distance' ]
+        ];
+
+        // geo within and filters ($match)
+        $pipeline[] = [
+            '$match' => $metadata[ 'propertiesWithin' ] + $metadata[ 'filters' ]
+        ];
+
+        // order by ($sort)
+        $pipeline[] = [
+            '$sort' => $this->mergeSortFields( $pagination[ 'field' ], $pagination[ 'sort' ] )
+        ];
+
+        // pagination
+        if ( isset( $pagination[ 'lastId' ] ) === true ) {
+            $pipeline[] = [
+                '$match' => [
+                    'publication_date' => [ '$gte' => new \MongoDB\BSON\UTCDateTime( strtotime( $pagination[ 'lastDate' ] ) ) ],
+                    'distance' => [ '$gte' => $pagination[ 'lastDistance' ] ],
+                    '_id' => [ '$gt' => $pagination[ 'lastId' ] ]
+                ]
+            ];
+        }
+
+        // limit ($limit)
+        $pipeline[] = [
+            '$limit' => $pagination[ 'perpage' ],
         ];
 
         // join con regions ($lookup)
@@ -77,16 +111,9 @@ trait PropertyPipelines
             ]
         ];
 
-        // geo within and filters ($match)
-        $pipeline[] = [
-            '$match' => $metadata[ 'propertiesWithin' ] + $metadata[ 'filters' ]
-        ];
-
         // fields ($addFields)
         $pipeline[] = [
             '$addFields' => [
-                'property_id' => '$_id',
-                'search_id' => new ObjectID( $searchId ),
                 'property_type' => [ '$ifNull' => [
                     [ '$arrayElemAt' => [ '$property_types_docs.name', 0 ] ],
                     null
@@ -103,10 +130,9 @@ trait PropertyPipelines
             ]
         ];
 
-        // remove _id to avoid unique index error ($project)
+        // remove unnecessary fields ($project)
         $pipeline[] = [
             '$project' => [
-                '_id' => 0,
                 'property_type_id' => 0,
                 'property_types_docs' => 0,
                 'region_id' => 0,
@@ -123,7 +149,19 @@ trait PropertyPipelines
         //         'whenNotMatched' => 'insert',
         //     ],
         // ];
-
+// dd( json_encode( $pipeline ) );
         return $pipeline;
+    }
+
+    protected function mergeSortFields( string $field, int $sort )
+    {
+        if ( array_key_exists( $field, $this->sortFields ) === true ) {
+            $sortFields = array_merge( $this->sortFields, [ $field => $sort ] );
+        }
+        else {
+            $sortFields = array_merge( [ $field => $sort ], $this->sortFields );
+        }
+
+        return $sortFields;
     }
 }

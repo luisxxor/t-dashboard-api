@@ -327,7 +327,6 @@ class PropertiesAPIController extends AppBaseController
         $perpage    = $request->get( 'perpage' ) ?? 500;
 
         // paginate data (default)
-        $page   = 1;
         $field  = 'publication_date';
         $sort   = -1;
 
@@ -354,14 +353,11 @@ class PropertiesAPIController extends AppBaseController
 
         // construct and execute query.
         // this will return the matched properties.
-        $data = $this->propertyRepository->searchProperties( $search, compact( 'page', 'perpage', 'field', 'sort' ) );
+        $data = $this->propertyRepository->searchProperties( $search, compact( 'perpage', 'field', 'sort' ) );
 
-        // construct and execute query
-        // $results = $this->propertyRepository->getSearchedProperties( $search->_id,  );
-
-        // if ( empty( $results ) === true ) {
-        //     return $this->sendError( 'Properties retrieved successfully.', $results, 204 );
-        // }
+        if ( empty( $data ) === true ) {
+            return $this->sendError( 'No properties matched.', $data, 204 );
+        }
 
         return $this->sendResponse( $data, 'Properties retrieved successfully.' );
     }
@@ -456,23 +452,38 @@ class PropertiesAPIController extends AppBaseController
     {
         $request->validate( [
             'searchId'  => [ 'required', 'string' ],
-            'page'      => [ 'required', 'integer', 'min:1' ],
-            'perpage'   => [ 'required', 'integer', 'min:1', 'max:500'], #
+            'lastId'    => [ 'required', 'integer', 'filled' ],
+            'lastDate'    => [ 'required', 'string', 'filled' ],
+            'lastDistance'    => [ 'required', 'numeric', 'filled' ],
+            'perpage'   => [ 'required', 'integer', 'min:1', 'max:500' ],
             'field'     => [ 'nullable', 'string', Rule::notIn( [ 'distance', '_id' ] ) ],
             'sort'      => [ 'nullable', 'integer', 'in:1,-1' ],
         ] );
 
         // input
         $searchId   = $request->get( 'searchId' );
-        $page       = $request->get( 'page' )       ?? 1;
-        $perpage    = $request->get( 'perpage' )    ?? 10;
+        $lastId     = $request->get( 'lastId' );
+        $lastDate     = $request->get( 'lastDate' );
+        $lastDistance     = $request->get( 'lastDistance' );
+        $perpage    = $request->get( 'perpage' )    ?? 500;
         $field      = $request->get( 'field' )      ?? 'publication_date';
         $sort       = $request->get( 'sort' )       ?? -1;
+// dd( $this->searchRepository->findOrFail( $searchId ) );
+        try {
+            // get search model
+            $search = $this->searchRepository->findOrFail( $searchId );
 
-        // construct and execute query
-        $results = $this->propertyRepository->getSearchedProperties( $searchId, compact( 'page', 'perpage', 'field', 'sort' ) );
+            // construct and execute query
+            $data = $this->propertyRepository->searchProperties( $search, compact( 'perpage', 'field', 'sort', 'lastId', 'lastDate', 'lastDistance' ) );
+        } catch ( Exception $e ) {
+            return $this->sendError( $e->getMessage(), [], 404 );
+        }
 
-        return $this->sendResponse( $results, 'Properties retrieved successfully.' );
+        if ( empty( $data[ 'data' ] ) === true ) {
+            return $this->sendError( 'No properties matched.', $data, 204 );
+        }
+
+        return $this->sendResponse( $data, 'Properties retrieved successfully.' );
     }
 
     /**
