@@ -114,13 +114,22 @@ class PropertyRepository
     }
 
     /**
-     * Store matched properties as searched properties from given search.
+     * Return matched properties from given search.
      *
-     * @param Search $search The search model to store the matched properties.
+     * @param Search $search The search model to match the properties.
+     * @param array $pagination {
+     *     The values of the pagination
+     *
+     *     @type int $page [required] The page needed to return.
+     *     @type int $perpage [required] The number of rows per each
+     *           page of the pagination.
+     *     @type string $field [optional] The field needed to be sorted.
+     *     @type string $sort [optional] The 'asc' or 'desc' to be sorted.
+     * }
      *
      * @return array
      */
-    public function storeSearchedProperties( Search $search ): array
+    public function searchProperties( Search $search, array $pagination ): array
     {
         // pipeline to get properties within (parameters)
         $propertiesWithin = $this->pipelinePropertiesWithinToQuery( $search[ 'metadata' ][ 'vertices' ] );
@@ -134,40 +143,32 @@ class PropertyRepository
         // metadata
         $metadata = compact( 'propertiesWithin', 'filters', 'distance' );
 
+
+
+        //
+
+
         // pipeline
-        $pipeline = $this->pipelinePropertiesToSearch( $search->_id, $metadata );
+        $pipeline = $this->pipelineSearchProperties( $search->_id, $metadata );
 
         // exec query
-        $toTemp = Property::raw( ( function ( $collection ) use ( $pipeline ) {
+        $collect = Property::raw( ( function ( $collection ) use ( $pipeline ) {
             return $collection->aggregate( $pipeline );
         } ) );
 
-        return $toTemp->toArray(); // empty if ok
+        // aca se cuantas propiedades buscadas hay
+        $total = $collect->count();
+
+        // get pagination values
+        $paginationValues = $this->getPaginationValues( $total, $pagination );
+
+        return $collect->toArray();
     }
 
-    /**
-     * Return (paginated) searched properties from the given search.
-     *
-     * @param string $searchId The id of the current search.
-     * @param array $pagination {
-     *     The values of the pagination
-     *
-     *     @type int $page [required] The page needed to return.
-     *     @type int $perpage [required] The number of rows per each
-     *           page of the pagination.
-     *     @type string $field [optional] The field needed to be sorted.
-     *     @type string $sort [optional] The 'asc' or 'desc' to be sorted.
-     * }
-     *
-     * @return array
-     */
-    public function getSearchedProperties( string $searchId, array $pagination ): array
+    protected function getPaginationValues( int $total, array $pagination )
     {
-        // get total searched properties
-        $total = $this->countSearchedProperties( $searchId );
-
         if ( empty( $total ) === true ) {
-            return [];
+            throw new Exception( 'Empty search' ); # TODO capturar esta excepcion
         }
 
         // calculo la cantidad de paginas del resultado a partir de la cantidad
@@ -184,8 +185,23 @@ class PropertyRepository
         // a paginar multiplicado por la cantidad de registros por pagina 'perpage'
         $offset = ( $page - 1 ) * $pagination[ 'perpage' ];
 
-        // agrego offset al pagination
-        $pagination[ 'offset' ] = $offset;
+        return [
+            'perpage' => $pagination[ 'perpage' ],
+            'offset' => $offset,
+            'field' => $pagination[ 'field' ],
+            'sort' => $pagination[ 'sort' ],
+        ];
+    }
+
+    /**
+     * Return (paginated) searched properties from the given search.
+     *
+     * @param string $searchId The id of the current search.
+     *
+     * @return array
+     */
+    public function getSearchedProperties( string $searchId, array $pagination ): array
+    {
 
         // pipeline
         $pipeline = $this->pipelinePropertiesFromSearch( $searchId, $pagination );
@@ -301,35 +317,6 @@ class PropertyRepository
         }
 
         return $results->toArray();
-    }
-
-    /**
-     * Return count of searched properties for given search.
-     *
-     * @param string $searchId The id of the current search.
-     *
-     * @return int
-     */
-    public function countSearchedProperties( string $searchId ): int
-    {
-        $query = SearchedProperty::raw( ( function ( $collection ) use ( $searchId ) {
-            return $collection->aggregate( [
-                [
-                    '$match' => [
-                        'search_id' => [ '$eq' => new ObjectID( $searchId ) ]
-                    ]
-                ],
-                [
-                    '$count' => "total"
-                ]
-            ] );
-        } ) )->toArray();
-
-        try {
-            return $query[ 0 ][ 'total' ];
-        } catch ( \ErrorException $e ) {
-            return 0;
-        }
     }
 
     /**

@@ -212,7 +212,7 @@ class PropertiesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Post(
-     *     path="/api/peru_properties/properties_ajax",
+     *     path="/api/peru_properties/search",
      *     operationId="searchProperties",
      *     tags={"Peru Properties"},
      *     summary="Return the properties that math with given filters",
@@ -315,7 +315,7 @@ class PropertiesAPIController extends AppBaseController
             'lat'       => [ 'required', 'numeric' ],
             'lng'       => [ 'required', 'numeric' ],
             'address'   => [ 'nullable', 'string' ],
-            'perpage'   => [ 'required', 'integer', 'min:10', 'max:500'],
+            'perpage'   => [ 'required', 'integer', 'min:10', 'max:500' ],
         ] );
 
         // input
@@ -325,6 +325,11 @@ class PropertiesAPIController extends AppBaseController
         $lng        = $request->get( 'lng' );
         $address    = $request->get( 'address' );
         $perpage    = $request->get( 'perpage' ) ?? 500;
+
+        // paginate data (default)
+        $page   = 1;
+        $field  = 'publication_date';
+        $sort   = -1;
 
         // get user
         $user = auth()->user();
@@ -348,23 +353,17 @@ class PropertiesAPIController extends AppBaseController
         $search = $this->searchRepository->create( $searchData );
 
         // construct and execute query.
-        // this will store the matched properties
-        // in searched_properties collection.
-        $this->propertyRepository->storeSearchedProperties( $search );
-
-        // paginate data (default)
-        $page   = 1;
-        $field  = 'publication_date';
-        $sort   = -1;
+        // this will return the matched properties.
+        $data = $this->propertyRepository->searchProperties( $search, compact( 'page', 'perpage', 'field', 'sort' ) );
 
         // construct and execute query
-        $results = $this->propertyRepository->getSearchedProperties( $search->_id, compact( 'page', 'perpage', 'field', 'sort' ) );
+        // $results = $this->propertyRepository->getSearchedProperties( $search->_id,  );
 
-        if ( empty( $results ) === true ) {
-            return $this->sendError( 'Properties retrieved successfully.', $results, 204 );
-        }
+        // if ( empty( $results ) === true ) {
+        //     return $this->sendError( 'Properties retrieved successfully.', $results, 204 );
+        // }
 
-        return $this->sendResponse( $results, 'Properties retrieved successfully.' );
+        return $this->sendResponse( $data, 'Properties retrieved successfully.' );
     }
 
     /**
@@ -372,7 +371,7 @@ class PropertiesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Post(
-     *     path="/api/peru_properties/properties_paginate",
+     *     path="/api/peru_properties/paginate",
      *     operationId="paginateProperties",
      *     tags={"Peru Properties"},
      *     summary="Return the properties that math with given search id",

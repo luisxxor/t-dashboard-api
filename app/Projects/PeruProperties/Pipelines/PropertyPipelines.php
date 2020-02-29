@@ -47,7 +47,7 @@ trait PropertyPipelines
      *
      * @return array
      */
-    protected function pipelinePropertiesToSearch( string $searchId, array $metadata ): array
+    protected function pipelineSearchProperties( string $searchId, array $metadata ): array
     {
         // pipeline
         $pipeline = [];
@@ -115,14 +115,14 @@ trait PropertyPipelines
         ];
 
         // insert into select ($merge)
-        $pipeline[] = [
-            '$merge' => [
-                'into' => 'searched_properties',
-                'on' => [ 'property_id', 'search_id' ],
-                'whenMatched' => 'merge',
-                'whenNotMatched' => 'insert',
-            ],
-        ];
+        // $pipeline[] = [
+        //     '$merge' => [
+        //         'into' => 'searched_properties',
+        //         'on' => [ 'property_id', 'search_id' ],
+        //         'whenMatched' => 'merge',
+        //         'whenNotMatched' => 'insert',
+        //     ],
+        // ];
 
         return $pipeline;
     }
