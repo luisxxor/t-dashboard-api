@@ -72,7 +72,7 @@ class PropertiesAPIController extends AppBaseController
      *     summary="Return the necessary data for property type filter",
      *     @OA\Response(
      *         response=200,
-     *         description="Data retrived.",
+     *         description="Data retrieved.",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(
@@ -152,7 +152,7 @@ class PropertiesAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Ghost search done.",
+     *         description="Data retrieved successfully.",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(
@@ -268,7 +268,7 @@ class PropertiesAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Properties retrieved successfully.",
+     *         description="Data retrieved successfully.",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(
@@ -324,7 +324,7 @@ class PropertiesAPIController extends AppBaseController
         $lat        = $request->get( 'lat' );
         $lng        = $request->get( 'lng' );
         $address    = $request->get( 'address' );
-        $perpage    = $request->get( 'perpage' ) ?? 500;
+        $perpage    = $request->get( 'perpage' );
 
         // paginate data (default)
         $field  = 'publication_date';
@@ -366,7 +366,7 @@ class PropertiesAPIController extends AppBaseController
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      *
-     * @OA\Post(
+     * @OA\Get(
      *     path="/api/peru_properties/paginate",
      *     operationId="paginateProperties",
      *     tags={"Peru Properties"},
@@ -380,11 +380,12 @@ class PropertiesAPIController extends AppBaseController
      *         )
      *     ),
      *     @OA\Parameter(
-     *         name="page",
-     *         required=false,
+     *         name="lastItem",
+     *         required=true,
      *         in="query",
      *         @OA\Schema(
-     *             type="integer"
+     *             type="array",
+     *             @OA\Items()
      *         )
      *     ),
      *     @OA\Parameter(
@@ -413,7 +414,7 @@ class PropertiesAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Properties' page retrieved successfully.",
+     *         description="Data retrieved successfully.",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(
@@ -436,6 +437,10 @@ class PropertiesAPIController extends AppBaseController
      *         )
      *     ),
      *     @OA\Response(
+     *         response=204,
+     *         description="The request has been successfully completed but your answer has no content"
+     *     ),
+     *     @OA\Response(
      *         response=401,
      *         description="Unauthenticated."
      *     ),
@@ -451,32 +456,28 @@ class PropertiesAPIController extends AppBaseController
     public function paginateProperties( Request $request )
     {
         $request->validate( [
-            'searchId'  => [ 'required', 'string' ],
-            'lastId'    => [ 'required', 'integer', 'filled' ],
-            'lastDate'    => [ 'required', 'string', 'filled' ],
-            'lastDistance'    => [ 'required', 'numeric', 'filled' ],
-            'perpage'   => [ 'required', 'integer', 'min:1', 'max:500' ],
-            'field'     => [ 'nullable', 'string', Rule::notIn( [ 'distance', '_id' ] ) ],
-            'sort'      => [ 'nullable', 'integer', 'in:1,-1' ],
+            'searchId'      => [ 'required', 'string' ],
+            'lastItem'      => [ 'required', 'array', 'filled' ],
+            'perpage'       => [ 'required', 'integer', 'min:1', 'max:500' ],
+            'field'         => [ 'nullable', 'string', Rule::notIn( [ 'distance', '_id' ] ) ],
+            'sort'          => [ 'nullable', 'integer', 'in:1,-1' ],
         ] );
 
         // input
         $searchId   = $request->get( 'searchId' );
-        $lastId     = $request->get( 'lastId' );
-        $lastDate     = $request->get( 'lastDate' );
-        $lastDistance     = $request->get( 'lastDistance' );
-        $perpage    = $request->get( 'perpage' )    ?? 500;
+        $lastItem   = $request->get( 'lastItem' );
+        $perpage    = $request->get( 'perpage' );
         $field      = $request->get( 'field' )      ?? 'publication_date';
         $sort       = $request->get( 'sort' )       ?? -1;
-// dd( $this->searchRepository->findOrFail( $searchId ) );
+
         try {
             // get search model
             $search = $this->searchRepository->findOrFail( $searchId );
 
             // construct and execute query
-            $data = $this->propertyRepository->searchProperties( $search, compact( 'perpage', 'field', 'sort', 'lastId', 'lastDate', 'lastDistance' ) );
-        } catch ( Exception $e ) {
-            return $this->sendError( $e->getMessage(), [], 404 );
+            $data = $this->propertyRepository->searchProperties( $search, compact( 'perpage', 'field', 'sort', 'lastItem' ) );
+        } catch ( \Exception $e ) {
+            return $this->sendError( $e->getMessage(), [], 204 );
         }
 
         if ( empty( $data[ 'data' ] ) === true ) {

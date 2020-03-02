@@ -47,7 +47,7 @@ class PropertyRepository
      */
     protected $sortFields = [
         'publication_date' => -1,
-        'distance' => 1,
+        // 'distance' => 1,
         '_id' => 1,
     ];
 
@@ -123,7 +123,8 @@ class PropertyRepository
      *     @type int $perpage [required] The number of rows per each
      *           page of the pagination.
      *     @type string $field [optional] The field needed to be sorted.
-     *     @type string $sort [optional] The 'asc' or 'desc' to be sorted.
+     *     @type int $sort [optional] The 'asc' (1) or 'desc' (-1) to be sorted.
+     *     @type array $lastItem [optional] The last item to paginate from.
      * }
      *
      * @return array
@@ -140,7 +141,7 @@ class PropertyRepository
         $filters = $this->pipelineFiltersToQuery( (array)$search->metadata[ 'filters' ] );
 
         // metadata
-        $metadata = compact( 'propertiesWithin', 'filters', 'distance' );
+        $metadata = compact( 'distance', 'propertiesWithin', 'filters' );
 
         // pipeline
         $pipeline = $this->pipelineSearchProperties( $search->_id, $metadata, $pagination );
@@ -149,18 +150,6 @@ class PropertyRepository
         $collect = Property::raw( ( function ( $collection ) use ( $pipeline ) {
             return $collection->aggregate( $pipeline );
         } ) );
-
-        // // get pagination values
-        // $paginationValues = $this->getPaginationValues( $total, $pagination );
-
-        // return $collect->toArray();
-
-
-
-
-
-
-
 
         // new instance of LengthAwarePaginator
         $paginator = new LengthAwarePaginator( $collect, 0, $pagination[ 'perpage' ], 1 );
@@ -174,33 +163,6 @@ class PropertyRepository
         return $paginator;
     }
 
-    protected function getPaginationValues( int $total, array $pagination )
-    {
-        if ( empty( $total ) === true ) {
-            throw new Exception( 'Empty search' ); # TODO capturar esta excepcion
-        }
-
-        // calculo la cantidad de paginas del resultado a partir de la cantidad
-        // de registros '$total' y la cantidad de registros por pagina '$pagination[ 'perpage' ]'
-        $pages = ceil( $total / $pagination[ 'perpage' ] );
-
-        // valido que la ultima pagina no este fuera de rango
-        $page = $pagination[ 'page' ] > $pages ? $pages : $pagination[ 'page' ];
-
-        // validacion cero
-        $page = $page === 0.0 ? 1 : $page;
-
-        // limit y offset para paginar, define el número 0 para empezar
-        // a paginar multiplicado por la cantidad de registros por pagina 'perpage'
-        $offset = ( $page - 1 ) * $pagination[ 'perpage' ];
-
-        return [
-            'perpage' => $pagination[ 'perpage' ],
-            'offset' => $offset,
-            'field' => $pagination[ 'field' ],
-            'sort' => $pagination[ 'sort' ],
-        ];
-    }
 
     /**
      * Return (paginated) searched properties from the given search.

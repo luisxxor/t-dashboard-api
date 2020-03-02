@@ -82,7 +82,7 @@ Route::prefix( 'peru_properties' )->middleware( 'auth:api', 'verified' )->group(
     Route::post( 'search', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@searchProperties' )->name( 'peru_properties.searchProperties' )
         ->middleware( 'can:search.properties' );
 
-    Route::post( 'paginate', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@paginateProperties' )->name( 'peru_properties.paginateProperties' )
+    Route::get( 'paginate', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@paginateProperties' )->name( 'peru_properties.paginateProperties' )
         ->middleware( 'can:search.properties' );
 
     Route::post( 'order', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@order' )->name( 'peru_properties.processOrder' )
