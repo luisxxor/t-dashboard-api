@@ -480,8 +480,7 @@ class PropertiesAPIController extends AppBaseController
 
             // construct and execute query
             $data = $this->propertyRepository->searchPropertiesReturnOutputFields( $search, compact( 'perpage', 'field', 'sort', 'lastItem' ) );
-        }
-        catch ( \Exception $e ) {
+        } catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage(), [], 404 );
         }
 
@@ -587,8 +586,7 @@ class PropertiesAPIController extends AppBaseController
         try {
             // get search model
             $search = $this->searchRepository->findOrFail( $searchId );
-        }
-        catch ( \Exception $e ) {
+        } catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage(), [], 404 );
         }
 
@@ -716,21 +714,34 @@ class PropertiesAPIController extends AppBaseController
 
         $filesInfo = [];
 
-        // quantity of rows
-        $rowsQuantity = $this->propertyRepository->countSelectedSearchedProperties( $order->search_id );
-
-        // create json
         try {
 
             // get search
             $search = $this->searchRepository->findOrFail( $order->search_id );
 
-            // get selected searched properties by user
-            $selectedSearchedProperties = $this->propertyRepository->getSelectedSearchedProperties( $order->search_id );
+            // create json metadata file
+            $filesInfo[] = $this->fileHandler->createAndUploadFile(
+                $search->toArray(),
+                $order->total_rows_quantity,
+                $orderCode . '.metadata',
+                'json',
+                config( 'app.pe_export_file_bucket' )
+            );
+
+            // free memory
+            gc_collect_cycles();
+
+            // create json data file
+            $perpage = 3;
+            $selectedSearchedProperties = $this->propertyRepository->getSelectedPropertiesFromProperties( $search, compact( 'perpage' ) );
+
+            foreach ( $selectedSearchedProperties as $value ) {
+                print json_encode( $value ) . PHP_EOL;
+            }
 
             $filesInfo[] = $this->fileHandler->createAndUploadFile(
                 array_merge( $search->toArray(), [ 'data' => $selectedSearchedProperties ] ),
-                $rowsQuantity,
+                $order->total_rows_quantity,
                 $orderCode,
                 'json',
                 config( 'app.pe_export_file_bucket' )
@@ -740,28 +751,29 @@ class PropertiesAPIController extends AppBaseController
             unset( $search );
             unset( $selectedSearchedProperties );
             gc_collect_cycles();
+
         } catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage() );
         }
 
-        // create excel
-        try {
+        // create excel data file
+        // try {
 
-            $filesInfo[] = $this->fileHandler->createAndUploadFile(
-                [
-                    'header'    => $this->propertyRepository->header,
-                    'body'      => $this->propertyRepository->getSelectedSearchedPropertiesExcelFormat( $order->search_id ),
-                ],
-                $rowsQuantity,
-                $orderCode,
-                'xlsx',
-                config( 'app.pe_export_file_bucket' )
-            );
+        //     $filesInfo[] = $this->fileHandler->createAndUploadFile(
+        //         [
+        //             'header'    => $this->propertyRepository->header,
+        //             'body'      => $this->propertyRepository->getSelectedSearchedPropertiesExcelFormat( $order->search_id ),
+        //         ],
+        //         $order->total_rows_quantity,
+        //         $orderCode,
+        //         'xlsx',
+        //         config( 'app.pe_export_file_bucket' )
+        //     );
 
-            gc_collect_cycles();
-        } catch ( \Exception $e ) {
-            return $this->sendError( $e->getMessage() );
-        }
+        //     gc_collect_cycles();
+        // } catch ( \Exception $e ) {
+        //     return $this->sendError( $e->getMessage() );
+        // }
 
         $order->files_info = $filesInfo;
         $order->save();

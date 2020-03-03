@@ -114,7 +114,7 @@ class PropertyRepository
     }
 
     /**
-     * Return output fields of matched properties
+     * Returns output fields of matched properties
      * from given search, with pagination.
      *
      * @param Search $search The search model to match the properties.
@@ -174,7 +174,7 @@ class PropertyRepository
     }
 
     /**
-     * Return only ids of matched properties
+     * Returns only ids of matched properties
      * from given search, without pagination.
      *
      * @param Search $search The search model to match the properties.
@@ -199,33 +199,6 @@ class PropertyRepository
         } ) );
 
         return $collect->toArray();
-    }
-
-    /**
-     * Return count of selected searched properties for given search.
-     *
-     * @param Search $search The search model to match the properties.
-     *
-     * @return int
-     */
-    public function countSearchedProperties( Search $search ): int
-    {
-        // pipeline
-        $pipeline = $this->pipelineSearchProperties( $search );
-
-        // output fields ($project)
-        $pipeline[] = [
-            '$count' => 'total'
-        ];
-
-        // exec query
-        $collect = Property::raw( ( function ( $collection ) use ( $pipeline ) {
-            return $collection->aggregate( $pipeline );
-        } ) );
-
-        $total = $collect->toArray()[ 0 ][ 'total' ];
-
-        return $total;
     }
 
     /**
@@ -302,33 +275,101 @@ class PropertyRepository
         } ) );
     }
 
+    /**
+     * Returns count of searched properties for given search.
+     *
+     * @param Search $search The search model to match the properties.
+     *
+     * @return int
+     */
+    public function countSearchedProperties( Search $search ): int
+    {
+        // pipeline
+        $pipeline = $this->pipelineSearchProperties( $search );
+
+        // output fields ($project)
+        $pipeline[] = [
+            '$count' => 'total'
+        ];
+
+        // exec query
+        $collect = Property::raw( ( function ( $collection ) use ( $pipeline ) {
+            return $collection->aggregate( $pipeline );
+        } ) );
+
+        $total = $collect->toArray()[ 0 ][ 'total' ];
+
+        return $total;
+    }
+
+    /**
+     * Returns count of selected properties in given search.
+     *
+     * @param string $searchId The id of the current search.
+     *
+     * @return int
+     */
+    public function countSelectedPropertiesInSearch( string $searchId ): int
+    {
+        $query = Search::raw( ( function ( $collection ) use ( $searchId ) {
+            return $collection->aggregate( [
+                [
+                    '$match' => [
+                        '_id' => [ '$eq' => new ObjectID( $searchId ) ],
+                    ]
+                ],
+                [
+                    '$project' => [
+                        'total' => [
+                            '$cond' => [
+                                'if' => [
+                                    '$isArray' => '$selected_properties'
+                                ],
+                                'then' => [
+                                    '$size' => '$selected_properties'
+                                ],
+                                'else' => 0
+                            ]
+                        ]
+                    ]
+                ]
+            ] );
+        } ) );
+
+        try {
+            return $query->toArray()[ 0 ][ 'total' ];
+        } catch ( \ErrorException $e ) {
+            return 0;
+        }
+    }
+
 
 
 
     /**
      * Return properties that were selected by user in given search.
      *
-     * @param string $searchId The id of the current search.
+     * @param Search $search The search model to match the properties.
      *
      * @return array
      * @throws \Exception
      */
-    public function getSelectedSearchedProperties( string $searchId ): array
+    public function getSelectedPropertiesFromProperties( Search $search, array $pagination ): array
     {
         // pipeline
-        $pipeline = $this->pipelineSelectedPropertiesFromSearch( $searchId );
+        $pipeline = $this->pipelineSelectedPropertiesFromProperties( $search, $pagination );
 
         // get selected data in final format
-        $results = SearchedProperty::raw( ( function ( $collection ) use ( $pipeline ) {
+        $collect = Property::raw( ( function ( $collection ) use ( $pipeline ) {
             return $collection->aggregate( $pipeline );
         } ) );
 
-        if ( $results->isEmpty() === true ) {
-            throw new \Exception( 'No properties selected in given search.' );
+        if ( $collect->isEmpty() === true ) {
+            throw new \Exception( 'No properties found.' );
 
         }
 
-        return $results->toArray();
+        return $collect->toArray();
     }
 
     /**

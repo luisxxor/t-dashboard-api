@@ -13,56 +13,6 @@ trait SearchedPropertyPipelines
 {
     /**
      * Return pipeline to retrive selected searched properties
-     * from given search.
-     *
-     * @param string $searchId The id of the current search.
-     *
-     * @return array
-     */
-    protected function pipelineSelectedPropertiesFromSearch( string $searchId ): array
-    {
-        // pipeline
-        $pipeline = [];
-
-        // select the current search ($match)
-        $pipeline[] = [
-            '$match' => [
-                'search_id' => [ '$eq' => new ObjectID( $searchId ) ],
-                'selected' => [ '$eq' => true ]
-            ]
-        ];
-
-        // order by ($sort)
-        $pipeline[] = [
-            '$sort' => $this->sortFields
-        ];
-
-        // remove _id (ObjectId)
-        $pipeline[] = [
-            '$project' => [
-                '_id' => 0,
-            ]
-        ];
-
-        // set property id as _id
-        $pipeline[] = [
-            '$addFields' => [
-                '_id' => '$property_id',
-            ]
-        ];
-
-        // remove property_id (old _id)
-        $pipeline[] = [
-            '$project' => [
-                'property_id' => 0,
-            ]
-        ];
-
-        return $pipeline;
-    }
-
-    /**
-     * Return pipeline to retrive selected searched properties
      * from given search in excel format.
      *
      * @param string $searchId The id of the current search.
