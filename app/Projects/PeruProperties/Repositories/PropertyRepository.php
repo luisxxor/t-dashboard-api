@@ -114,7 +114,8 @@ class PropertyRepository
     }
 
     /**
-     * Return matched properties from given search.
+     * Return output fields of matched properties
+     * from given search, with pagination.
      *
      * @param Search $search The search model to match the properties.
      * @param array $pagination {
@@ -129,22 +130,31 @@ class PropertyRepository
      *
      * @return array
      */
-    public function searchProperties( Search $search, array $pagination ): array
+    public function searchPropertiesReturnOutputFields( Search $search, array $pagination ): array
     {
-        // pipeline to get distance (parameters)
-        $distance = $this->pipelineDistanceToQuery( $search->metadata[ 'initPoint' ][ 'lat' ], $search->metadata[ 'initPoint' ][ 'lng' ] );
-
-        // pipeline to get properties within (parameters)
-        $propertiesWithin = $this->pipelinePropertiesWithinToQuery( $search->metadata[ 'vertices' ] );
-
-        // pipeline to get filters (parameters)
-        $filters = $this->pipelineFiltersToQuery( (array)$search->metadata[ 'filters' ] );
-
-        // metadata
-        $metadata = compact( 'distance', 'propertiesWithin', 'filters' );
-
         // pipeline
-        $pipeline = $this->pipelineSearchProperties( $search->_id, $metadata, $pagination );
+        $pipeline = $this->pipelineSearchProperties( $search, $pagination );
+
+        // output fields ($project)
+        $pipeline[] = [
+            '$project' => [
+                '_id' => '$_id',
+                'type' => 'Feature',
+                'properties' => [
+                    'address' => [ '$ifNull' => [ '$address', null ] ],
+                    'dollars_price' => [ '$ifNull' => [ '$dollars_price', null ] ],
+                    'others_price' => [ '$ifNull' => [ '$others_price', null ] ],
+                    'bedrooms' => [ '$ifNull' => [ '$bedrooms', null ] ],
+                    'bathrooms' => [ '$ifNull' => [ '$bathrooms', null ] ],
+                    'parkings' => [ '$ifNull' => [ '$parkings', null ] ],
+                    'property_type' => [ '$ifNull' => [ '$property_type', null ] ],
+                    'publication_date' => [ '$toString' => [ '$publication_date' ] ],
+                    'image_list' => [ '$ifNull' => [ '$image_list', null ] ],
+                    'distance' => [ '$convert' => [ 'input' => '$distance', 'to' => 'int', 'onError' => 'Error', 'onNull' => null ] ],
+                ],
+                'geometry' => '$geo_location'
+            ]
+        ];
 
         // exec query
         $collect = Property::raw( ( function ( $collection ) use ( $pipeline ) {
@@ -163,78 +173,137 @@ class PropertyRepository
         return $paginator;
     }
 
-
     /**
-     * Return (paginated) searched properties from the given search.
+     * Return only ids of matched properties
+     * from given search, without pagination.
      *
-     * @param string $searchId The id of the current search.
+     * @param Search $search The search model to match the properties.
      *
-     * @return array
+     * @return void
      */
-    public function getSearchedProperties( string $searchId, array $pagination ): array
+    public function searchPropertiesReturnIds( Search $search ): array
     {
-
         // pipeline
-        $pipeline = $this->pipelinePropertiesFromSearch( $searchId, $pagination );
+        $pipeline = $this->pipelineSearchProperties( $search );
 
-        // select paginated
-        $pagitatedItems = SearchedProperty::raw( ( function ( $collection ) use ( $pipeline ) {
+        // only _id ($project)
+        $pipeline[] = [
+            '$project' => [
+                '_id' => '$_id',
+            ]
+        ];
+
+        // exec query
+        $collect = Property::raw( ( function ( $collection ) use ( $pipeline ) {
             return $collection->aggregate( $pipeline );
         } ) );
 
-        // new instance of LengthAwarePaginator
-        $paginator = new LengthAwarePaginator( $pagitatedItems, $total, $pagination[ 'perpage' ], $page );
-
-        // cast to array
-        $paginator = $paginator->toArray();
-
-        // search id
-        $paginator[ 'searchId' ] = $searchId;
-
-        return $paginator;
+        return $collect->toArray();
     }
 
     /**
-     * Update selected searched properties of given search.
+     * Return count of selected searched properties for given search.
      *
-     * @param string $searchId The id of the current search.
+     * @param Search $search The search model to match the properties.
+     *
+     * @return int
+     */
+    public function countSearchedProperties( Search $search ): int
+    {
+        // pipeline
+        $pipeline = $this->pipelineSearchProperties( $search );
+
+        // output fields ($project)
+        $pipeline[] = [
+            '$count' => 'total'
+        ];
+
+        // exec query
+        $collect = Property::raw( ( function ( $collection ) use ( $pipeline ) {
+            return $collection->aggregate( $pipeline );
+        } ) );
+
+        $total = $collect->toArray()[ 0 ][ 'total' ];
+
+        return $total;
+    }
+
+    /**
+     * Update selected properties in given search with given array.
+     * In case [ '*' ], then do the search to get the ids.
+     *
+     * @param Search $search The search model to match the properties.
      * @param array $ids Array of property's ids selected by user.
      *        [ '*' ] in case all were selected.
      *
      * @return void
      */
-    public function updateSelectedSearchedProperties( string $searchId, array $ids ): void
+    public function updateSelectedPropertiesInSearch( Search $search, array $ids ): void
+    {
+        // empty selected properties
+        $this->setSelectedPropertiesInSearch( $search->id, [] );
+
+        if ( $ids !== [ '*' ] ) {
+            // set selected properties
+            $this->setSelectedPropertiesInSearch( $search->id, $ids );
+        }
+        else {
+            // pipeline
+            $pipeline = $this->pipelineSearchProperties( $search );
+
+            // $group
+            $pipeline[] = [
+                '$group' => [
+                    '_id' => new ObjectID( $search->id ),
+                    'selected_properties' => [ '$push' => '$$ROOT._id' ]
+                ]
+            ];
+
+            // insert into select ($merge)
+            $pipeline[] = [
+                '$merge' => [
+                    'into' => 'searches',
+                    'on' => '_id',
+                    'whenMatched' => 'merge',
+                    'whenNotMatched' => 'discard',
+                ],
+            ];
+
+            // exec query
+            Property::raw( ( function ( $collection ) use ( $pipeline ) {
+                return $collection->aggregate( $pipeline );
+            } ) );
+        }
+    }
+
+    /**
+     * Update selected properties in given search with given array.
+     *
+     * @param string $searchId The id of the current search.
+     * @param array $selectedProperties Array to update.
+     *
+     * @return void
+     */
+    protected function setSelectedPropertiesInSearch( string $searchId, array $selectedProperties ): void
     {
         // query by which to filter documents
         $filter = [
-            'search_id' => [ '$eq' => new ObjectID( $searchId ) ],
+            '_id' => [ '$eq' => new ObjectID( $searchId ) ],
         ];
 
         // update
         $update = [
-            '$set' => [ 'selected' => false ]
+            '$set' => [ 'selected_properties' => $selectedProperties ]
         ];
 
         // unselect all properties
-        SearchedProperty::raw( ( function ( $collection ) use ( $filter, $update ) {
-            return $collection->updateMany( $filter, $update );
-        } ) );
-
-        // in case all where not selected, query only they who are ($in) '$ids'
-        if ( $ids !== [ '*' ] ) {
-            $filter[ 'property_id' ] = [ '$in' => $ids ];
-        }
-
-        // update to apply to the matched document
-        $update = [
-            '$set' => [ 'selected' => true ]
-        ];
-
-        // exec query
-        SearchedProperty::raw( ( function ( $collection ) use ( $filter, $update ) {
+        Search::raw( ( function ( $collection ) use ( $filter, $update ) {
             return $collection->updateMany( $filter, $update );
         } ) );
     }
+
+
+
 
     /**
      * Return properties that were selected by user in given search.
@@ -262,7 +331,6 @@ class PropertyRepository
         return $results->toArray();
     }
 
-
     /**
      * Return properties that were selected by user in given search
      * in excel format.
@@ -288,35 +356,5 @@ class PropertyRepository
         }
 
         return $results->toArray();
-    }
-
-    /**
-     * Return count of selected searched properties for given search.
-     *
-     * @param string $searchId The id of the current search.
-     *
-     * @return int
-     */
-    public function countSelectedSearchedProperties( string $searchId ): int
-    {
-        $query = SearchedProperty::raw( ( function ( $collection ) use ( $searchId ) {
-            return $collection->aggregate( [
-                [
-                    '$match' => [
-                        'search_id' => [ '$eq' => new ObjectID( $searchId ) ],
-                        'selected' => [ '$eq' => true ]
-                    ]
-                ],
-                [
-                    '$count' => "total"
-                ]
-            ] );
-        } ) )->toArray();
-
-        try {
-            return $query[ 0 ][ 'total' ];
-        } catch ( \ErrorException $e ) {
-            return 0;
-        }
     }
 }

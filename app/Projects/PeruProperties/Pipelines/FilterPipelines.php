@@ -14,13 +14,14 @@ use MongoDB\BSON\UTCDateTime;
 trait FilterPipelines
 {
     /**
-     * Return the filters to the query.
+     * Return the content of $match pipeline stage,
+     * to filter the result to those that match.
      *
      * @param array $filters
      *
      * @return array
      */
-    protected function pipelineFiltersToQuery( $filters ): array
+    protected function pipelineFiltersToQuery( array $filters ): array
     {
         $filterFields = [
             'slidersFields' => [
@@ -200,13 +201,14 @@ trait FilterPipelines
     }
 
     /**
-     * Return the array of vertices of the polygon to the query.
+     * Return the content of $match pipeline stage,
+     * to filter the result to those within the given polygon.
      *
      * @param  array $arrayShape
      *
      * @return array
      */
-    protected function pipelinePropertiesWithinToQuery( $arrayShape ): array
+    protected function pipelinePropertiesWithinToQuery( array $arrayShape ): array
     {
         $polygon = [];
 
@@ -237,12 +239,13 @@ trait FilterPipelines
     }
 
     /**
-     * Get the distance between the base marker and each property.
+     * Return the content of $geoNear pipeline stage,
+     * to calculate distance between the base marker and each property.
      *
      * @param float $lat
      * @param float $lng
      * @param int $maxDistance The maximum distance from the center
-     *        point that the documents can be (in meters).
+     *        point that documents can be (in meters).
      *
      * @return array
      */

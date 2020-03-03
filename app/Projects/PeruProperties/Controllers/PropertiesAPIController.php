@@ -353,7 +353,7 @@ class PropertiesAPIController extends AppBaseController
 
         // construct and execute query.
         // this will return the matched properties.
-        $data = $this->propertyRepository->searchProperties( $search, compact( 'perpage', 'field', 'sort' ) );
+        $data = $this->propertyRepository->searchPropertiesReturnOutputFields( $search, compact( 'perpage', 'field', 'sort' ) );
 
         if ( empty( $data ) === true ) {
             return $this->sendError( 'No properties matched.', $data, 204 );
@@ -445,6 +445,10 @@ class PropertiesAPIController extends AppBaseController
      *         description="Unauthenticated."
      *     ),
      *     @OA\Response(
+     *         response=404,
+     *         description="Order not found."
+     *     ),
+     *     @OA\Response(
      *         response=422,
      *         description="The given data was invalid."
      *     ),
@@ -475,9 +479,10 @@ class PropertiesAPIController extends AppBaseController
             $search = $this->searchRepository->findOrFail( $searchId );
 
             // construct and execute query
-            $data = $this->propertyRepository->searchProperties( $search, compact( 'perpage', 'field', 'sort', 'lastItem' ) );
-        } catch ( \Exception $e ) {
-            return $this->sendError( $e->getMessage(), [], 204 );
+            $data = $this->propertyRepository->searchPropertiesReturnOutputFields( $search, compact( 'perpage', 'field', 'sort', 'lastItem' ) );
+        }
+        catch ( \Exception $e ) {
+            return $this->sendError( $e->getMessage(), [], 404 );
         }
 
         if ( empty( $data[ 'data' ] ) === true ) {
@@ -550,6 +555,10 @@ class PropertiesAPIController extends AppBaseController
      *         description="Unauthenticated."
      *     ),
      *     @OA\Response(
+     *         response=404,
+     *         description="Order not found."
+     *     ),
+     *     @OA\Response(
      *         response=422,
      *         description="The given data was invalid."
      *     ),
@@ -575,9 +584,17 @@ class PropertiesAPIController extends AppBaseController
         // get order if exist
         $order = $this->orderRepository->findByField( 'search_id', $searchId )->first();
 
+        try {
+            // get search model
+            $search = $this->searchRepository->findOrFail( $searchId );
+        }
+        catch ( \Exception $e ) {
+            return $this->sendError( $e->getMessage(), [], 404 );
+        }
+
         // get selected ids by user
         if ( $ids === [ '*' ] ) {
-            $total = $this->propertyRepository->countSearchedProperties( $searchId );
+            $total = $this->propertyRepository->countSearchedProperties( $search ); # esto hace una consulta
         }
         else {
             $total = count( $ids );
@@ -601,7 +618,9 @@ class PropertiesAPIController extends AppBaseController
         }
 
         // update the search to save selected ids by user
-        $this->propertyRepository->updateSelectedSearchedProperties( $searchId, $ids );
+        $this->propertyRepository->updateSelectedPropertiesInSearch( $search, $ids );
+
+        dd( 'stop' );
 
         // if user has permission to release order without paying, generate file
         if ( $user->hasPermissionTo( 'release.order.without.paying' ) === true ) {
