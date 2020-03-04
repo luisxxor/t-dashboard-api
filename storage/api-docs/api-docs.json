@@ -711,6 +711,15 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "name": "file",
+                        "in": "query",
+                        "description": "data|metadata",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
@@ -774,6 +783,7 @@
                     {
                         "name": "format",
                         "in": "query",
+                        "description": "xlsx",
                         "required": true,
                         "schema": {
                             "type": "string"

@@ -170,6 +170,15 @@ class OrdersAPIController extends AppBaseController
      *             type="integer"
      *         )
      *     ),
+     *     @OA\Parameter(
+     *         name="file",
+     *         description="data|metadata",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Data successfully.",
@@ -207,8 +216,17 @@ class OrdersAPIController extends AppBaseController
      *     }
      * )
      */
-    public function getJson( $orderCode )
+    public function getJson( $orderCode, Request $request )
     {
+        $request->validate( [
+            'file' => [ 'required', 'string', 'in:data,metadata' ],
+        ] );
+
+        // input
+        $file = $request->get( 'file' );
+
+        $fileType = $file === 'data' ? 'ndjson' : 'json';
+
         // get order
         $order = $this->orderRepository->findByField( 'code', $orderCode )->first();
 
@@ -226,8 +244,8 @@ class OrdersAPIController extends AppBaseController
             throw new AuthorizationException;
         }
 
-        $fileInfo = collect( $order->files_info )->filter( function ( $item, $index ) {
-            return $item[ 'type' ] === 'json';
+        $fileInfo = collect( $order->files_info )->filter( function ( $item, $index ) use ( $fileType ) {
+            return $item[ 'type' ] === $fileType;
         } )->first();
 
         // get file
@@ -236,15 +254,12 @@ class OrdersAPIController extends AppBaseController
         // open file
         $fp = fopen( $filePath, 'r' );
         $content = fread( $fp, filesize( $filePath ) );
-        $decodedContent = json_decode( $content, true );
 
-        // output
-        $output = [
-            'data' => $decodedContent[ 'data' ],
-            'metadata' => $decodedContent[ 'metadata' ],
-        ];
+        if ( $fileType === 'json' ) {
+            $content = json_decode( $content, true );
+        }
 
-        return $this->sendResponse( $output, 'Order retrived successfully.' );
+        return $this->sendResponse( $content, 'Order retrived successfully.' );
     }
 
     /**
@@ -270,6 +285,7 @@ class OrdersAPIController extends AppBaseController
      *     ),
      *     @OA\Parameter(
      *         name="format",
+     *         description="xlsx",
      *         required=true,
      *         in="query",
      *         @OA\Schema(

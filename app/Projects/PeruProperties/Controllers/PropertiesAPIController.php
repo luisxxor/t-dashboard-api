@@ -731,7 +731,7 @@ class PropertiesAPIController extends AppBaseController
 
             // create json data file
             $jsonDataFile = FileHandler::createWriter( 'json' )
-                ->openToFile( $orderCode . '.json' );
+                ->openToFile( $orderCode . '.ndjson' );
 
             // create xlsx data file
             $xlsxDataFile = FileHandler::createWriter( 'xlsx' )
