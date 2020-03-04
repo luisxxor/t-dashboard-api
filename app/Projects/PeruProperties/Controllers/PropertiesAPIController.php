@@ -621,11 +621,8 @@ class PropertiesAPIController extends AppBaseController
         // update the search to save selected ids by user
         $this->propertyRepository->updateSelectedPropertiesInSearch( $search, $ids );
 
-        dd( 'stop' );
-
         // if user has permission to release order without paying, generate file
         if ( $user->hasPermissionTo( 'release.order.without.paying' ) === true ) {
-
             // generate files request
             $guzzleClient = new GuzzleClient( [ 'base_uri' => url( '/' ), 'timeout' => 30.0 ] );
             $guzzleClient->sendAsync( new GuzzleRequest(
@@ -800,7 +797,7 @@ class PropertiesAPIController extends AppBaseController
      *
      * @return array
      */
-    protected function createXLSXRow( $item )
+    protected function createXLSXRow( array $item )
     {
         // discrimination of fields to xlsx file
         $xlsxFields = collect( $item )->only( array_keys( $this->propertyRepository->header ) )->toArray();
