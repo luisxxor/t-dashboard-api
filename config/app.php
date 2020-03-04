@@ -277,4 +277,13 @@ return [
 
     'cl_export_file_bucket' => env( 'CL_EXPORT_FILE_BUCKET', null ),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Application Directory Temp Path
+    |--------------------------------------------------------------------------
+    |
+    */
+
+    'temp_path' => sys_get_temp_dir() . DIRECTORY_SEPARATOR,
+
 ];

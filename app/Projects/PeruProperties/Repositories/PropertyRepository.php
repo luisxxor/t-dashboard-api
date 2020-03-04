@@ -308,6 +308,7 @@ class PropertyRepository
      * @param string $searchId The id of the current search.
      *
      * @return int
+     * @throws \ErrorException
      */
     public function countSelectedPropertiesInSearch( string $searchId ): int
     {
@@ -343,16 +344,13 @@ class PropertyRepository
         }
     }
 
-
-
-
     /**
-     * Return properties that were selected by user in given search.
+     * Return properties (from properties collection) that were selected
+     *  by user in given search.
      *
      * @param Search $search The search model to match the properties.
      *
      * @return array
-     * @throws \Exception
      */
     public function getSelectedPropertiesFromProperties( Search $search, array $pagination ): array
     {
@@ -364,13 +362,11 @@ class PropertyRepository
             return $collection->aggregate( $pipeline );
         } ) );
 
-        if ( $collect->isEmpty() === true ) {
-            throw new \Exception( 'No properties found.' );
-
-        }
-
         return $collect->toArray();
     }
+
+
+
 
     /**
      * Return properties that were selected by user in given search

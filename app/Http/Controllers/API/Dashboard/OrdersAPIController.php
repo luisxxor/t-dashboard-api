@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\API\Dashboard;
 
 use App\Http\Controllers\AppBaseController;
-use App\Lib\Handlers\FileHandler;
+use App\Lib\Handlers\GoogleStorageHandler;
 use App\Repositories\Dashboard\OrderRepository;
 use App\Repositories\Dashboard\ProjectRepository;
 use App\Repositories\Dashboard\UserRepository;
@@ -18,9 +18,9 @@ use Response;
 class OrdersAPIController extends AppBaseController
 {
     /**
-     * @var FileHandler
+     * @var GoogleStorageHandler
      */
-    private $fileHandler;
+    private $googleStorageHandler;
 
     /**
      * @var  OrderRepository
@@ -46,7 +46,7 @@ class OrdersAPIController extends AppBaseController
         ProjectRepository $projectRepo,
         UserRepository $userRepo )
     {
-        $this->fileHandler = new FileHandler();
+        $this->googleStorageHandler = new GoogleStorageHandler();
         $this->orderRepository = $orderRepo;
         $this->projectRepository = $projectRepo;
         $this->userRepository = $userRepo;
@@ -231,7 +231,7 @@ class OrdersAPIController extends AppBaseController
         } )->first();
 
         // get file
-        $filePath = $this->fileHandler->downloadFile( $fileInfo[ 'bucket' ], $fileInfo[ 'name' ] );
+        $filePath = $this->googleStorageHandler->downloadFile( $fileInfo[ 'bucket' ], $fileInfo[ 'name' ] );
 
         // open file
         $fp = fopen( $filePath, 'r' );
@@ -351,7 +351,7 @@ class OrdersAPIController extends AppBaseController
         } )->first();
 
         // get file
-        $filePath = $this->fileHandler->downloadFile( $fileInfo[ 'bucket' ], $fileInfo[ 'name' ], false );
+        $filePath = $this->googleStorageHandler->downloadFile( $fileInfo[ 'bucket' ], $fileInfo[ 'name' ], false );
 
         // path to download the file
         $routeFilePath = route( 'downloadFiles', [ 'fileName' => basename( $filePath ) ] );

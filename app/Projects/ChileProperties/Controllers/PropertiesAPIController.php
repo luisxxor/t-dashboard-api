@@ -2,7 +2,7 @@
 namespace App\Projects\ChileProperties\Controllers;
 
 use App\Http\Controllers\AppBaseController;
-use App\Lib\Handlers\FileHandler;
+use App\Lib\Writer\FileHandler;
 use App\Projects\ChileProperties\Repositories\PropertyRepository;
 use App\Projects\ChileProperties\Repositories\PropertyTypeRepository;
 use App\Projects\ChileProperties\Repositories\PublicationTypeRepository;

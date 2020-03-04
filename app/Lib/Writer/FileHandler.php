@@ -1,41 +1,21 @@
 <?php
 
-namespace App\Lib\Handlers;
+namespace App\Lib\Writer;
 
 use App\Lib\Handlers\SpoutHandler;
+use App\Lib\Writer\JSONWriter;
+use App\Lib\Writer\NDJSONWriter;
+use App\Lib\Writer\XLSXWriter;
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
-use juliorafaelr\GoogleStorage\GoogleStorage;
 
 class FileHandler
 {
-    /**
-     * @var string
-     */
-    protected $path;
-
     /**
      * Create a new class instance.
      *
      * @return void
      */
-    public function __construct() {
-        $this->path = sys_get_temp_dir() . DIRECTORY_SEPARATOR;
-    }
-
-    /**
-     * Set the name of the file to create.
-     *
-     * @param string $name
-     * @param string $fileType The type (extension) of the file.
-     *
-     * @return string
-     */
-    protected function exportFileName( string $name, string $fileType ): string
-    {
-        $name = $name . '.' . $fileType;
-
-        return $this->path . $name;
-    }
+    public function __construct() { }
 
     /**
      * Create json/excel file and upload it to google storage.
@@ -48,10 +28,10 @@ class FileHandler
      * @return array
      * @throws \Exception
      */
-    public function createAndUploadFile( $fileData, int $rowsQuantity, string $name, string $fileType, $bucket ): array
+    public function createFile( $fileData, string $name, string $fileType ): string
     {
         try {
-            $filePath = $this->exportFileName( $name, $fileType );
+            $filePath = config( 'app.file_path' ) . $name . '.' . $fileType;
 
             switch ( $fileType ) {
                 case 'json':
@@ -61,6 +41,7 @@ class FileHandler
                     fwrite( $fh, json_encode( $fileData ) ) or die( 'No se pudo escribir en el archivo' );
 
                     fclose( $fh );
+
                     break;
 
                 case 'xlsx':
@@ -92,38 +73,35 @@ class FileHandler
             throw $e;
         }
 
-        $googleStorage = new GoogleStorage( config( 'app.google_key_file_path' ) );
-
-        // upload to google storage
-        $uploadedObject = $googleStorage->uploadObject( $bucket, basename( $filePath ), $filePath );
-
-        return [
-            'name' => $uploadedObject[ 'name' ],
-            'bucket' => $uploadedObject[ 'bucket' ],
-            'type' => $fileType,
-            'rowsQuantity' => $rowsQuantity,
-        ];
+        return $filePath;
     }
 
-    /**
-     * Get json/excel file from google storage.
-     *
-     * @param string $bucket
-     * @param string $fileName The file name with extension.
-     *
-     * @return string
-     */
-    public function downloadFile( string $bucket, string $fileName ): string
+
+
+
+    public static function createWriter( $writerType )
     {
-        // path to file
-        $filePath = $this->path . $fileName;
-
-        // if file not exists download
-        if ( file_exists( $filePath ) === false ) {
-            $googleStorage = new GoogleStorage( config( 'app.google_key_file_path' ) );
-            $googleStorage->downloadObject( $bucket, $fileName, $filePath );
+        switch ( $writerType ) {
+            case 'json': return self::createJSONWriter();
+            case 'ndjson': return self::createNDJSONWriter();
+            case 'xlsx': return self::createXLSXWriter();
+            default:
+                throw new Exception( 'Type not supported: ' . $writerType );
         }
+    }
 
-        return $filePath;
+    private static function createJSONWriter()
+    {
+        return new JSONWriter();
+    }
+
+    private static function createNDJSONWriter()
+    {
+        return new NDJSONWriter();
+    }
+
+    private static function createXLSXWriter()
+    {
+        return new XLSXWriter();
     }
 }

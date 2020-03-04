@@ -3,16 +3,17 @@
 namespace App\Projects\PeruProperties\Controllers;
 
 use App\Http\Controllers\AppBaseController;
-use App\Lib\Handlers\FileHandler;
+use App\Lib\Writer\FileHandler;
+use App\Lib\Handlers\GoogleStorageHandler;
 use App\Projects\PeruProperties\Repositories\PropertyRepository;
 use App\Projects\PeruProperties\Repositories\PropertyTypeRepository;
 use App\Projects\PeruProperties\Repositories\SearchRepository;
 use App\Repositories\Dashboard\OrderRepository;
 use DateTime;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 /**
  * Class PropertiesAPIController
@@ -56,6 +57,7 @@ class PropertiesAPIController extends AppBaseController
         OrderRepository $orderRepo )
     {
         $this->fileHandler = new FileHandler();
+        $this->googleStorageHandler = new GoogleStorageHandler();
         $this->propertyTypeRepository = $propertyTypeRepo;
         $this->propertyRepository = $propertyRepo;
         $this->searchRepository = $searchRepo;
@@ -715,37 +717,42 @@ class PropertiesAPIController extends AppBaseController
         $filesInfo = [];
 
         try {
-
             // get search
             $search = $this->searchRepository->findOrFail( $order->search_id );
 
             // create json metadata file
-            $filesInfo[] = $this->fileHandler->createAndUploadFile(
-                $search->toArray(),
-                $order->total_rows_quantity,
-                $orderCode . '.metadata',
-                'json',
-                config( 'app.pe_export_file_bucket' )
-            );
+            $jsonMetadataFile = FileHandler::createWriter( 'json' )
+                ->openToFile( $orderCode . '.metadata.json' )
+                ->addRow( json_encode( $search->toArray() ) );
+            $path = $jsonMetadataFile->close();
+            $filesInfo[] = $this->googleStorageHandler->uploadFile( config( 'app.pe_export_file_bucket' ), $path, $order->total_rows_quantity );
 
             // free memory
             gc_collect_cycles();
 
             // create json data file
+            $jsonDataFile = FileHandler::createWriter( 'json' )
+                ->openToFile( $orderCode . '.json' );
+
             $perpage = 3;
             $selectedSearchedProperties = $this->propertyRepository->getSelectedPropertiesFromProperties( $search, compact( 'perpage' ) );
 
-            foreach ( $selectedSearchedProperties as $value ) {
-                print json_encode( $value ) . PHP_EOL;
+            $lastItem = [];
+            while ( empty( $selectedSearchedProperties ) === false ) {
+                foreach ( $selectedSearchedProperties as $item ) {
+                    $jsonDataFile->addRow( json_encode( $item ) . PHP_EOL );
+                }
+
+                $lastItem = [
+                    '_id' => $item[ '_id' ],
+                    'publication_date' => $item[ 'publication_date' ],
+                ];
+
+                $selectedSearchedProperties = $this->propertyRepository->getSelectedPropertiesFromProperties( $search, compact( 'perpage', 'lastItem' ) );
             }
 
-            $filesInfo[] = $this->fileHandler->createAndUploadFile(
-                array_merge( $search->toArray(), [ 'data' => $selectedSearchedProperties ] ),
-                $order->total_rows_quantity,
-                $orderCode,
-                'json',
-                config( 'app.pe_export_file_bucket' )
-            );
+            $path = $jsonDataFile->close();
+            $filesInfo[] = $this->googleStorageHandler->uploadFile( config( 'app.pe_export_file_bucket' ), $path, $order->total_rows_quantity );
 
             // free memory
             unset( $search );
@@ -759,7 +766,7 @@ class PropertiesAPIController extends AppBaseController
         // create excel data file
         // try {
 
-        //     $filesInfo[] = $this->fileHandler->createAndUploadFile(
+        //     $filesInfo[] = $this->fileHandler->createFile(
         //         [
         //             'header'    => $this->propertyRepository->header,
         //             'body'      => $this->propertyRepository->getSelectedSearchedPropertiesExcelFormat( $order->search_id ),
