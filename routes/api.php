@@ -87,6 +87,34 @@ Route::prefix( 'peru_properties' )->middleware( 'auth:api', 'verified' )->group(
 
     Route::post( 'order', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@order' )->name( 'peru_properties.processOrder' )
         ->middleware( 'can:order.properties' );
+
+    Route::prefix( 'client' )->middleware( 'auth:api', 'verified' )->group( function () {
+	    Route::post( 'create', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@createClient' )->name( 'client.create' );
+
+	    Route::get( 'edit/{id}', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@editClient' )->name( 'client.edit' );
+
+	    Route::patch( 'update/{id}', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@updateClient' )->name( 'client.update' );
+
+	    Route::delete( 'delete/{id}', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@deleteClient' )->name( 'client.delete' );
+	} );
+
+	Route::prefix( 'tracing' )->middleware( 'auth:api', 'verified' )->group( function () {
+		Route::post( 'create', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@createTracing' )->name( 'tracing.create' );
+
+	    Route::get( 'edit/{id}', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@editTracing' )->name( 'tracing.edit' );
+
+	    Route::patch( 'update/{id}', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@updateTracing' )->name( 'tracing.update' );
+
+	    Route::delete( 'delete/{id}', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@deleteTracing' )->name( 'tracing.delete' );
+	} );
+
+	Route::prefix( 'tracing_properties' )->middleware( 'auth:api', 'verified' )->group( function () {
+	    Route::get( 'init_pointer', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@initPoint' )->name( 'tracing_properties.init' );
+
+	    Route::post( 'create_property', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@createProperties' )->name( 'tracing_properties.create' );
+
+	    Route::patch( 'update_property/{id}', '\App\Projects\PeruProperties\Controllers\TracingsAPIController@updateProperties' )->name( 'tracing_properties.update' );
+	} );
 } );
 
 // generate peru properties profile
