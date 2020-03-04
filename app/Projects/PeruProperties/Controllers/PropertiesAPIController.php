@@ -726,6 +726,7 @@ class PropertiesAPIController extends AppBaseController
             $filesInfo[] = $this->googleStorageHandler->uploadFile( config( 'app.pe_export_file_bucket' ), $path, $order->total_rows_quantity );
 
             // free memory
+            unset( $jsonMetadataFile );
             gc_collect_cycles();
 
             // create json data file
@@ -767,6 +768,8 @@ class PropertiesAPIController extends AppBaseController
             // free memory
             unset( $search );
             unset( $selectedSearchedProperties );
+            unset( $jsonDataFile );
+            unset( $xlsxDataFile );
             gc_collect_cycles();
         } catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage() );

@@ -94,6 +94,8 @@ class Order extends Model
      */
     public function setCodeAttribute( $value )
     {
-        $this->attributes[ 'code' ] = 'orden-' . str_pad( $value, 8, '0', STR_PAD_LEFT );
+        $prefix = config( 'app.env' ) !== 'production' ? 'dev.' : '';
+
+        $this->attributes[ 'code' ] = $prefix . 'orden-' . str_pad( $value, 8, '0', STR_PAD_LEFT );
     }
 }
