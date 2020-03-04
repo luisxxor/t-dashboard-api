@@ -2,7 +2,7 @@
 
 namespace App\Lib\Writer;
 
-class JSONWriter
+class JSONWriter implements WriterContract
 {
     /**
      * @var resource|bool
@@ -30,13 +30,12 @@ class JSONWriter
      * Initializes the writer and opens it to accept data.
      * By using this method, the data will be written to a file.
      *
-     * @param  string $outputFilePath Path of the output file that will contain the data
+     * @param string $fileName Name of the output file that will contain the data.
+     * @throws \Exception If the writer cannot be opened or if the given path is not writable.
      *
-     * @throws \Exception If the writer cannot be opened or if the given path is not writable
-     *
-     * @return WriterInterface
+     * @return WriterContract
      */
-    public function openToFile( string $fileName )
+    public function openToFile( string $fileName ): WriterContract
     {
         try {
             $this->filePath = config( 'app.file_path' ) . $fileName;
@@ -47,7 +46,7 @@ class JSONWriter
 
             return $this;
         } catch ( \Exception $e ) {
-            # TODO
+            throw $e; # TODO
         }
     }
 
@@ -55,24 +54,23 @@ class JSONWriter
      * Appends a row to the end of the stream.
      *
      * @param mixed $row The row to be appended to the stream
-     *
      * @throws \Exception If the writer has not been opened yet or unable to write data
      *
-     * @return WriterInterface
+     * @return WriterContract
      */
-    public function addRow( $row )
+    public function addRow( $row ): WriterContract
     {
         if ( $this->isWriterOpened === true ) {
             try {
                 fwrite( $this->fh, $row );
             } catch ( \Exception $e ) {
-                # TODO
+                throw $e; # TODO
             }
 
             return $this;
         }
         else {
-            throw new Exception( 'The writer needs to be opened before adding row.' );
+            throw new \Exception( 'The writer needs to be opened before adding row.' );
         }
     }
 
@@ -80,10 +78,15 @@ class JSONWriter
      * Closes the writer. This will close the streamer as well, preventing new data
      * to be written to the file.
      *
-     * @return void
+     * @return string
      */
-    public function close() {
-        fclose( $this->fh );
+    public function close(): string
+    {
+        if ( $this->isWriterOpened === true ) {
+            fclose( $this->fh );
+
+            $this->isWriterOpened = false;
+        }
 
         return $this->filePath;
     }

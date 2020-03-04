@@ -139,6 +139,11 @@ trait PropertyPipelines
         // pipeline
         $pipeline = [];
 
+        // geo distance ($geoNear)
+        $pipeline[] = [
+            '$geoNear' => $this->pipelineDistanceToQuery( $search->metadata[ 'initPoint' ][ 'lat' ], $search->metadata[ 'initPoint' ][ 'lng' ] )
+        ];
+
         // select the current search ($match)
         $pipeline[] = [
             '$match' => [
@@ -152,7 +157,7 @@ trait PropertyPipelines
         ];
 
         // pagination
-        if ( isset( $pagination[ 'lastItem' ] ) === true ) {
+        if ( isset( $pagination[ 'lastItem' ] ) === true && empty( $pagination[ 'lastItem' ] ) === false ) {
             $lastPublicationDate = new \MongoDB\BSON\UTCDateTime( strtotime( $pagination[ 'lastItem' ][ 'publication_date' ] ) * 1000 );
 
             $pipeline[] = [

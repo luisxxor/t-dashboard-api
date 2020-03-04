@@ -7,7 +7,6 @@ use App\Projects\PeruProperties\Models\Search;
 use App\Projects\PeruProperties\Models\SearchedProperty;
 use App\Projects\PeruProperties\Pipelines\FilterPipelines;
 use App\Projects\PeruProperties\Pipelines\PropertyPipelines;
-use App\Projects\PeruProperties\Pipelines\SearchedPropertyPipelines;
 use Illuminate\Pagination\LengthAwarePaginator;
 use MongoDB\BSON\ObjectID;
 
@@ -18,7 +17,7 @@ use MongoDB\BSON\ObjectID;
 */
 class PropertyRepository
 {
-    use FilterPipelines, PropertyPipelines, SearchedPropertyPipelines;
+    use FilterPipelines, PropertyPipelines;
 
     /**
      * @var array
@@ -79,7 +78,7 @@ class PropertyRepository
         'pool'                  => 'Piscina',
         'elevator'              => 'Ascensor',
         'property_type'         => 'Tipo de propiedad',
-        'property_new'          => 'Propiedad nueva',
+        'is_new'                => 'Propiedad nueva',
         'longitude'             => 'Longitud',
         'latitude'              => 'Latitud',
         'distance'              => 'Distancia (m)',
@@ -349,6 +348,13 @@ class PropertyRepository
      *  by user in given search.
      *
      * @param Search $search The search model to match the properties.
+     * @param array $pagination {
+     *     The values of the pagination
+     *
+     *     @type int $perpage [required] The number of rows per each
+     *           page of the pagination.
+     *     @type array $lastItem [optional] The last item to paginate from.
+     * }
      *
      * @return array
      */
@@ -363,35 +369,5 @@ class PropertyRepository
         } ) );
 
         return $collect->toArray();
-    }
-
-
-
-
-    /**
-     * Return properties that were selected by user in given search
-     * in excel format.
-     *
-     * @param string $searchId The id of the current search.
-     *
-     * @return array
-     * @throws \Exception
-     */
-    public function getSelectedSearchedPropertiesExcelFormat( string $searchId ): array
-    {
-        // pipeline
-        $pipeline = $this->pipelineSelectedPropertiesFromSearchExcelFormat( $searchId );
-
-        // get selected data in final format
-        $results = SearchedProperty::raw( ( function ( $collection ) use ( $pipeline ) {
-            return $collection->aggregate( $pipeline );
-        } ) );
-
-        if ( $results->isEmpty() === true ) {
-            throw new \Exception( 'No properties selected in given search.' );
-
-        }
-
-        return $results->toArray();
     }
 }

@@ -3,12 +3,13 @@
 namespace App\Projects\PeruProperties\Controllers;
 
 use App\Http\Controllers\AppBaseController;
-use App\Lib\Writer\FileHandler;
 use App\Lib\Handlers\GoogleStorageHandler;
+use App\Lib\Writer\FileHandler;
 use App\Projects\PeruProperties\Repositories\PropertyRepository;
 use App\Projects\PeruProperties\Repositories\PropertyTypeRepository;
 use App\Projects\PeruProperties\Repositories\SearchRepository;
 use App\Repositories\Dashboard\OrderRepository;
+use Carbon\Carbon;
 use DateTime;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
@@ -734,57 +735,97 @@ class PropertiesAPIController extends AppBaseController
             $jsonDataFile = FileHandler::createWriter( 'json' )
                 ->openToFile( $orderCode . '.json' );
 
-            $perpage = 3;
-            $selectedSearchedProperties = $this->propertyRepository->getSelectedPropertiesFromProperties( $search, compact( 'perpage' ) );
+            // create xlsx data file
+            $xlsxDataFile = FileHandler::createWriter( 'xlsx' )
+                ->openToFile( $orderCode . '.xlsx' );
+            $xlsxDataFile->addRow( $this->propertyRepository->header, true );
 
+            $perpage = 25;
             $lastItem = [];
-            while ( empty( $selectedSearchedProperties ) === false ) {
+            do {
+                $selectedSearchedProperties = $this->propertyRepository->getSelectedPropertiesFromProperties( $search, compact( 'perpage', 'lastItem' ) );
+
                 foreach ( $selectedSearchedProperties as $item ) {
-                    $jsonDataFile->addRow( json_encode( $item ) . PHP_EOL );
+                    // add json data row
+                    $jsonDataFile->addRow( $this->createJSONRow( $item ) );
+
+                    // add xlsx data row
+                    $xlsxDataFile->addRow( $this->createXLSXRow( $item ) );
                 }
 
                 $lastItem = [
                     '_id' => $item[ '_id' ],
                     'publication_date' => $item[ 'publication_date' ],
                 ];
+            } while ( empty( $selectedSearchedProperties ) === false );
 
-                $selectedSearchedProperties = $this->propertyRepository->getSelectedPropertiesFromProperties( $search, compact( 'perpage', 'lastItem' ) );
-            }
-
+            // close json data file
             $path = $jsonDataFile->close();
+            $filesInfo[] = $this->googleStorageHandler->uploadFile( config( 'app.pe_export_file_bucket' ), $path, $order->total_rows_quantity );
+
+            // close xslx data file
+            $path = $xlsxDataFile->close();
             $filesInfo[] = $this->googleStorageHandler->uploadFile( config( 'app.pe_export_file_bucket' ), $path, $order->total_rows_quantity );
 
             // free memory
             unset( $search );
             unset( $selectedSearchedProperties );
             gc_collect_cycles();
-
         } catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage() );
         }
-
-        // create excel data file
-        // try {
-
-        //     $filesInfo[] = $this->fileHandler->createFile(
-        //         [
-        //             'header'    => $this->propertyRepository->header,
-        //             'body'      => $this->propertyRepository->getSelectedSearchedPropertiesExcelFormat( $order->search_id ),
-        //         ],
-        //         $order->total_rows_quantity,
-        //         $orderCode,
-        //         'xlsx',
-        //         config( 'app.pe_export_file_bucket' )
-        //     );
-
-        //     gc_collect_cycles();
-        // } catch ( \Exception $e ) {
-        //     return $this->sendError( $e->getMessage() );
-        // }
 
         $order->files_info = $filesInfo;
         $order->save();
 
         return $this->sendResponse( 'OK', 'Properties\' file generated successfully.' );
+    }
+
+    /**
+     * Creates a custom format row for json data file.
+     *
+     * @param array $item The item that needs to be formatted to the row.
+     *
+     * @return string
+     */
+    protected function createJSONRow( array $item )
+    {
+        return json_encode( $item, JSON_UNESCAPED_SLASHES ) . PHP_EOL;
+    }
+
+    /**
+     * Creates a custom format row for xlsx data file.
+     *
+     * @param array $item The item that needs to be formatted to the row.
+     *
+     * @return array
+     */
+    protected function createXLSXRow( $item )
+    {
+        // discrimination of fields to xlsx file
+        $xlsxFields = collect( $item )->only( array_keys( $this->propertyRepository->header ) )->toArray();
+
+        // merge to avoid non-existent values
+        $dictionary = array_fill_keys( array_keys( $this->propertyRepository->header ), null );
+        $xlsxRow = array_merge( $dictionary, $xlsxFields );
+
+        // formatting that needs to be done
+        $formatting = [
+            'publication_date' => function ( $value ) {
+                return Carbon::createFromFormat( 'Y-m-d H:i:s', $value )->format( 'd-m-Y' );
+            },
+            'distance' => function ( $value ) {
+                return (int)round( $value, 0 );
+            }
+        ];
+
+        // format
+        foreach ( $formatting as $key => $callable ) {
+            if ( empty( $xlsxRow[ $key ] ) === false ) {
+                $xlsxRow[ $key ] = $callable( $xlsxRow[ $key ] );
+            }
+        }
+
+        return $xlsxRow;
     }
 }
