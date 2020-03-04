@@ -228,7 +228,7 @@ return [
                 ],
             ],
             [
-                'field' => $constants[ 'FILTER_FIELD_PROPERTY_NEW' ],
+                'field' => $constants[ 'FILTER_FIELD_IS_NEW' ],
                 'label' => 'Nuevo/Usado',
                 'type' => 'dropdown',
                 'placeholder' => 'Seleccione la condición',
