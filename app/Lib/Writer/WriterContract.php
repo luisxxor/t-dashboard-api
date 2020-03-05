@@ -11,7 +11,7 @@ interface WriterContract
      * @param  string $outputFilePath Path of the output file that will contain the data
      * @throws \Exception If the writer cannot be opened or if the given path is not writable
      *
-     * @return WriterInterface
+     * @return WriterContract
      */
     public function openToFile( string $fileName ): WriterContract;
 
@@ -21,7 +21,7 @@ interface WriterContract
      * @param mixed $row The row to be appended to the stream
      * @throws \Exception If the writer has not been opened yet or unable to write data
      *
-     * @return WriterInterface
+     * @return WriterContract
      */
     public function addRow( $row ): WriterContract;
 

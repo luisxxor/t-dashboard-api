@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Lib\Writer;
+namespace App\Lib\Writer\Common;
 
 use App\Lib\Handlers\SpoutHandler;
-use App\Lib\Writer\JSONWriter;
+use App\Lib\Writer\PlainTextWriter;
 use App\Lib\Writer\XLSXWriter;
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 
-class FileHandler
+class FileWriterFactory
 {
     /**
      * Create a new class instance.
@@ -29,7 +29,7 @@ class FileHandler
     {
         switch ( $writerType ) {
             case 'json':
-                return self::createJSONWriter();
+                return self::createPlainTextWriter();
             case 'xlsx':
                 return self::createXLSXWriter();
             default:
@@ -38,13 +38,13 @@ class FileHandler
     }
 
     /**
-     * Creates an instance of a JSON writer.
+     * Creates an instance of a PlainText writer.
      *
-     * @return \App\Lib\Writer\JSONWriter
+     * @return \App\Lib\Writer\PlainTextWriter
      */
-    private static function createJSONWriter()
+    private static function createPlainTextWriter()
     {
-        return new JSONWriter();
+        return new PlainTextWriter();
     }
 
     /**

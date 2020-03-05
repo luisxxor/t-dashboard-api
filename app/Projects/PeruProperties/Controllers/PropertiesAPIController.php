@@ -4,7 +4,7 @@ namespace App\Projects\PeruProperties\Controllers;
 
 use App\Http\Controllers\AppBaseController;
 use App\Lib\Handlers\GoogleStorageHandler;
-use App\Lib\Writer\FileHandler;
+use App\Lib\Writer\Common\FileWriterFactory;
 use App\Projects\PeruProperties\Repositories\PropertyRepository;
 use App\Projects\PeruProperties\Repositories\PropertyTypeRepository;
 use App\Projects\PeruProperties\Repositories\SearchRepository;
@@ -22,11 +22,6 @@ use Illuminate\Validation\Rule;
  */
 class PropertiesAPIController extends AppBaseController
 {
-    /**
-     * @var FileHandler
-     */
-    private $fileHandler;
-
     /**
      * @var PropertyTypeRepository
      */
@@ -57,7 +52,6 @@ class PropertiesAPIController extends AppBaseController
         SearchRepository $searchRepo,
         OrderRepository $orderRepo )
     {
-        $this->fileHandler = new FileHandler();
         $this->googleStorageHandler = new GoogleStorageHandler();
         $this->propertyTypeRepository = $propertyTypeRepo;
         $this->propertyRepository = $propertyRepo;
@@ -719,7 +713,7 @@ class PropertiesAPIController extends AppBaseController
             $search = $this->searchRepository->findOrFail( $order->search_id );
 
             // create json metadata file
-            $jsonMetadataFile = FileHandler::createWriter( 'json' )
+            $jsonMetadataFile = FileWriterFactory::createWriter( 'json' )
                 ->openToFile( $orderCode . '.metadata.json' )
                 ->addRow( json_encode( $search->toArray() ) );
             $path = $jsonMetadataFile->close();
@@ -730,11 +724,11 @@ class PropertiesAPIController extends AppBaseController
             gc_collect_cycles();
 
             // create json data file
-            $jsonDataFile = FileHandler::createWriter( 'json' )
+            $ndjsonDataFile = FileWriterFactory::createWriter( 'json' )
                 ->openToFile( $orderCode . '.ndjson' );
 
             // create xlsx data file
-            $xlsxDataFile = FileHandler::createWriter( 'xlsx' )
+            $xlsxDataFile = FileWriterFactory::createWriter( 'xlsx' )
                 ->openToFile( $orderCode . '.xlsx' );
             $xlsxDataFile->addRow( $this->propertyRepository->header, true );
 
@@ -745,7 +739,7 @@ class PropertiesAPIController extends AppBaseController
 
                 foreach ( $selectedSearchedProperties as $item ) {
                     // add json data row
-                    $jsonDataFile->addRow( $this->createJSONRow( $item ) );
+                    $ndjsonDataFile->addRow( $this->createJSONRow( $item ) . PHP_EOL );
 
                     // add xlsx data row
                     $xlsxDataFile->addRow( $this->createXLSXRow( $item ) );
@@ -758,7 +752,7 @@ class PropertiesAPIController extends AppBaseController
             } while ( empty( $selectedSearchedProperties ) === false );
 
             // close json data file
-            $path = $jsonDataFile->close();
+            $path = $ndjsonDataFile->close();
             $filesInfo[] = $this->googleStorageHandler->uploadFile( config( 'app.pe_export_file_bucket' ), $path, $order->total_rows_quantity );
 
             // close xslx data file
@@ -768,7 +762,7 @@ class PropertiesAPIController extends AppBaseController
             // free memory
             unset( $search );
             unset( $selectedSearchedProperties );
-            unset( $jsonDataFile );
+            unset( $ndjsonDataFile );
             unset( $xlsxDataFile );
             gc_collect_cycles();
         } catch ( \Exception $e ) {
@@ -788,9 +782,9 @@ class PropertiesAPIController extends AppBaseController
      *
      * @return string
      */
-    protected function createJSONRow( array $item )
+    protected function createJSONRow( array $item ): string
     {
-        return json_encode( $item, JSON_UNESCAPED_SLASHES ) . PHP_EOL;
+        return json_encode( $item, JSON_UNESCAPED_SLASHES );
     }
 
     /**
@@ -800,7 +794,7 @@ class PropertiesAPIController extends AppBaseController
      *
      * @return array
      */
-    protected function createXLSXRow( array $item )
+    protected function createXLSXRow( array $item ): array
     {
         // discrimination of fields to xlsx file
         $xlsxFields = collect( $item )->only( array_keys( $this->propertyRepository->header ) )->toArray();

@@ -4,11 +4,13 @@ namespace App\Http\Controllers\API\Dashboard;
 
 use App\Http\Controllers\AppBaseController;
 use App\Lib\Handlers\GoogleStorageHandler;
+use App\Lib\Reader\Common\FileReaderFactory;
 use App\Repositories\Dashboard\OrderRepository;
 use App\Repositories\Dashboard\ProjectRepository;
 use App\Repositories\Dashboard\UserRepository;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Response;
 
 /**
@@ -157,10 +159,10 @@ class OrdersAPIController extends AppBaseController
      * @throws \Illuminate\Auth\Access\AuthorizationException
      *
      * @OA\Get(
-     *     path="/api/dashboard/orders/{orderCode}/records",
-     *     operationId="getJson",
+     *     path="/api/dashboard/orders/{orderCode}/get_file",
+     *     operationId="getFile",
      *     tags={"Orders"},
-     *     summary="Return the specified user's order data",
+     *     summary="Return the given file of the order",
      *     @OA\Parameter(
      *         name="orderCode",
      *         description="code of order",
@@ -177,6 +179,24 @@ class OrdersAPIController extends AppBaseController
      *         in="query",
      *         @OA\Schema(
      *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="perpage",
+     *         description="required if file='data'",
+     *         required=false,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="int"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         description="required if file='data'",
+     *         required=false,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="int"
      *         )
      *     ),
      *     @OA\Response(
@@ -216,14 +236,26 @@ class OrdersAPIController extends AppBaseController
      *     }
      * )
      */
-    public function getJson( $orderCode, Request $request )
+    public function getFile( $orderCode, Request $request )
     {
         $request->validate( [
-            'file' => [ 'required', 'string', 'in:data,metadata' ],
+            'file'      => [ 'required', 'string', 'in:data,metadata' ],
+            'perpage'   => [
+                Rule::requiredIf( function () use ( $request ) {
+                    return $request->get( 'file' ) === 'data';
+                } ), 'integer', 'min:1', 'max:50'
+            ],
+            'page'      => [
+                Rule::requiredIf( function () use ( $request ) {
+                    return $request->get( 'file' ) === 'data';
+                } ), 'integer', 'min:1'
+            ],
         ] );
 
         // input
-        $file = $request->get( 'file' );
+        $file       = $request->get( 'file' );
+        $perpage    = $request->get( 'perpage' );
+        $page       = $request->get( 'page' );
 
         $fileType = $file === 'data' ? 'ndjson' : 'json';
 
@@ -248,18 +280,41 @@ class OrdersAPIController extends AppBaseController
             return $item[ 'type' ] === $fileType;
         } )->first();
 
-        // get file
-        $filePath = $this->googleStorageHandler->downloadFile( $fileInfo[ 'bucket' ], $fileInfo[ 'name' ] );
+        # TODO: validar si $fileInfo esta vacio
 
-        // open file
-        $fp = fopen( $filePath, 'r' );
-        $content = fread( $fp, filesize( $filePath ) );
+        try {
+            // get file
+            $filePath = $this->googleStorageHandler->downloadFile( $fileInfo[ 'bucket' ], $fileInfo[ 'name' ] );
 
-        if ( $fileType === 'json' ) {
-            $content = json_decode( $content, true );
+            // read file
+            $fileReader = FileReaderFactory::createReaderFromFile( $filePath );
+
+            switch ( $file ) {
+                case 'metadata':
+                    $stringContent = $fileReader->getContent();
+
+                    $content = json_decode( $stringContent, true );
+                    break;
+
+                case 'data':
+                    $offset = ( $page - 1 ) * $perpage;
+
+                    $content = $fileReader->getLineIterator( $perpage, $offset, function ( $line ) {
+                        return json_decode( $line, true );
+                    } );
+                    break;
+
+                default:
+                    throw new \Exception( 'File not found.' );
+                    break;
+            }
+
+            $fileReader->close();
+        } catch ( \Exception $e ) {
+            return $this->sendError( $e->getMessage() );
         }
 
-        return $this->sendResponse( $content, 'Order retrived successfully.' );
+        return $this->sendResponse( $content, 'File retrieved successfully.' );
     }
 
     /**
@@ -269,7 +324,7 @@ class OrdersAPIController extends AppBaseController
      * @throws  \Illuminate\Auth\Access\AuthorizationException
      *
      * @OA\Get(
-     *     path="api/dashboard/orders/{orderCode}/download",
+     *     path="api/dashboard/orders/{orderCode}/download_file",
      *     operationId="downloadFile",
      *     tags={"Orders"},
      *     summary="Download the export file",
@@ -339,7 +394,7 @@ class OrdersAPIController extends AppBaseController
     public function downloadFile( $orderCode, Request $request )
     {
         $request->validate( [
-            'format' => [ 'required', 'string', 'in:csv,xlsx,ods' ],
+            'format' => [ 'required', 'string', 'in:xlsx' ],
         ] );
 
         // input
@@ -366,12 +421,18 @@ class OrdersAPIController extends AppBaseController
             return $item[ 'type' ] === $format;
         } )->first();
 
-        // get file
-        $filePath = $this->googleStorageHandler->downloadFile( $fileInfo[ 'bucket' ], $fileInfo[ 'name' ], false );
+        # TODO: validar si $fileInfo esta vacio
 
-        // path to download the file
-        $routeFilePath = route( 'downloadFiles', [ 'fileName' => basename( $filePath ) ] );
+        try {
+            // get file
+            $filePath = $this->googleStorageHandler->downloadFile( $fileInfo[ 'bucket' ], $fileInfo[ 'name' ], false );
 
-        return $this->sendResponse( $routeFilePath, 'Download link retrived.' );
+            // path to download the file
+            $routeFilePath = route( 'downloadFiles', [ 'fileName' => basename( $filePath ) ] );
+        } catch ( \Exception $e ) {
+            return $this->sendError( $e->getMessage() );
+        }
+
+        return $this->sendResponse( $routeFilePath, 'Download link retrieved.' );
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Lib\Writer;
 
-class JSONWriter implements WriterContract
+class PlainTextWriter implements WriterContract
 {
     /**
      * @var resource|bool
@@ -42,12 +42,16 @@ class JSONWriter implements WriterContract
 
             $this->fh = fopen( $this->filePath, 'w' );
 
-            $this->isWriterOpened = true;
-
-            return $this;
+            if ( empty( $this->fh ) === true ) {
+                throw new \Exception( 'Error opening the file: ' . $this->filePath );
+            }
         } catch ( \Exception $e ) {
             throw $e; # TODO
         }
+
+        $this->isWriterOpened = true;
+
+        return $this;
     }
 
     /**
@@ -62,7 +66,11 @@ class JSONWriter implements WriterContract
     {
         if ( $this->isWriterOpened === true ) {
             try {
-                fwrite( $this->fh, $row );
+                $written = fwrite( $this->fh, $row );
+
+                if ( empty( $written ) === true ) {
+                    throw new \Exception( 'Error writing the file: ' . $this->filePath );
+                }
             } catch ( \Exception $e ) {
                 throw $e; # TODO
             }

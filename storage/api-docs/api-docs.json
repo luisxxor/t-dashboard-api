@@ -695,13 +695,13 @@
                 ]
             }
         },
-        "/api/dashboard/orders/{orderCode}/records": {
+        "/api/dashboard/orders/{orderCode}/get_file": {
             "get": {
                 "tags": [
                     "Orders"
                 ],
-                "summary": "Return the specified user's order data",
-                "operationId": "getJson",
+                "summary": "Return the given file of the order",
+                "operationId": "getFile",
                 "parameters": [
                     {
                         "name": "orderCode",
@@ -719,6 +719,24 @@
                         "required": true,
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "perpage",
+                        "in": "query",
+                        "description": "required if file='data'",
+                        "required": false,
+                        "schema": {
+                            "type": "int"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "required if file='data'",
+                        "required": false,
+                        "schema": {
+                            "type": "int"
                         }
                     }
                 ],
@@ -762,7 +780,7 @@
                 ]
             }
         },
-        "api/dashboard/orders/{orderCode}/download": {
+        "api/dashboard/orders/{orderCode}/download_file": {
             "get": {
                 "tags": [
                     "Orders"
