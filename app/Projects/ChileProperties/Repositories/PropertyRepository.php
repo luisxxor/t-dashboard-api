@@ -361,4 +361,27 @@ class PropertyRepository
             return 0;
         }
     }
+
+    public function create( array $attributes )
+    {
+
+       $property = Property::raw((
+                function ( $collection ) use ( $attributes ) {             
+                    return $collection->insertOne( $attributes );         
+            })
+        );
+
+        return $property;
+    }
+
+    public function update( array $attributes, $id )
+    {
+        $property = Property::find( $id );
+        // $property->address = $attributes['address'];
+        // $property->save();
+
+        $property->fill( $attributes )->save();
+
+        return $property;
+    }
 }

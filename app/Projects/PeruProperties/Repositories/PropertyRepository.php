@@ -374,7 +374,7 @@ class PropertyRepository
         return $property;
     }
 
-        public function update( array $attributes, $id )
+    public function update( array $attributes, $id )
     {
         $property = Property::find( $id );
         // $property->address = $attributes['address'];

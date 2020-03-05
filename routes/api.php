@@ -140,6 +140,34 @@ Route::prefix( 'ecuador_properties' )->middleware( 'auth:api', 'verified' )->gro
 
     Route::post( 'order', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@order' )->name( 'ecuador_properties.processOrder' )
         ->middleware( 'can:order.properties' );
+
+        Route::prefix( 'client' )->middleware( 'auth:api', 'verified' )->group( function () {
+        Route::post( 'create', '\App\Projects\EcuadorProperties\Controllers\TracingsAPIController@createClient' )->name( 'client.create' );
+
+        Route::get( 'edit/{id}', '\App\Projects\EcuadorProperties\Controllers\TracingsAPIController@editClient' )->name( 'client.edit' );
+
+        Route::patch( 'update/{id}', '\App\Projects\EcuadorProperties\Controllers\TracingsAPIController@updateClient' )->name( 'client.update' );
+
+        Route::delete( 'delete/{id}', '\App\Projects\EcuadorProperties\Controllers\TracingsAPIController@deleteClient' )->name( 'client.delete' );
+    } );
+
+    Route::prefix( 'tracing' )->middleware( 'auth:api', 'verified' )->group( function () {
+        Route::post( 'create', '\App\Projects\EcuadorProperties\Controllers\TracingsAPIController@createTracing' )->name( 'tracing.create' );
+
+        Route::get( 'edit/{id}', '\App\Projects\EcuadorProperties\Controllers\TracingsAPIController@editTracing' )->name( 'tracing.edit' );
+
+        Route::patch( 'update/{id}', '\App\Projects\EcuadorProperties\Controllers\TracingsAPIController@updateTracing' )->name( 'tracing.update' );
+
+        Route::delete( 'delete/{id}', '\App\Projects\EcuadorProperties\Controllers\TracingsAPIController@deleteTracing' )->name( 'tracing.delete' );
+    } );
+
+    Route::prefix( 'tracing_properties' )->middleware( 'auth:api', 'verified' )->group( function () {
+        Route::get( 'init_pointer', '\App\Projects\EcuadorProperties\Controllers\TracingsAPIController@initPoint' )->name( 'tracing_properties.init' );
+
+        Route::post( 'create_property', '\App\Projects\EcuadorProperties\Controllers\TracingsAPIController@createProperties' )->name( 'tracing_properties.create' );
+
+        Route::patch( 'update_property/{id}', '\App\Projects\EcuadorProperties\Controllers\TracingsAPIController@updateProperties' )->name( 'tracing_properties.update' );
+    } );
 } );
 
 // generate ecuador properties profile
@@ -165,6 +193,34 @@ Route::prefix( 'chile_properties' )->middleware( 'auth:api', 'verified' )->group
 
     Route::post( 'order', '\App\Projects\ChileProperties\Controllers\PropertiesAPIController@order' )->name( 'chile_properties.processOrder' )
         ->middleware( 'can:order.properties' );
+
+    Route::prefix( 'client' )->middleware( 'auth:api', 'verified' )->group( function () {
+        Route::post( 'create', '\App\Projects\ChileProperties\Controllers\TracingsAPIController@createClient' )->name( 'client.create' );
+
+        Route::get( 'edit/{id}', '\App\Projects\ChileProperties\Controllers\TracingsAPIController@editClient' )->name( 'client.edit' );
+
+        Route::patch( 'update/{id}', '\App\Projects\ChileProperties\Controllers\TracingsAPIController@updateClient' )->name( 'client.update' );
+
+        Route::delete( 'delete/{id}', '\App\Projects\ChileProperties\Controllers\TracingsAPIController@deleteClient' )->name( 'client.delete' );
+    } );
+
+    Route::prefix( 'tracing' )->middleware( 'auth:api', 'verified' )->group( function () {
+        Route::post( 'create', '\App\Projects\ChileProperties\Controllers\TracingsAPIController@createTracing' )->name( 'tracing.create' );
+
+        Route::get( 'edit/{id}', '\App\Projects\ChileProperties\Controllers\TracingsAPIController@editTracing' )->name( 'tracing.edit' );
+
+        Route::patch( 'update/{id}', '\App\Projects\ChileProperties\Controllers\TracingsAPIController@updateTracing' )->name( 'tracing.update' );
+
+        Route::delete( 'delete/{id}', '\App\Projects\ChileProperties\Controllers\TracingsAPIController@deleteTracing' )->name( 'tracing.delete' );
+    } );
+
+    Route::prefix( 'tracing_properties' )->middleware( 'auth:api', 'verified' )->group( function () {
+        Route::get( 'init_pointer', '\App\Projects\ChileProperties\Controllers\TracingsAPIController@initPoint' )->name( 'tracing_properties.init' );
+
+        Route::post( 'create_property', '\App\Projects\ChileProperties\Controllers\TracingsAPIController@createProperties' )->name( 'tracing_properties.create' );
+
+        Route::patch( 'update_property/{id}', '\App\Projects\ChileProperties\Controllers\TracingsAPIController@updateProperties' )->name( 'tracing_properties.update' );
+    } );
 } );
 
 // generate chile properties profile
