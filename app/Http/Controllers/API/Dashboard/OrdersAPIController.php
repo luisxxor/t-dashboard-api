@@ -297,16 +297,14 @@ class OrdersAPIController extends AppBaseController
                     break;
 
                 case 'data':
-                    $offset = ( $page - 1 ) * $perPage;
+                    $paginationOptions = [
+                        'limit' => $perPage,
+                        'offset' => ( $page - 1 ) * $perPage
+                    ];
 
-                    $content = $fileReader->getLineIterator(
-                        function( $line ) {
+                    $content = $fileReader->getLineIterator( function ( $line ) {
                             return json_decode( $line, true );
-                        },
-                        [
-                            'limit' => $perPage,
-                            'offset' => $offset
-                        ]
+                        }, $paginationOptions
                     );
                     break;
 
