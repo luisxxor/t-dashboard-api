@@ -243,7 +243,7 @@ class OrdersAPIController extends AppBaseController
             'perpage'   => [
                 Rule::requiredIf( function () use ( $request ) {
                     return $request->get( 'file' ) === 'data';
-                } ), 'integer', 'min:1', 'max:50'
+                } ), 'integer', 'min:1', 'max:100'
             ],
             'page'      => [
                 Rule::requiredIf( function () use ( $request ) {
@@ -254,8 +254,8 @@ class OrdersAPIController extends AppBaseController
 
         // input
         $file       = $request->get( 'file' );
-        $perPage    = ( $request->get( 'perpage' ) < 1 ) ? 1 : $request->get( 'perpage' );
-        $page       = ( $request->get( 'page' ) < 1 ) ? 1 : $request->get( 'page' );
+        $perPage    = $request->get( 'perpage' );
+        $page       = $request->get( 'page' );
 
         $fileType = $file === 'data' ? 'ndjson' : 'json';
 
@@ -303,10 +303,10 @@ class OrdersAPIController extends AppBaseController
                         function( $line ) {
                             return json_decode( $line, true );
                         },
-                        array(
+                        [
                             'limit' => $perPage,
                             'offset' => $offset
-                        )
+                        ]
                     );
                     break;
 

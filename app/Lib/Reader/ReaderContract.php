@@ -19,10 +19,11 @@ interface ReaderContract
      *
      * @param callable $formatLine
      * @param array $options
-     * @return array
      * @throws \Exception
+     *
+     * @return array
      */
-    public function getLineIterator( callable $formatLine, array $options = array() ): array;
+    public function getLineIterator( callable $formatLine, array $options = [] ): array;
 
     /**
      * Closes the reader. This will close the streamer as well, preventing new data

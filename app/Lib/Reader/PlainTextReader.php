@@ -25,7 +25,6 @@ class PlainTextReader implements ReaderContract
      * Create a new class instance.
      *
      * @param string $filePath Path of the file to be read
-     *
      * @throws Exception
      */
     public function __construct( string $filePath )
@@ -79,11 +78,17 @@ class PlainTextReader implements ReaderContract
      * paginate the lines and formatting it.
      *
      * @param callable $formatLine
-     * @param array $options
-     * @return array
+     * @param array $options {
+     *     Configuration options.
+     *
+     *     @type int $limit [optional]
+     *     @type int $offset [optional]
+     * }
      * @throws Exception
+     *
+     * @return array
      */
-    public function getLineIterator( callable $formatLine, array $options = array() ): array
+    public function getLineIterator( callable $formatLine, array $options = [] ): array
     {
         $opt[ 'limit' ] = 25;
         $opt[ 'offset' ] = 0;
