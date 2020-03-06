@@ -254,8 +254,8 @@ class OrdersAPIController extends AppBaseController
 
         // input
         $file       = $request->get( 'file' );
-        $perPage    = ( $request->get( 'perpage' ) < 0 ) ? 0 : $request->get( 'perpage' );
-        $page       = ( $request->get( 'page' ) < 0 ) ? 0 : $request->get( 'page' );
+        $perPage    = ( $request->get( 'perpage' ) < 1 ) ? 1 : $request->get( 'perpage' );
+        $page       = ( $request->get( 'page' ) < 1 ) ? 1 : $request->get( 'page' );
 
         $fileType = $file === 'data' ? 'ndjson' : 'json';
 
