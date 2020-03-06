@@ -254,8 +254,8 @@ class OrdersAPIController extends AppBaseController
 
         // input
         $file       = $request->get( 'file' );
-        $perpage    = $request->get( 'perpage' );
-        $page       = $request->get( 'page' );
+        $perPage    = ( $request->get( 'perpage' ) < 0 ) ? 0 : $request->get( 'perpage' );
+        $page       = ( $request->get( 'page' ) < 0 ) ? 0 : $request->get( 'page' );
 
         $fileType = $file === 'data' ? 'ndjson' : 'json';
 
@@ -297,11 +297,17 @@ class OrdersAPIController extends AppBaseController
                     break;
 
                 case 'data':
-                    $offset = ( $page - 1 ) * $perpage;
+                    $offset = ( $page - 1 ) * $perPage;
 
-                    $content = $fileReader->getLineIterator( $perpage, $offset, function ( $line ) {
-                        return json_decode( $line, true );
-                    } );
+                    $content = $fileReader->getLineIterator(
+                        function( $line ) {
+                            return json_decode( $line, true );
+                        },
+                        array(
+                            'limit' => $perPage,
+                            'offset' => $offset
+                        )
+                    );
                     break;
 
                 default:

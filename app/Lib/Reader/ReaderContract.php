@@ -17,14 +17,12 @@ interface ReaderContract
      * Returns an array to iterate over lines,
      * paginate the lines and formatting it.
      *
-     * @param int $limit
-     * @param int $offset
      * @param callable $formatLine
+     * @param array $options
+     * @return array
      * @throws \Exception
-     *
-     * @return string
      */
-    public function getLineIterator( int $limit, int $offset = 0, callable $formatLine ): array;
+    public function getLineIterator( callable $formatLine, array $options = array() ): array;
 
     /**
      * Closes the reader. This will close the streamer as well, preventing new data

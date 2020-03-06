@@ -2,6 +2,8 @@
 
 namespace App\Lib\Reader;
 
+use Exception;
+
 class PlainTextReader implements ReaderContract
 {
     /**
@@ -22,9 +24,9 @@ class PlainTextReader implements ReaderContract
     /**
      * Create a new class instance.
      *
-     * @param  string $filePath Path of the file to be read
+     * @param string $filePath Path of the file to be read
      *
-     * @return void
+     * @throws Exception
      */
     public function __construct( string $filePath )
     {
@@ -34,9 +36,9 @@ class PlainTextReader implements ReaderContract
             $this->fh = fopen( $this->filePath, 'r' );
 
             if ( empty( $this->fh ) === true ) {
-                throw new \Exception( 'Error opening the file: ' . $this->filePath );
+                throw new Exception( 'Error opening the file: ' . $this->filePath );
             }
-        } catch ( \Exception $e ) {
+        } catch ( Exception $e ) {
             throw $e; # TODO
         }
 
@@ -48,7 +50,7 @@ class PlainTextReader implements ReaderContract
     /**
      * Returns the read string from a file in secure binary mode.
      *
-     * @throws \Exception
+     * @throws Exception
      *
      * @return string
      */
@@ -59,16 +61,16 @@ class PlainTextReader implements ReaderContract
                 $read = fread( $this->fh, filesize( $this->filePath ) );
 
                 if ( empty( $read ) === true ) {
-                    throw new \Exception( 'Error reading the file: ' . $this->filePath );
+                    throw new Exception( 'Error reading the file: ' . $this->filePath );
                 }
-            } catch ( \Exception $e ) {
+            } catch ( Exception $e ) {
                 throw $e; # TODO
             }
 
             return $read;
         }
         else {
-            throw new \Exception( 'The reader needs to be opened before get content.' );
+            throw new Exception( 'The reader needs to be opened before get content.' );
         }
     }
 
@@ -76,15 +78,24 @@ class PlainTextReader implements ReaderContract
      * Returns an array to iterate over lines,
      * paginate the lines and formatting it.
      *
-     * @param int $limit
-     * @param int $offset
      * @param callable $formatLine
-     * @throws \Exception
-     *
-     * @return string
+     * @param array $options
+     * @return array
+     * @throws Exception
      */
-    public function getLineIterator( int $limit, int $offset = 0, callable $formatLine ): array
+    public function getLineIterator( callable $formatLine, array $options = array() ): array
     {
+        $opt[ 'limit' ] = 25;
+        $opt[ 'offset' ] = 0;
+
+        foreach ( $options as $optionName => $o ) {
+            $opt[ $optionName ] = $o;
+        }
+
+        if ( $opt[ 'limit' ] > 100 ) {
+           throw new Exception( 'max limit allowed of 100 exceeded' );
+        }
+
         $lines = [];
 
         $NLine = 0;
@@ -93,15 +104,15 @@ class PlainTextReader implements ReaderContract
 
             $line = trim( $line );
 
-            if ( empty( $offset ) === false ) {
-                if ( $NLine <= $offset ) {
+            if ( empty( $opt[ 'offset' ] ) === false ) {
+                if ( $NLine <= $opt[ 'offset' ] ) {
                     continue;
                 }
             }
 
             $lines[] = $formatLine( $line );
 
-            if ( count( $lines ) >= $limit ) {
+            if ( count( $lines ) >= $opt[ 'limit' ] ) {
                 break;
             }
         }
