@@ -2,6 +2,7 @@
 
 namespace App\Projects\PeruProperties\Pipelines;
 
+use App\Projects\PeruProperties\Models\Search;
 use MongoDB\BSON\ObjectID;
 
 /**
@@ -33,28 +34,150 @@ trait PropertyPipelines
     }
 
     /**
-     * Return pipeline to retrive properties
+     * Returns pipeline to retrive properties
      * that match with the specified input.
      *
-     * @param string $searchId The id of the current search.
-     * @param array $metadata {
-     *     The metadata to search the properties.
+     * @param Search $search The search model to match the properties.
+     * @param array $pagination {
+     *     The values of the pagination
      *
-     *     @type array $distance [required] Pipeline $geoNear.
-     *     @type array $propertiesWithin [required] Pipeline $match.
-     *     @type array $filters [required] Pipeline $match.
+     *     @type int $perpage [required] The number of rows per each
+     *           page of the pagination.
+     *     @type string $field [required] The field needed to be sorted.
+     *     @type int $sort [required] The 'asc' (1) or 'desc' (-1) to be sorted.
+     *     @type array $lastItem [optional] The last item to paginate from.
      * }
      *
      * @return array
      */
-    protected function pipelinePropertiesToSearch( string $searchId, array $metadata ): array
+    protected function pipelineSearchProperties( Search $search, array $pagination = [] ): array
     {
         // pipeline
         $pipeline = [];
 
         // geo distance ($geoNear)
         $pipeline[] = [
-            '$geoNear' => $metadata[ 'distance' ]
+            '$geoNear' => $this->pipelineDistanceToQuery( $search->metadata[ 'initPoint' ][ 'lat' ], $search->metadata[ 'initPoint' ][ 'lng' ] )
+        ];
+
+        // geo within and filters ($match)
+        $pipeline[] = [
+            '$match' => $this->pipelinePropertiesWithinToQuery( $search->metadata[ 'vertices' ] ) + $this->pipelineFiltersToQuery( (array)$search->metadata[ 'filters' ] )
+        ];
+
+        if ( empty( $pagination ) === false ) {
+            // order by ($sort)
+            $pipeline[] = [
+                '$sort' => $this->mergeSortFields( $pagination[ 'field' ], $pagination[ 'sort' ] )
+            ];
+
+            // pagination
+            if ( isset( $pagination[ 'lastItem' ] ) === true ) {
+                $lastPublicationDate = new \MongoDB\BSON\UTCDateTime( strtotime( $pagination[ 'lastItem' ][ 'publication_date' ] ) * 1000 );
+
+                $pipeline[] = [
+                    '$match' => [
+                        '$or' => [
+                            [
+                                'publication_date' => [ '$lt' => $lastPublicationDate ],
+                            ],
+                            [
+                                '_id' => [ '$gt' => $pagination[ 'lastItem' ][ '_id' ] ],
+                                'publication_date' => $lastPublicationDate,
+                            ],
+                        ],
+                    ]
+                ];
+            }
+
+            // limit ($limit)
+            $pipeline[] = [
+                '$limit' => $pagination[ 'perpage' ],
+            ];
+        }
+
+        return $pipeline;
+    }
+
+    /**
+     * Returns the fields with which the response will be sorted.
+     *
+     * @param string $field The field needed to be sorted.
+     * @param int $sort The 'asc' (1) or 'desc' (-1) to be sorted.
+     *
+     * @return array
+     */
+    protected function mergeSortFields( string $field, int $sort )
+    {
+        if ( array_key_exists( $field, $this->sortFields ) === true ) {
+            $sortFields = array_merge( $this->sortFields, [ $field => $sort ] );
+        }
+        else {
+            $sortFields = array_merge( [ $field => $sort ], $this->sortFields );
+        }
+
+        return $sortFields;
+    }
+
+    /**
+     * Return pipeline to retrive selected properties
+     * for given search.
+     *
+     * @param Search $search The search model to match the properties.
+     * @param array $pagination {
+     *     The values of the pagination
+     *
+     *     @type int $perpage [required] The number of rows per each
+     *           page of the pagination.
+     *     @type array $lastItem [optional] The last item to paginate from.
+     * }
+     *
+     * @return array
+     */
+    protected function pipelineSelectedPropertiesFromProperties( Search $search, array $pagination ): array
+    {
+        // pipeline
+        $pipeline = [];
+
+        // geo distance ($geoNear)
+        $pipeline[] = [
+            '$geoNear' => $this->pipelineDistanceToQuery( $search->metadata[ 'initPoint' ][ 'lat' ], $search->metadata[ 'initPoint' ][ 'lng' ] )
+        ];
+
+        // select the current search ($match)
+        $pipeline[] = [
+            '$match' => [
+                '_id' => [ '$in' => $search->selected_properties ],
+            ]
+        ];
+
+        // order by ($sort)
+        $pipeline[] = [
+            '$sort' => $this->sortFields
+        ];
+
+        // pagination
+        if ( isset( $pagination[ 'lastItem' ] ) === true && empty( $pagination[ 'lastItem' ] ) === false ) {
+            $lastPublicationDate = new \MongoDB\BSON\UTCDateTime( strtotime( $pagination[ 'lastItem' ][ 'publication_date' ] ) * 1000 );
+
+            $pipeline[] = [
+                '$match' => [
+                    '$or' => [
+                        [
+                            'publication_date' => [ '$lt' => $lastPublicationDate ],
+                        ],
+                        [
+                            '_id' => [ '$gt' => $pagination[ 'lastItem' ][ '_id' ] ],
+                            'publication_date' => $lastPublicationDate,
+                        ],
+                    ],
+                ]
+            ];
+        }
+
+        // limit ($limit)
+        $pipeline[] = [
+            '$limit' => $pagination[ 'perpage' ],
         ];
 
         // join con regions ($lookup)
@@ -77,16 +200,9 @@ trait PropertyPipelines
             ]
         ];
 
-        // geo within and filters ($match)
-        $pipeline[] = [
-            '$match' => $metadata[ 'propertiesWithin' ] + $metadata[ 'filters' ]
-        ];
-
         // fields ($addFields)
         $pipeline[] = [
             '$addFields' => [
-                'property_id' => '$_id',
-                'search_id' => new ObjectID( $searchId ),
                 'property_type' => [ '$ifNull' => [
                     [ '$arrayElemAt' => [ '$property_types_docs.name', 0 ] ],
                     null
@@ -103,25 +219,14 @@ trait PropertyPipelines
             ]
         ];
 
-        // remove _id to avoid unique index error ($project)
+        // remove unnecessary fields ($project)
         $pipeline[] = [
             '$project' => [
-                '_id' => 0,
                 'property_type_id' => 0,
                 'property_types_docs' => 0,
                 'region_id' => 0,
                 'regions_docs' => 0,
             ]
-        ];
-
-        // insert into select ($merge)
-        $pipeline[] = [
-            '$merge' => [
-                'into' => 'searched_properties',
-                'on' => [ 'property_id', 'search_id' ],
-                'whenMatched' => 'merge',
-                'whenNotMatched' => 'insert',
-            ],
         ];
 
         return $pipeline;

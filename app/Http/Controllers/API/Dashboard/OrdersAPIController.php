@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\API\Dashboard;
 
 use App\Http\Controllers\AppBaseController;
-use App\Lib\Handlers\FileHandler;
+use App\Lib\Handlers\GoogleStorageHandler;
+use App\Lib\Reader\Common\FileReaderFactory;
 use App\Repositories\Dashboard\OrderRepository;
 use App\Repositories\Dashboard\ProjectRepository;
 use App\Repositories\Dashboard\UserRepository;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Response;
 
 /**
@@ -18,9 +20,9 @@ use Response;
 class OrdersAPIController extends AppBaseController
 {
     /**
-     * @var FileHandler
+     * @var GoogleStorageHandler
      */
-    private $fileHandler;
+    private $googleStorageHandler;
 
     /**
      * @var  OrderRepository
@@ -46,7 +48,7 @@ class OrdersAPIController extends AppBaseController
         ProjectRepository $projectRepo,
         UserRepository $userRepo )
     {
-        $this->fileHandler = new FileHandler();
+        $this->googleStorageHandler = new GoogleStorageHandler();
         $this->orderRepository = $orderRepo;
         $this->projectRepository = $projectRepo;
         $this->userRepository = $userRepo;
@@ -157,10 +159,10 @@ class OrdersAPIController extends AppBaseController
      * @throws \Illuminate\Auth\Access\AuthorizationException
      *
      * @OA\Get(
-     *     path="/api/dashboard/orders/{orderCode}/records",
-     *     operationId="getJson",
+     *     path="/api/dashboard/orders/{orderCode}/get_file",
+     *     operationId="getFile",
      *     tags={"Orders"},
-     *     summary="Return the specified user's order data",
+     *     summary="Return the given file of the order",
      *     @OA\Parameter(
      *         name="orderCode",
      *         description="code of order",
@@ -168,6 +170,33 @@ class OrdersAPIController extends AppBaseController
      *         in="path",
      *         @OA\Schema(
      *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="file",
+     *         description="data|metadata",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="perpage",
+     *         description="required if file='data'",
+     *         required=false,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="int"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         description="required if file='data'",
+     *         required=false,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="int"
      *         )
      *     ),
      *     @OA\Response(
@@ -207,8 +236,29 @@ class OrdersAPIController extends AppBaseController
      *     }
      * )
      */
-    public function getJson( $orderCode )
+    public function getFile( $orderCode, Request $request )
     {
+        $request->validate( [
+            'file'      => [ 'required', 'string', 'in:data,metadata' ],
+            'perpage'   => [
+                Rule::requiredIf( function () use ( $request ) {
+                    return $request->get( 'file' ) === 'data';
+                } ), 'integer', 'min:1', 'max:100'
+            ],
+            'page'      => [
+                Rule::requiredIf( function () use ( $request ) {
+                    return $request->get( 'file' ) === 'data';
+                } ), 'integer', 'min:1'
+            ],
+        ] );
+
+        // input
+        $file       = $request->get( 'file' );
+        $perPage    = $request->get( 'perpage' );
+        $page       = $request->get( 'page' );
+
+        $fileType = $file === 'data' ? 'ndjson' : 'json';
+
         // get order
         $order = $this->orderRepository->findByField( 'code', $orderCode )->first();
 
@@ -226,25 +276,49 @@ class OrdersAPIController extends AppBaseController
             throw new AuthorizationException;
         }
 
-        $fileInfo = collect( $order->files_info )->filter( function ( $item, $index ) {
-            return $item[ 'type' ] === 'json';
+        $fileInfo = collect( $order->files_info )->filter( function ( $item, $index ) use ( $fileType ) {
+            return $item[ 'type' ] === $fileType;
         } )->first();
 
-        // get file
-        $filePath = $this->fileHandler->downloadFile( $fileInfo[ 'bucket' ], $fileInfo[ 'name' ] );
+        # TODO: validar si $fileInfo esta vacio
 
-        // open file
-        $fp = fopen( $filePath, 'r' );
-        $content = fread( $fp, filesize( $filePath ) );
-        $decodedContent = json_decode( $content, true );
+        try {
+            // get file
+            $filePath = $this->googleStorageHandler->downloadFile( $fileInfo[ 'bucket' ], $fileInfo[ 'name' ] );
 
-        // output
-        $output = [
-            'data' => $decodedContent[ 'data' ],
-            'metadata' => $decodedContent[ 'metadata' ],
-        ];
+            // read file
+            $fileReader = FileReaderFactory::createReaderFromFile( $filePath );
 
-        return $this->sendResponse( $output, 'Order retrived successfully.' );
+            switch ( $file ) {
+                case 'metadata':
+                    $stringContent = $fileReader->getContent();
+
+                    $content = json_decode( $stringContent, true );
+                    break;
+
+                case 'data':
+                    $paginationOptions = [
+                        'limit' => $perPage,
+                        'offset' => ( $page - 1 ) * $perPage
+                    ];
+
+                    $content = $fileReader->getLineIterator( function ( $line ) {
+                            return json_decode( $line, true );
+                        }, $paginationOptions
+                    );
+                    break;
+
+                default:
+                    throw new \Exception( 'File not found.' );
+                    break;
+            }
+
+            $fileReader->close();
+        } catch ( \Exception $e ) {
+            return $this->sendError( $e->getMessage() );
+        }
+
+        return $this->sendResponse( $content, 'File retrieved successfully.' );
     }
 
     /**
@@ -254,7 +328,7 @@ class OrdersAPIController extends AppBaseController
      * @throws  \Illuminate\Auth\Access\AuthorizationException
      *
      * @OA\Get(
-     *     path="api/dashboard/orders/{orderCode}/download",
+     *     path="api/dashboard/orders/{orderCode}/download_file",
      *     operationId="downloadFile",
      *     tags={"Orders"},
      *     summary="Download the export file",
@@ -270,6 +344,7 @@ class OrdersAPIController extends AppBaseController
      *     ),
      *     @OA\Parameter(
      *         name="format",
+     *         description="xlsx",
      *         required=true,
      *         in="query",
      *         @OA\Schema(
@@ -323,7 +398,7 @@ class OrdersAPIController extends AppBaseController
     public function downloadFile( $orderCode, Request $request )
     {
         $request->validate( [
-            'format' => [ 'required', 'string', 'in:csv,xlsx,ods' ],
+            'format' => [ 'required', 'string', 'in:xlsx' ],
         ] );
 
         // input
@@ -350,12 +425,18 @@ class OrdersAPIController extends AppBaseController
             return $item[ 'type' ] === $format;
         } )->first();
 
-        // get file
-        $filePath = $this->fileHandler->downloadFile( $fileInfo[ 'bucket' ], $fileInfo[ 'name' ], false );
+        # TODO: validar si $fileInfo esta vacio
 
-        // path to download the file
-        $routeFilePath = route( 'downloadFiles', [ 'fileName' => basename( $filePath ) ] );
+        try {
+            // get file
+            $filePath = $this->googleStorageHandler->downloadFile( $fileInfo[ 'bucket' ], $fileInfo[ 'name' ], false );
 
-        return $this->sendResponse( $routeFilePath, 'Download link retrived.' );
+            // path to download the file
+            $routeFilePath = route( 'downloadFiles', [ 'fileName' => basename( $filePath ) ] );
+        } catch ( \Exception $e ) {
+            return $this->sendError( $e->getMessage() );
+        }
+
+        return $this->sendResponse( $routeFilePath, 'Download link retrieved.' );
     }
 }

@@ -48,30 +48,6 @@ class OrdersPaymentAPIController extends AppBaseController
     }
 
     /**
-     * Calculate the amount with the rows quantity.
-     *
-     * @param int $rowQuantity
-     *
-     * @return float
-     */
-    protected function calculateAmount( int $rowQuantity ): float
-    {
-        $amount = self::BASE_PRICE;
-
-        // if the number of records is greater than the base price
-        if ( $rowQuantity > self::BASE_QUANTITY ) {
-
-            // get the number of additional records
-            $additionalQuantity = $rowQuantity - self::BASE_QUANTITY;
-
-            // add the additional price
-            $amount += $additionalQuantity * self::ADDITIONAL_PRICE;
-        }
-
-        return $amount;
-    }
-
-    /**
      * @param \Illuminate\Http\Request              $request
      * @param \App\Billing\PaymentGatewayContract   $paymentGateway
      * @return \Illuminate\Http\JsonResponse
@@ -175,6 +151,9 @@ class OrdersPaymentAPIController extends AppBaseController
         // get order
         $order = $this->orderRepository->findByField( 'code', $orderCode )->first();
 
+        # TODO: aqui hay que verificar que la search aun exista en mongodb,
+        #       porque si no existe el usuario va a pagar y no se va a generar nada
+
         // validate order
         if ( empty( $order ) === true ) {
             \Log::info( 'Order not found.', [ $orderCode ] );
@@ -225,5 +204,29 @@ class OrdersPaymentAPIController extends AppBaseController
         $order->save();
 
         return $this->sendResponse( $paymentResult[ 'init_point' ], 'Payment preference created. Init point returned successfully.' );
+    }
+
+    /**
+     * Calculate the amount with the rows quantity.
+     *
+     * @param int $rowQuantity
+     *
+     * @return float
+     */
+    protected function calculateAmount( int $rowQuantity ): float
+    {
+        $amount = self::BASE_PRICE;
+
+        // if the number of records is greater than the base price
+        if ( $rowQuantity > self::BASE_QUANTITY ) {
+
+            // get the number of additional records
+            $additionalQuantity = $rowQuantity - self::BASE_QUANTITY;
+
+            // add the additional price
+            $amount += $additionalQuantity * self::ADDITIONAL_PRICE;
+        }
+
+        return $amount;
     }
 }

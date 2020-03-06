@@ -38,10 +38,10 @@ Route::prefix( 'dashboard' )->middleware( 'auth:api', 'verified' )->group( funct
     Route::get( 'orders', 'API\Dashboard\OrdersAPIController@index' )->name( 'dashboard.orders.index' )
         ->middleware( 'can:see.own.orders.list' );
 
-    Route::get( 'orders/{orderCode}/records', 'API\Dashboard\OrdersAPIController@getJson' )->name( 'dashboard.orders.getJson' )
+    Route::get( 'orders/{orderCode}/get_file', 'API\Dashboard\OrdersAPIController@getFile' )->name( 'dashboard.orders.getFile' )
         ->middleware( 'can:see.own.order' );
 
-    Route::get( 'orders/{orderCode}/download', 'API\Dashboard\OrdersAPIController@downloadFile' )->name( 'dashboard.orders.downloadFile' )
+    Route::get( 'orders/{orderCode}/download_file', 'API\Dashboard\OrdersAPIController@downloadFile' )->name( 'dashboard.orders.downloadFile' )
         ->middleware( 'can:download.own.order' );
 
     // multi-api info
@@ -82,7 +82,7 @@ Route::prefix( 'peru_properties' )->middleware( 'auth:api', 'verified' )->group(
     Route::post( 'search', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@searchProperties' )->name( 'peru_properties.searchProperties' )
         ->middleware( 'can:search.properties' );
 
-    Route::post( 'paginate', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@paginateProperties' )->name( 'peru_properties.paginateProperties' )
+    Route::get( 'paginate', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@paginateProperties' )->name( 'peru_properties.paginateProperties' )
         ->middleware( 'can:search.properties' );
 
     Route::post( 'order', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@order' )->name( 'peru_properties.processOrder' )

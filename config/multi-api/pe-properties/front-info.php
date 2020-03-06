@@ -22,7 +22,7 @@ return [
     ],
 
     'paginationURL' => [
-        'method' => 'post',
+        'method' => 'get',
         'path' => env( 'APP_URL' ) . '/api/peru_properties/paginate',
     ],
 
@@ -58,13 +58,13 @@ return [
             'currency'=> 'Dolar Americanos',
             'symbol'=> '$',
             'field'=> 'dollars_price'
-        
+
         ],
         [
             'currency'=> 'Soles Peruanos',
             'symbol'=> 'S',
             'field'=> 'others_price'
-        
+
         ]
     ],
 

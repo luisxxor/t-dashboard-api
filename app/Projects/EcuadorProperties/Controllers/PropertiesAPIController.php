@@ -3,7 +3,7 @@
 namespace App\Projects\EcuadorProperties\Controllers;
 
 use App\Http\Controllers\AppBaseController;
-use App\Lib\Handlers\FileHandler;
+use App\Lib\Writer\FileHandler;
 use App\Projects\EcuadorProperties\Repositories\PropertyRepository;
 use App\Projects\EcuadorProperties\Repositories\PropertyTypeRepository;
 use App\Projects\EcuadorProperties\Repositories\PublicationTypeRepository;
