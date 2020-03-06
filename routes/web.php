@@ -18,7 +18,7 @@ Route::name( 'downloadFiles' )
     ->get(
         '/download_files/{fileName}',
         function ( $fileName ) {
-            return response()->download( sys_get_temp_dir() . DIRECTORY_SEPARATOR . $fileName );
+            return response()->download( config( 'app.temp_path' ) . $fileName );
         }
     )
     ->where( [ 'file' => '(.*?)\.(xls|xlsx|csv|pdf|json)$' ] );
