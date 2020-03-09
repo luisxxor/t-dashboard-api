@@ -321,7 +321,7 @@ class PropertiesAPIController extends AppBaseController
         $lat        = $request->get( 'lat' );
         $lng        = $request->get( 'lng' );
         $address    = $request->get( 'address' );
-        $perpage    = $request->get( 'perpage' );
+        $perpage    = (int)$request->get( 'perpage' );
 
         // paginate data (default)
         $field  = 'publication_date';
@@ -347,6 +347,7 @@ class PropertiesAPIController extends AppBaseController
 
         // insert into 'searches' collection
         $search = $this->searchRepository->create( $searchData );
+        $searchId = $search->id;
 
         // construct and execute query.
         // this will return the matched properties.
@@ -356,7 +357,7 @@ class PropertiesAPIController extends AppBaseController
             return $this->sendError( 'No properties matched.', $data, 204 );
         }
 
-        return $this->sendResponse( $data, 'Properties retrieved successfully.' );
+        return $this->sendResponse( compact( 'data', 'searchId' ), 'Properties retrieved successfully.' );
     }
 
     /**
@@ -467,7 +468,7 @@ class PropertiesAPIController extends AppBaseController
         // input
         $searchId   = $request->get( 'searchId' );
         $lastItem   = $request->get( 'lastItem' );
-        $perpage    = $request->get( 'perpage' );
+        $perpage    = (int)$request->get( 'perpage' );
         $field      = $request->get( 'field' )      ?? 'publication_date';
         $sort       = $request->get( 'sort' )       ?? -1;
 
@@ -481,11 +482,11 @@ class PropertiesAPIController extends AppBaseController
             return $this->sendError( $e->getMessage(), [], 404 );
         }
 
-        if ( empty( $data[ 'data' ] ) === true ) {
+        if ( empty( $data ) === true ) {
             return $this->sendError( 'No properties matched.', $data, 204 );
         }
 
-        return $this->sendResponse( $data, 'Properties retrieved successfully.' );
+        return $this->sendResponse( compact( 'data', 'searchId' ), 'Properties retrieved successfully.' );
     }
 
     /**
