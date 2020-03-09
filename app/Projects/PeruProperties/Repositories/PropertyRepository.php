@@ -4,10 +4,8 @@ namespace App\Projects\PeruProperties\Repositories;
 
 use App\Projects\PeruProperties\Models\Property;
 use App\Projects\PeruProperties\Models\Search;
-use App\Projects\PeruProperties\Models\SearchedProperty;
 use App\Projects\PeruProperties\Pipelines\FilterPipelines;
 use App\Projects\PeruProperties\Pipelines\PropertyPipelines;
-use Illuminate\Pagination\LengthAwarePaginator;
 use MongoDB\BSON\ObjectID;
 
 /**
@@ -138,19 +136,16 @@ class PropertyRepository
         $pipeline[] = [
             '$project' => [
                 '_id' => '$_id',
-                'type' => 'Feature',
-                'properties' => [
-                    'address' => [ '$ifNull' => [ '$address', null ] ],
-                    'dollars_price' => [ '$ifNull' => [ '$dollars_price', null ] ],
-                    'others_price' => [ '$ifNull' => [ '$others_price', null ] ],
-                    'bedrooms' => [ '$ifNull' => [ '$bedrooms', null ] ],
-                    'bathrooms' => [ '$ifNull' => [ '$bathrooms', null ] ],
-                    'parkings' => [ '$ifNull' => [ '$parkings', null ] ],
-                    'property_type' => [ '$ifNull' => [ '$property_type', null ] ],
-                    'publication_date' => [ '$toString' => [ '$publication_date' ] ],
-                    'image_list' => [ '$ifNull' => [ '$image_list', null ] ],
-                    'distance' => [ '$convert' => [ 'input' => '$distance', 'to' => 'int', 'onError' => 'Error', 'onNull' => null ] ],
-                ],
+                'address' => [ '$ifNull' => [ '$address', null ] ],
+                'dollars_price' => [ '$ifNull' => [ '$dollars_price', null ] ],
+                'others_price' => [ '$ifNull' => [ '$others_price', null ] ],
+                'bedrooms' => [ '$ifNull' => [ '$bedrooms', null ] ],
+                'bathrooms' => [ '$ifNull' => [ '$bathrooms', null ] ],
+                'parkings' => [ '$ifNull' => [ '$parkings', null ] ],
+                'property_type' => [ '$ifNull' => [ '$property_type', null ] ],
+                'publication_date' => [ '$ifNull' => [ '$publication_date', null ] ],
+                'image_list' => [ '$ifNull' => [ '$image_list', null ] ],
+                'distance' => [ '$convert' => [ 'input' => '$distance', 'to' => 'int', 'onError' => 'Error', 'onNull' => null ] ],
                 'geometry' => '$geo_location'
             ]
         ];
@@ -160,16 +155,7 @@ class PropertyRepository
             return $collection->aggregate( $pipeline );
         } ) );
 
-        // new instance of LengthAwarePaginator
-        $paginator = new LengthAwarePaginator( $collect, 0, $pagination[ 'perpage' ], 1 );
-
-        // cast to array
-        $paginator = $paginator->toArray();
-
-        // search id
-        $paginator[ 'searchId' ] = $search->id;
-
-        return $paginator;
+        return $collect->toArray();
     }
 
     /**
