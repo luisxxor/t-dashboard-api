@@ -132,6 +132,16 @@ class PropertyRepository
         // pipeline
         $pipeline = $this->pipelineSearchProperties( $search, $pagination );
 
+        // join con property_types ($lookup)
+        $pipeline[] = [
+            '$lookup' => [
+                'from' => 'property_types',
+                'localField' => 'property_type_id',
+                'foreignField' => '_id',
+                'as' => 'property_types_docs'
+            ]
+        ];
+
         // output fields ($project)
         $pipeline[] = [
             '$project' => [
@@ -142,7 +152,10 @@ class PropertyRepository
                 'bedrooms' => [ '$ifNull' => [ '$bedrooms', null ] ],
                 'bathrooms' => [ '$ifNull' => [ '$bathrooms', null ] ],
                 'parkings' => [ '$ifNull' => [ '$parkings', null ] ],
-                'property_type' => [ '$ifNull' => [ '$property_type', null ] ],
+                'property_type' => [ '$ifNull' => [
+                    [ '$arrayElemAt' => [ '$property_types_docs.name', 0 ] ],
+                    null
+                ] ],
                 'publication_date' => [ '$ifNull' => [ '$publication_date', null ] ],
                 'image_list' => [ '$ifNull' => [ '$image_list', null ] ],
                 'distance' => [ '$convert' => [ 'input' => '$distance', 'to' => 'int', 'onError' => 'Error', 'onNull' => null ] ],
