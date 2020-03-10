@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\BSON\ObjectID;
 
+
 /**
  * Trait FilterPipelines
  * @package App\Projects\ChileProperties\Pipelines
@@ -16,13 +17,14 @@ use MongoDB\BSON\ObjectID;
 trait FilterPipelines
 {
     /**
-     * Return the filters to the query.
+     * Return the content of $match pipeline stage,
+     * to filter the result to those that match.
      *
      * @param array $filters
      *
      * @return array
      */
-    protected function pipelineFiltersToQuery( $filters ): array
+    protected function pipelineFiltersToQuery( array $filters ): array
     {
         $filterFields = [
             'slidersFields' => [
@@ -46,6 +48,12 @@ trait FilterPipelines
                 ]
             ],
             'numericFields' => [
+                'antiquity_years' => [
+                    'name' => $this->constants[ 'FILTER_FIELD_ANTIQUITY_YEARS' ],
+                    'clousure' => function ( $field ) {
+                        return (int)$field;
+                    }
+                ],
                 'total_area_m2' => [
                     'name' => $this->constants[ 'FILTER_FIELD_TOTAL_AREA_M2' ],
                     'clousure' => function ( $field ) {
@@ -84,7 +92,7 @@ trait FilterPipelines
                         return $ids;
                     },
                 ],
-                'publication_type_id' => [
+                'publication_type' => [
                     'name' => $this->constants[ 'FILTER_FIELD_PUBLICATION_TYPE' ],
                     'clousure' => function ( $field ) {
                         // select
@@ -97,6 +105,12 @@ trait FilterPipelines
                         }
                         
                         return $ids;
+                    },
+                ],
+                'is_new' => [
+                    'name' => $this->constants[ 'FILTER_FIELD_IS_NEW' ],
+                    'clousure' => function ( $field ) {
+                        return (bool)$field;
                     },
                 ]
             ]
@@ -208,13 +222,14 @@ trait FilterPipelines
     }
 
     /**
-     * Return the array of vertices of the polygon to the query.
+     * Return the content of $match pipeline stage,
+     * to filter the result to those within the given polygon.
      *
      * @param  array $arrayShape
      *
      * @return array
      */
-    protected function pipelinePropertiesWithinToQuery( $arrayShape ): array
+    protected function pipelinePropertiesWithinToQuery( array $arrayShape ): array
     {
         $polygon = [];
 
@@ -245,12 +260,13 @@ trait FilterPipelines
     }
 
     /**
-     * Get the distance between the base marker and each property.
+     * Return the content of $geoNear pipeline stage,
+     * to calculate distance between the base marker and each property.
      *
      * @param float $lat
      * @param float $lng
      * @param int $maxDistance The maximum distance from the center
-     *        point that the documents can be (in meters).
+     *        point that documents can be (in meters).
      *
      * @return array
      */

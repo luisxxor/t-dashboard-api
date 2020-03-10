@@ -1,18 +1,21 @@
 <?php
+
 namespace App\Projects\ChileProperties\Controllers;
 
 use App\Http\Controllers\AppBaseController;
-use App\Lib\Writer\FileHandler;
+use App\Lib\Handlers\GoogleStorageHandler;
+use App\Lib\Writer\Common\FileWriterFactory;
 use App\Projects\ChileProperties\Repositories\PropertyRepository;
 use App\Projects\ChileProperties\Repositories\PropertyTypeRepository;
 use App\Projects\ChileProperties\Repositories\PublicationTypeRepository;
 use App\Projects\ChileProperties\Repositories\SearchRepository;
 use App\Repositories\Dashboard\OrderRepository;
+use Carbon\Carbon;
 use DateTime;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 /**
  * Class PropertiesAPIController
@@ -21,14 +24,10 @@ use GuzzleHttp\Psr7\Request as GuzzleRequest;
 class PropertiesAPIController extends AppBaseController
 {
     /**
-     * @var FileHandler
-     */
-    private $fileHandler;
-
-    /**
      * @var PropertyTypeRepository
      */
-    private $propertyTypeRepository;
+    private $propertyTypeRepository; 
+
     /**
      * @var PublicationTypeRepository
      */
@@ -60,7 +59,7 @@ class PropertiesAPIController extends AppBaseController
         SearchRepository $searchRepo,
         OrderRepository $orderRepo )
     {
-        $this->fileHandler = new FileHandler();
+        $this->googleStorageHandler = new GoogleStorageHandler();
         $this->propertyTypeRepository = $propertyTypeRepo;
         $this->publicationTypeRepository = $publicationTypeRepo;
         $this->propertyRepository = $propertyRepo;
@@ -74,11 +73,11 @@ class PropertiesAPIController extends AppBaseController
      * @OA\Get(
      *     path="/api/chile_properties/filters/property_type",
      *     operationId="getPropertyTypeFilterData",
-     *     tags={"Ecuador Properties"},
+     *     tags={"Chile Properties"},
      *     summary="Return the necessary data for property type filter",
      *     @OA\Response(
      *         response=200,
-     *         description="Data retrived.",
+     *         description="Data retrieved.",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(
@@ -123,6 +122,47 @@ class PropertiesAPIController extends AppBaseController
         return $this->sendResponse( $propertyTypes, 'Data retrieved.' );
     }
 
+     /**
+     * @return \Illuminate\Http\JsonResponse
+     *
+     * @OA\Get(
+     *     path="/api/chile_properties/filters/publication_type",
+     *     operationId="getPublicationTypeFilterData",
+     *     tags={"Chile Properties"},
+     *     summary="Return the necessary data for property type filter",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Data retrieved.",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean"
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="data",
+     *                     type="array",
+     *                     @OA\Items()
+     *                 ),
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated."
+     *     ),
+     *     security={
+     *         {"": {}}
+     *     }
+     * )
+     */
     public function getPublicationTypeFilterData()
     {
         // select
@@ -172,7 +212,7 @@ class PropertiesAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Ghost search done.",
+     *         description="Data retrieved successfully.",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(
@@ -232,7 +272,7 @@ class PropertiesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Post(
-     *     path="/api/chile_properties/properties_ajax",
+     *     path="/api/chile_properties/search",
      *     operationId="searchProperties",
      *     tags={"Chile Properties"},
      *     summary="Return the properties that math with given filters",
@@ -288,7 +328,7 @@ class PropertiesAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Properties retrieved successfully.",
+     *         description="Data retrieved successfully.",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(
@@ -335,7 +375,7 @@ class PropertiesAPIController extends AppBaseController
             'lat'       => [ 'required', 'numeric' ],
             'lng'       => [ 'required', 'numeric' ],
             'address'   => [ 'nullable', 'string' ],
-            'perpage'   => [ 'required', 'integer', 'min:10', 'max:500'],
+            'perpage'   => [ 'required', 'integer', 'min:10', 'max:500' ],
         ] );
 
         // input
@@ -344,7 +384,11 @@ class PropertiesAPIController extends AppBaseController
         $lat        = $request->get( 'lat' );
         $lng        = $request->get( 'lng' );
         $address    = $request->get( 'address' );
-        $perpage    = $request->get( 'perpage' ) ?? 500;
+        $perpage    = (int)$request->get( 'perpage' );
+
+        // paginate data (default)
+        $field  = 'publication_date';
+        $sort   = -1;
 
         // get user
         $user = auth()->user();
@@ -366,33 +410,25 @@ class PropertiesAPIController extends AppBaseController
 
         // insert into 'searches' collection
         $search = $this->searchRepository->create( $searchData );
+        $searchId = $search->id;
 
         // construct and execute query.
-        // this will store the matched properties
-        // in searched_properties collection.
-        $this->propertyRepository->storeSearchedProperties( $search );
+        // this will return the matched properties.
+        $data = $this->propertyRepository->searchPropertiesReturnOutputFields( $search, compact( 'perpage', 'field', 'sort' ) );
 
-        // paginate data (default)
-        $page   = 1;
-        $field  = 'publication_date';
-        $sort   = -1;
-
-        // construct and execute query
-        $results = $this->propertyRepository->getSearchedProperties( $search->_id, compact( 'page', 'perpage', 'field', 'sort' ) );
-
-        if ( empty( $results ) === true ) {
-            return $this->sendError( 'Properties retrieved successfully.', $results, 204 );
+        if ( empty( $data ) === true ) {
+            return $this->sendError( 'No properties matched.', $data, 204 );
         }
 
-        return $this->sendResponse( $results, 'Properties retrieved successfully.' );
+        return $this->sendResponse( compact( 'data', 'searchId' ), 'Properties retrieved successfully.' );
     }
 
     /**
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      *
-     * @OA\Post(
-     *     path="/api/chile_properties/properties_paginate",
+     * @OA\Get(
+     *     path="/api/chile_properties/paginate",
      *     operationId="paginateProperties",
      *     tags={"Chile Properties"},
      *     summary="Return the properties that math with given search id",
@@ -405,11 +441,12 @@ class PropertiesAPIController extends AppBaseController
      *         )
      *     ),
      *     @OA\Parameter(
-     *         name="page",
-     *         required=false,
+     *         name="lastItem",
+     *         required=true,
      *         in="query",
      *         @OA\Schema(
-     *             type="integer"
+     *             type="array",
+     *             @OA\Items()
      *         )
      *     ),
      *     @OA\Parameter(
@@ -438,7 +475,7 @@ class PropertiesAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Properties' page retrieved successfully.",
+     *         description="Data retrieved successfully.",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(
@@ -461,8 +498,16 @@ class PropertiesAPIController extends AppBaseController
      *         )
      *     ),
      *     @OA\Response(
+     *         response=204,
+     *         description="The request has been successfully completed but your answer has no content"
+     *     ),
+     *     @OA\Response(
      *         response=401,
      *         description="Unauthenticated."
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Order not found."
      *     ),
      *     @OA\Response(
      *         response=422,
@@ -476,24 +521,35 @@ class PropertiesAPIController extends AppBaseController
     public function paginateProperties( Request $request )
     {
         $request->validate( [
-            'searchId'  => [ 'required', 'string' ],
-            'page'      => [ 'required', 'integer', 'min:1' ],
-            'perpage'   => [ 'required', 'integer', 'min:1', 'max:500'], #
-            'field'     => [ 'nullable', 'string', Rule::notIn( [ 'distance', '_id' ] ) ],
-            'sort'      => [ 'nullable', 'integer', 'in:1,-1' ],
+            'searchId'      => [ 'required', 'string' ],
+            'lastItem'      => [ 'required', 'array', 'filled' ],
+            'perpage'       => [ 'required', 'integer', 'min:1', 'max:500' ],
+            'field'         => [ 'nullable', 'string', Rule::notIn( [ 'distance', '_id' ] ) ],
+            'sort'          => [ 'nullable', 'integer', 'in:1,-1' ],
         ] );
 
         // input
         $searchId   = $request->get( 'searchId' );
-        $page       = $request->get( 'page' )       ?? 1;
-        $perpage    = $request->get( 'perpage' )    ?? 10;
+        $lastItem   = $request->get( 'lastItem' );
+        $perpage    = (int)$request->get( 'perpage' );
         $field      = $request->get( 'field' )      ?? 'publication_date';
         $sort       = $request->get( 'sort' )       ?? -1;
 
-        // construct and execute query
-        $results = $this->propertyRepository->getSearchedProperties( $searchId, compact( 'page', 'perpage', 'field', 'sort' ) );
+        try {
+            // get search model
+            $search = $this->searchRepository->findOrFail( $searchId );
 
-        return $this->sendResponse( $results, 'Properties retrieved successfully.' );
+            // construct and execute query
+            $data = $this->propertyRepository->searchPropertiesReturnOutputFields( $search, compact( 'perpage', 'field', 'sort', 'lastItem' ) );
+        } catch ( \Exception $e ) {
+            return $this->sendError( $e->getMessage(), [], 404 );
+        }
+
+        if ( empty( $data ) === true ) {
+            return $this->sendError( 'No properties matched.', $data, 204 );
+        }
+
+        return $this->sendResponse( compact( 'data', 'searchId' ), 'Properties retrieved successfully.' );
     }
 
     /**
@@ -559,6 +615,10 @@ class PropertiesAPIController extends AppBaseController
      *         description="Unauthenticated."
      *     ),
      *     @OA\Response(
+     *         response=404,
+     *         description="Order not found."
+     *     ),
+     *     @OA\Response(
      *         response=422,
      *         description="The given data was invalid."
      *     ),
@@ -584,9 +644,16 @@ class PropertiesAPIController extends AppBaseController
         // get order if exist
         $order = $this->orderRepository->findByField( 'search_id', $searchId )->first();
 
+        try {
+            // get search model
+            $search = $this->searchRepository->findOrFail( $searchId );
+        } catch ( \Exception $e ) {
+            return $this->sendError( $e->getMessage(), [], 404 );
+        }
+
         // get selected ids by user
         if ( $ids === [ '*' ] ) {
-            $total = $this->propertyRepository->countSearchedProperties( $searchId );
+            $total = $this->propertyRepository->countSearchedProperties( $search ); # esto hace una consulta
         }
         else {
             $total = count( $ids );
@@ -610,11 +677,10 @@ class PropertiesAPIController extends AppBaseController
         }
 
         // update the search to save selected ids by user
-        $this->propertyRepository->updateSelectedSearchedProperties( $searchId, $ids );
+        $this->propertyRepository->updateSelectedPropertiesInSearch( $search, $ids );
 
         // if user has permission to release order without paying, generate file
         if ( $user->hasPermissionTo( 'release.order.without.paying' ) === true ) {
-
             // generate files request
             $guzzleClient = new GuzzleClient( [ 'base_uri' => url( '/' ), 'timeout' => 30.0 ] );
             $guzzleClient->sendAsync( new GuzzleRequest(
@@ -706,48 +772,62 @@ class PropertiesAPIController extends AppBaseController
 
         $filesInfo = [];
 
-        // quantity of rows
-        $rowsQuantity = $this->propertyRepository->countSelectedSearchedProperties( $order->search_id );
-
-        // create json
         try {
-
             // get search
             $search = $this->searchRepository->findOrFail( $order->search_id );
 
-            // get selected searched properties by user
-            $selectedSearchedProperties = $this->propertyRepository->getSelectedSearchedProperties( $order->search_id );
+            // create json metadata file
+            $jsonMetadataFile = FileWriterFactory::createWriter( 'json' )
+                ->openToFile( $orderCode . '.metadata.json' )
+                ->addRow( json_encode( $search->toArray() ) );
+            $path = $jsonMetadataFile->close();
+            $filesInfo[] = $this->googleStorageHandler->uploadFile( config( 'app.cl_export_file_bucket' ), $path, $order->total_rows_quantity );
 
-            $filesInfo[] = $this->fileHandler->createAndUploadFile(
-                array_merge( $search->toArray(), [ 'data' => $selectedSearchedProperties ] ),
-                $rowsQuantity,
-                $orderCode,
-                'json',
-                config( 'app.cl_export_file_bucket' )
-            );
+            // free memory
+            unset( $jsonMetadataFile );
+            gc_collect_cycles();
+
+            // create json data file
+            $ndjsonDataFile = FileWriterFactory::createWriter( 'json' )
+                ->openToFile( $orderCode . '.ndjson' );
+
+            // create xlsx data file
+            $xlsxDataFile = FileWriterFactory::createWriter( 'xlsx' )
+                ->openToFile( $orderCode . '.xlsx' );
+            $xlsxDataFile->addRow( $this->propertyRepository->header, true );
+
+            $perpage = 25;
+            $lastItem = [];
+            do {
+                $selectedSearchedProperties = $this->propertyRepository->getSelectedPropertiesFromProperties( $search, compact( 'perpage', 'lastItem' ) );
+
+                foreach ( $selectedSearchedProperties as $item ) {
+                    // add json data row
+                    $ndjsonDataFile->addRow( $this->createJSONRow( $item ) . PHP_EOL );
+
+                    // add xlsx data row
+                    $xlsxDataFile->addRow( $this->createXLSXRow( $item ) );
+                }
+
+                $lastItem = [
+                    '_id' => $item[ '_id' ],
+                    'publication_date' => $item[ 'publication_date' ],
+                ];
+            } while ( empty( $selectedSearchedProperties ) === false );
+
+            // close json data file
+            $path = $ndjsonDataFile->close();
+            $filesInfo[] = $this->googleStorageHandler->uploadFile( config( 'app.cl_export_file_bucket' ), $path, $order->total_rows_quantity );
+
+            // close xslx data file
+            $path = $xlsxDataFile->close();
+            $filesInfo[] = $this->googleStorageHandler->uploadFile( config( 'app.cl_export_file_bucket' ), $path, $order->total_rows_quantity );
 
             // free memory
             unset( $search );
             unset( $selectedSearchedProperties );
-            gc_collect_cycles();
-        } catch ( \Exception $e ) {
-            return $this->sendError( $e->getMessage() );
-        }
-
-        // create excel
-        try {
-
-            $filesInfo[] = $this->fileHandler->createAndUploadFile(
-                [
-                    'header'    => $this->propertyRepository->header,
-                    'body'      => $this->propertyRepository->getSelectedSearchedPropertiesExcelFormat( $order->search_id ),
-                ],
-                $rowsQuantity,
-                $orderCode,
-                'xlsx',
-                config( 'app.cl_export_file_bucket' )
-            );
-
+            unset( $ndjsonDataFile );
+            unset( $xlsxDataFile );
             gc_collect_cycles();
         } catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage() );
@@ -757,5 +837,53 @@ class PropertiesAPIController extends AppBaseController
         $order->save();
 
         return $this->sendResponse( 'OK', 'Properties\' file generated successfully.' );
+    }
+
+    /**
+     * Creates a custom format row for json data file.
+     *
+     * @param array $item The item that needs to be formatted to the row.
+     *
+     * @return string
+     */
+    protected function createJSONRow( array $item ): string
+    {
+        return json_encode( $item, JSON_UNESCAPED_SLASHES );
+    }
+
+    /**
+     * Creates a custom format row for xlsx data file.
+     *
+     * @param array $item The item that needs to be formatted to the row.
+     *
+     * @return array
+     */
+    protected function createXLSXRow( array $item ): array
+    {
+        // discrimination of fields to xlsx file
+        $xlsxFields = collect( $item )->only( array_keys( $this->propertyRepository->header ) )->toArray();
+
+        // merge to avoid non-existent values
+        $dictionary = array_fill_keys( array_keys( $this->propertyRepository->header ), null );
+        $xlsxRow = array_merge( $dictionary, $xlsxFields );
+
+        // formatting that needs to be done
+        $formatting = [
+            'publication_date' => function ( $value ) {
+                return Carbon::createFromFormat( 'Y-m-d H:i:s', $value )->format( 'd-m-Y' );
+            },
+            'distance' => function ( $value ) {
+                return (int)round( $value, 0 );
+            }
+        ];
+
+        // format
+        foreach ( $formatting as $key => $callable ) {
+            if ( empty( $xlsxRow[ $key ] ) === false ) {
+                $xlsxRow[ $key ] = $callable( $xlsxRow[ $key ] );
+            }
+        }
+
+        return $xlsxRow;
     }
 }
