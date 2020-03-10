@@ -96,21 +96,19 @@ Route::get( 'peru_properties/generate_file', '\App\Projects\PeruProperties\Contr
 Route::prefix( 'ecuador_properties' )->middleware( 'auth:api', 'verified' )->group( function () {
 
     // ecuador properties
-
-    Route::get( 'filters/property_type', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@getPropertyTypeFilterData' )->name( 'ecuador_properties.filters.propertyType' );
-
     Route::get( 'filters/publication_type', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@getPublicationTypeFilterData' )->name( 'ecuador_properties.filters.publicationType' );
+    Route::get( 'filters/property_type', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@getPropertyTypeFilterData' )->name( 'peru_properties.filters.propertyType' );
 
-    Route::get( 'ghost_search', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@ghostSearch' )->name( 'ecuador_properties.ghostSearch' )
+    Route::get( 'ghost_search', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@ghostSearch' )->name( 'peru_properties.ghostSearch' )
         ->middleware( 'can:search.properties' );
 
-    Route::post( 'search', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@searchProperties' )->name( 'ecuador_properties.searchProperties' )
+    Route::post( 'search', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@searchProperties' )->name( 'peru_properties.searchProperties' )
         ->middleware( 'can:search.properties' );
 
-    Route::post( 'paginate', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@paginateProperties' )->name( 'ecuador_properties.paginateProperties' )
+    Route::get( 'paginate', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@paginateProperties' )->name( 'peru_properties.paginateProperties' )
         ->middleware( 'can:search.properties' );
 
-    Route::post( 'order', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@order' )->name( 'ecuador_properties.processOrder' )
+    Route::post( 'order', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@order' )->name( 'peru_properties.processOrder' )
         ->middleware( 'can:order.properties' );
 } );
 
