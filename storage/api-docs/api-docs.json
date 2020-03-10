@@ -2444,13 +2444,69 @@
                 ]
             }
         },
+        "/api/peru_properties/count": {
+            "get": {
+                "tags": [
+                    "Peru Properties"
+                ],
+                "summary": "Return the search count",
+                "operationId": "countSearch",
+                "parameters": [
+                    {
+                        "name": "searchId",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Data retrieved successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "integer"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
+                    },
+                    "404": {
+                        "description": "Data not found."
+                    },
+                    "422": {
+                        "description": "The given data was invalid."
+                    }
+                },
+                "security": [
+                    {
+                        "": []
+                    }
+                ]
+            }
+        },
         "/api/peru_properties/paginate": {
             "get": {
                 "tags": [
                     "Peru Properties"
                 ],
                 "summary": "Return the properties that math with given search id",
-                "operationId": "paginateProperties",
+                "operationId": "paginateSearch",
                 "parameters": [
                     {
                         "name": "searchId",

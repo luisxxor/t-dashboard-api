@@ -21,6 +21,11 @@ return [
         'path' => env( 'APP_URL' ) . '/api/ecuador_properties/search',
     ],
 
+    'countSearchURL' => [
+        'method' => 'get',
+        'path' => env( 'APP_URL' ) . '/api/ecuador_properties/count',
+    ],
+
     'paginationURL' => [
         'method' => 'post',
         'path' => env( 'APP_URL' ) . '/api/ecuador_properties/paginate',

@@ -428,6 +428,80 @@ class PropertiesAPIController extends AppBaseController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
+     *     path="/api/peru_properties/count",
+     *     operationId="countSearch",
+     *     tags={"Peru Properties"},
+     *     summary="Return the search count",
+     *     @OA\Parameter(
+     *         name="searchId",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Data retrieved successfully.",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean"
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="integer"
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated."
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Data not found."
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="The given data was invalid."
+     *     ),
+     *     security={
+     *         {"": {}}
+     *     }
+     * )
+     */
+    public function countSearch( Request $request )
+    {
+        $request->validate( [
+            'searchId'      => [ 'required', 'string' ],
+        ] );
+
+        // input
+        $searchId   = $request->get( 'searchId' );
+
+        try {
+            // get search model
+            $search = $this->searchRepository->findOrFail( $searchId );
+
+            $total = $this->propertyRepository->countSearchedProperties( $search );
+        } catch ( \Exception $e ) {
+            return $this->sendError( $e->getMessage() );
+        }
+
+        return $this->sendResponse( $total, 'Search count retrieved successfully.' );
+    }
+
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     *
+     * @OA\Get(
      *     path="/api/ecuador_properties/paginate",
      *     operationId="paginateProperties",
      *     tags={"Ecuador Properties"},

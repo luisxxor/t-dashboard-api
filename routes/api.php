@@ -82,7 +82,10 @@ Route::prefix( 'peru_properties' )->middleware( 'auth:api', 'verified' )->group(
     Route::post( 'search', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@searchProperties' )->name( 'peru_properties.searchProperties' )
         ->middleware( 'can:search.properties' );
 
-    Route::get( 'paginate', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@paginateProperties' )->name( 'peru_properties.paginateProperties' )
+    Route::get( 'paginate', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@paginateSearch' )->name( 'peru_properties.paginateSearch' )
+        ->middleware( 'can:search.properties' );
+
+    Route::get( 'count', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@countSearch' )->name( 'peru_properties.countSearch' )
         ->middleware( 'can:search.properties' );
 
     Route::post( 'order', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@order' )->name( 'peru_properties.processOrder' )
@@ -108,6 +111,9 @@ Route::prefix( 'ecuador_properties' )->middleware( 'auth:api', 'verified' )->gro
     Route::get( 'paginate', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@paginateProperties' )->name( 'peru_properties.paginateProperties' )
         ->middleware( 'can:search.properties' );
 
+    Route::get( 'count', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@countSearch' )->name( 'peru_properties.countSearch' )
+        ->middleware( 'can:search.properties' );
+
     Route::post( 'order', '\App\Projects\EcuadorProperties\Controllers\PropertiesAPIController@order' )->name( 'peru_properties.processOrder' )
         ->middleware( 'can:order.properties' );
 } );
@@ -131,6 +137,9 @@ Route::prefix( 'chile_properties' )->middleware( 'auth:api', 'verified' )->group
         ->middleware( 'can:search.properties' );
 
     Route::post( 'paginate', '\App\Projects\ChileProperties\Controllers\PropertiesAPIController@paginateProperties' )->name( 'chile_properties.paginateProperties' )
+        ->middleware( 'can:search.properties' );
+
+    Route::get( 'count', '\App\Projects\ChileProperties\Controllers\PropertiesAPIController@countSearch' )->name( 'peru_properties.countSearch' )
         ->middleware( 'can:search.properties' );
 
     Route::post( 'order', '\App\Projects\ChileProperties\Controllers\PropertiesAPIController@order' )->name( 'chile_properties.processOrder' )
