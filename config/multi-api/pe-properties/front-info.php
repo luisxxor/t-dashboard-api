@@ -21,6 +21,11 @@ return [
         'path' => env( 'APP_URL' ) . '/api/peru_properties/search',
     ],
 
+    'countSearchURL' => [
+        'method' => 'get',
+        'path' => env( 'APP_URL' ) . '/api/peru_properties/count',
+    ],
+
     'paginationURL' => [
         'method' => 'get',
         'path' => env( 'APP_URL' ) . '/api/peru_properties/paginate',
