@@ -79,6 +79,8 @@ class DataTokensAPIController extends AppBaseController
 
         $data = $request->get( 'data' );
 
+        # TODO: verificar que existe la relacion partner-proyect
+
         $dataToken = $this->dataTokenRepository->create( $data );
 
         return $this->sendResponse( $dataToken->token, 'Data retrieved.' );

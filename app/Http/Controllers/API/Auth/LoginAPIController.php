@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\Auth;
 
 use App\Http\Controllers\AppBaseController;
 use App\Http\Resources\User as UserResource;
+use App\Repositories\Tokens\DataTokenRepository;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 
@@ -85,6 +86,21 @@ class LoginAPIController extends AppBaseController
     protected $maxAttempts = 3;
 
     /**
+     * @var  DataTokenRepository
+     */
+    private $dataTokenRepository;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct( DataTokenRepository $dataTokenRepo )
+    {
+        $this->dataTokenRepository = $dataTokenRepo;
+    }
+
+    /**
      * Validate the user login request.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -98,6 +114,33 @@ class LoginAPIController extends AppBaseController
             $this->username() => 'required|string|max:30',
             'password' => 'required|string|min:8|max:30',
         ] );
+    }
+
+    /**
+     * Attempt to log the user into the application.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return bool
+     */
+    protected function attemptLogin(Request $request)
+    {
+        // validate and get token
+        $request->validate( [ 'token' => [ 'required', 'string', 'exists:data_tokens,token' ] ] );
+        $dataToken = $this->dataTokenRepository->findAndDelete( $request->get( 'token' ) );
+
+        $user = $this->guard()->getLastAttempted();
+
+        $attemptResult = $this->guard()->attempt(
+            $this->credentials( $request ), $request->filled( 'remember' )
+        );
+
+        if ( $attemptResult === true && in_array( $dataToken[ 'data' ], $this->guard()->user()->accessible_projects ) === false ) {
+            # TODO: en este punto el usuario se logueó bien,
+            # pero no tiene acceso al partner-project con el que creó el token.
+            # se debe buscar la manera de loguearlo, pero no dejarlo acceder al partner-project indicado.
+        }
+
+        return $attemptResult;
     }
 
     /**
