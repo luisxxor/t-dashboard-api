@@ -183,8 +183,6 @@ class SocialiteAPIController extends AppBaseController
         // get user info through provider
         $userProvider = Socialite::driver( $provider )->stateless()->user();
 
-        dd( $userProvider );
-
         // get the linked social account if exists
         $linkedSocialAccount = \App\Models\Dashboard\LinkedSocialAccount::where( 'provider_name', $provider )
             ->where( 'provider_id', $userProvider->getId() )
@@ -209,9 +207,6 @@ class SocialiteAPIController extends AppBaseController
                 'provider_name' => $provider,
             ] );
         }
-
-        // login with id
-        # $this->guard()->loginUsingId( $user->id );
 
         // scopes to which the user has access
         $scopes = $user->getScopes();

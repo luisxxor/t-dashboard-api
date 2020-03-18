@@ -5,7 +5,6 @@ namespace App\Http\Controllers\API\Tokens;
 use App\Http\Controllers\AppBaseController;
 use App\Repositories\Dashboard\PartnerRepository;
 use App\Repositories\Tokens\DataTokenRepository;
-use Caffeinated\Shinobi\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
