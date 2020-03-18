@@ -43,6 +43,14 @@ class LoginAPIController extends AppBaseController
      *             type="string"
      *         )
      *     ),
+     *     @OA\Parameter(
+     *         name="token",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
      *      @OA\Response(
      *          response=200,
      *          description="User logged successfully.",
@@ -122,25 +130,15 @@ class LoginAPIController extends AppBaseController
      * @param  \Illuminate\Http\Request  $request
      * @return bool
      */
-    protected function attemptLogin(Request $request)
+    protected function attemptLogin( Request $request )
     {
         // validate and get token
         $request->validate( [ 'token' => [ 'required', 'string', 'exists:data_tokens,token' ] ] );
         $dataToken = $this->dataTokenRepository->findAndDelete( $request->get( 'token' ) );
 
-        $user = $this->guard()->getLastAttempted();
-
-        $attemptResult = $this->guard()->attempt(
+        return $this->guard()->attempt(
             $this->credentials( $request ), $request->filled( 'remember' )
         );
-
-        if ( $attemptResult === true && in_array( $dataToken[ 'data' ], $this->guard()->user()->accessible_projects ) === false ) {
-            # TODO: en este punto el usuario se logueó bien,
-            # pero no tiene acceso al partner-project con el que creó el token.
-            # se debe buscar la manera de loguearlo, pero no dejarlo acceder al partner-project indicado.
-        }
-
-        return $attemptResult;
     }
 
     /**
@@ -153,13 +151,15 @@ class LoginAPIController extends AppBaseController
     {
         $this->clearLoginAttempts( $request );
 
-        // # ver que scopes asignar/crear
-        $scopes = [];
+        $user = $this->guard()->user();
 
-        $accessToken = $this->guard()->user()->createToken( 'authToken', $scopes )->accessToken;
+        // scopes to which the user has access
+        $scopes = $user->getScopes();
+
+        $accessToken = $user->createToken( 'authToken', $scopes )->accessToken;
 
         $response = [
-            'user' => new UserResource( $this->guard()->user() ),
+            'user' => new UserResource( $user ),
             'access_token' => $accessToken,
         ];
 

@@ -12,6 +12,13 @@ class Project extends Model
     const UPDATED_AT = 'updated_at';
 
     /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'code';
+
+    /**
      * The "type" of the primary key ID.
      *
      * @var string

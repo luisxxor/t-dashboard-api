@@ -83,6 +83,14 @@ class RegisterAPIController extends AppBaseController
      *             type="string"
      *         )
      *     ),
+     *     @OA\Parameter(
+     *         name="token",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
      *      @OA\Response(
      *          response=200,
      *          description="User registered successfully.",
@@ -131,8 +139,8 @@ class RegisterAPIController extends AppBaseController
 
         event( new Registered( $user = $this->create( $input ) ) );
 
-        // # ver que scopes asignar/crear
-        $scopes = [];
+        // scopes to which the user has access
+        $scopes = $user->getScopes();
 
         $accessToken = $user->createToken( 'authToken', $scopes )->accessToken;
 

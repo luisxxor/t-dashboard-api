@@ -116,6 +116,22 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get user scopes.
+     *
+     * @return array
+     */
+    public function getScopes()
+    {
+        $accessibleProjects = array_column( $this->accessible_projects, 'project' );
+
+        foreach ( $accessibleProjects as $key => $accessibleProject ) {
+            $accessibleProjects[ $key ] = 'access-' . $accessibleProject;
+        };
+
+        return $accessibleProjects;
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function orders()
