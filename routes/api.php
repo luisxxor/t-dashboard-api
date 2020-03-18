@@ -54,6 +54,12 @@ Route::prefix( 'dashboard' )->middleware( 'auth:api', 'verified' )->group( funct
 
     Route::post( 'payments/process', 'API\Dashboard\OrdersPaymentAPIController@pay' )->name( 'dashboard.payments.pay' )
         ->middleware( 'can:pay.own.order' );
+
+    // projects access
+
+    Route::get( 'projects_access', 'API\Dashboard\ProjectsAccessAPIController@index' )->name( 'dashboard.projects_access.index' );
+
+    Route::post( 'projects_access/request', 'API\Dashboard\ProjectsAccessAPIController@request' )->name( 'dashboard.projects_access.request' );
 } );
 
 Route::prefix( 'admin' )->middleware( 'auth:api', 'verified' )->group( function () {

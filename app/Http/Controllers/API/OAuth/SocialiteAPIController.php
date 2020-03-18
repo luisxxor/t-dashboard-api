@@ -215,7 +215,8 @@ class SocialiteAPIController extends AppBaseController
 
         $response = [
             'user' => new UserResource( $user ),
-            'access_token' => $accessToken,
+            'accessToken' => $accessToken,
+            'attemptedProjectAccess' => $dataToken[ 'data' ],
         ];
 
         return $this->sendResponse( $response, 'User logged successfully.' );

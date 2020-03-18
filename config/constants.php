@@ -14,6 +14,10 @@ return [
     'ORDERS_PENDING_STATUS' => 'pending',
     'ORDERS_TO_PAY_STATUS' => 'to_pay',
 
+    'PROJECT_ACCESS_REQUESTS_PENDING_STATUS' => 'pending',
+    'PROJECT_ACCESS_REQUESTS_APPROVED_STATUS' => 'approved',
+    'PROJECT_ACCESS_REQUESTS_DENIED_STATUS' => 'denied',
+
     'payment_gateways' => [
         'MERCADOPAGO' => 'mercadopago',
     ],

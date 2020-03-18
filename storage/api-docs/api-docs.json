@@ -1207,6 +1207,86 @@
                 ]
             }
         },
+        "/api/dashboard/projects_access": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Display the list of accessible and requested partner-projects.",
+                "operationId": "index",
+                "responses": {
+                    "200": {
+                        "description": "Data retrived.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
+                    }
+                },
+                "security": [
+                    {
+                        "": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/projects_access/request": {
+            "post": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Create an access request to the given partner-project.",
+                "operationId": "request",
+                "responses": {
+                    "200": {
+                        "description": "Request done.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
+                    }
+                },
+                "security": [
+                    {
+                        "": []
+                    }
+                ]
+            }
+        },
         "/api/login/{provider}": {
             "get": {
                 "tags": [

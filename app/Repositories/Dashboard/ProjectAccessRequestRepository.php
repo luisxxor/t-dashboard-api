@@ -2,23 +2,22 @@
 
 namespace App\Repositories\Dashboard;
 
-use App\Models\Dashboard\Partner;
-use App\Models\Dashboard\PartnerProject;
-use App\Models\Dashboard\Project;
+use App\Models\Dashboard\ProjectAccessRequest;
 use App\Repositories\BaseRepository;
 
 /**
- * Class PartnerRepository
+ * Class ProjectAccessRequestRepository
  * @package App\Repositories\Dashboard
- * @version March 18, 2020, 01:10 UTC
+ * @version March 18, 2020, 20:28 UTC
 */
-class PartnerRepository extends BaseRepository
+class ProjectAccessRequestRepository extends BaseRepository
 {
     /**
      * @var array
      */
     protected $fieldSearchable = [
-        'code',
+        'id',
+        'partner_project_id',
     ];
 
     /**
@@ -36,6 +35,6 @@ class PartnerRepository extends BaseRepository
      **/
     public function model()
     {
-        return Partner::class;
+        return ProjectAccessRequest::class;
     }
 }

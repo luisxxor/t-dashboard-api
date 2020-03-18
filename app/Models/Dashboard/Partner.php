@@ -49,12 +49,11 @@ class Partner extends Model
      * @param  Project|string  $project
      * @return boolean
      */
-    public function hasProject( $project ): bool
-    {
-        if ( $project instanceof Project ) {
-            $project = $project->code;
-        }
-
-        return (bool)$this->projects->where( 'code', $project )->count();
-    }
+    // public function hasProject( $project ): bool
+    // {
+    //     if ( $project instanceof Project ) {
+    //         $project = $project->code;
+    //     }
+    //     return (bool)$this->projects->where( 'code', $project )->count();
+    // }
 }

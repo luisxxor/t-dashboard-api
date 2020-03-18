@@ -132,9 +132,8 @@ class LoginAPIController extends AppBaseController
      */
     protected function attemptLogin( Request $request )
     {
-        // validate and get token
+        // validate token
         $request->validate( [ 'token' => [ 'required', 'string', 'exists:data_tokens,token' ] ] );
-        $dataToken = $this->dataTokenRepository->findAndDelete( $request->get( 'token' ) );
 
         return $this->guard()->attempt(
             $this->credentials( $request ), $request->filled( 'remember' )
@@ -149,6 +148,9 @@ class LoginAPIController extends AppBaseController
      */
     protected function sendLoginResponse( Request $request )
     {
+        // get token
+        $dataToken = $this->dataTokenRepository->findAndDelete( $request->get( 'token' ) );
+
         $this->clearLoginAttempts( $request );
 
         $user = $this->guard()->user();
@@ -160,7 +162,8 @@ class LoginAPIController extends AppBaseController
 
         $response = [
             'user' => new UserResource( $user ),
-            'access_token' => $accessToken,
+            'accessToken' => $accessToken,
+            'attemptedProjectAccess' => $dataToken[ 'data' ],
         ];
 
         return $this->sendResponse( $response, 'User logged successfully.' );

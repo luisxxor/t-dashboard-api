@@ -146,4 +146,33 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany( \App\Models\Dashboard\LinkedSocialAccount::class );
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     **/
+    public function projectAccessRequests()
+    {
+        return $this->hasMany( \App\Models\Dashboard\ProjectAccessRequest::class );
+    }
+
+    /**
+     * @return
+     **/
+    public function getProjectAccessRequestList()
+    {
+        $projectAccessRequests = $this->projectAccessRequests;
+
+        $list = [];
+        foreach ( $projectAccessRequests as $projectAccessRequest ) {
+            $partnerProject = $projectAccessRequest->partnerProject;
+
+            $list[] = [
+                'partner' => $partnerProject->partner,
+                'project' => $partnerProject->project,
+                'status' => $projectAccessRequest->status,
+            ];
+        }
+
+        return $list;
+    }
 }

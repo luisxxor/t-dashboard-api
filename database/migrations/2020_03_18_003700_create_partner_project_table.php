@@ -18,11 +18,11 @@ class CreatePartnerProjectTable extends Migration
 
             // partner reference
             $table->string( 'partner_code' );
-            $table->foreign( 'partner_code' )->references( 'code' )->on( 'partners' );
+            $table->foreign( 'partner_code' )->references( 'code' )->on( 'partners' )->onDelete( 'cascade' );
 
             // project reference
             $table->string( 'project_code' );
-            $table->foreign( 'project_code' )->references( 'code' )->on( 'projects' );
+            $table->foreign( 'project_code' )->references( 'code' )->on( 'projects' )->onDelete( 'cascade' );
 
             $table->string( 'default', 10 )->nullable();
 

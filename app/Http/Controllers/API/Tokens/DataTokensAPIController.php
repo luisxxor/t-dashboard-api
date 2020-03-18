@@ -111,8 +111,8 @@ class DataTokensAPIController extends AppBaseController
             ];
         }
 
+        // validate that partner-project exists
         $partner = $this->partnerRepository->find( $data[ 'partner' ] );
-
         if ( $partner === null || $partner->hasProject( $data[ 'project' ] ) === false ) {
             return $this->sendError( 'Partner or project not valid.' );
         }
