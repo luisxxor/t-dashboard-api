@@ -37,4 +37,27 @@ class ProjectAccessRequestRepository extends BaseRepository
     {
         return ProjectAccessRequest::class;
     }
+
+    /**
+     * @return array
+     **/
+    public function getList()
+    {
+        $projectAccessRequests = $this->all();
+
+        $list = [];
+        foreach ( $projectAccessRequests as $projectAccessRequest ) {
+            $partnerProject = $projectAccessRequest->partnerProject;
+
+            $list[] = [
+                'partner' => $partnerProject->partner,
+                'project' => $partnerProject->project,
+                'status' => $projectAccessRequest->status,
+                'user' => $projectAccessRequest->user,
+                'id' => $projectAccessRequest->id,
+            ];
+        }
+
+        return $list;
+    }
 }

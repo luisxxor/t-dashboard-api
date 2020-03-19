@@ -74,6 +74,12 @@ Route::prefix( 'admin' )->middleware( 'auth:api', 'verified' )->group( function 
 
     Route::put( 'users/{userId}', 'API\Admin\UsersAPIController@update' )->name( 'admin.users.update' )
         ->middleware( 'can:manage.users' );
+
+    // projects access
+
+    Route::get( 'projects_access', 'API\Admin\ProjectsAccessAPIController@index' )->name( 'admin.projects_access.index' );
+
+    Route::put( 'projects_access/{projectAccessRequestId}', 'API\Admin\ProjectsAccessAPIController@update' )->name( 'admin.projects_access.update' );
 } );
 
 Route::prefix( 'peru_properties' )->middleware( 'auth:api', 'verified' )->group( function () {

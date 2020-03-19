@@ -11,6 +11,106 @@
         }
     ],
     "paths": {
+        "/api/admin/projects_access": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Display the list of partner-projects access requests.",
+                "operationId": "index",
+                "responses": {
+                    "200": {
+                        "description": "Data retrieved.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
+                    }
+                },
+                "security": [
+                    {
+                        "": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/projects_access/{id}": {
+            "put": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Update the partner-project access request with given data.",
+                "operationId": "update-",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of project_access_requests",
+                        "required": true,
+                        "schema": {
+                            "type": "int"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "approved|denied",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
+                    }
+                },
+                "security": [
+                    {
+                        "": []
+                    }
+                ]
+            }
+        },
         "/api/admin/roles": {
             "get": {
                 "tags": [
@@ -99,6 +199,14 @@
                 "summary": "Update the specified user's with given data",
                 "operationId": "update",
                 "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "int"
+                        }
+                    },
                     {
                         "name": "name",
                         "in": "query",

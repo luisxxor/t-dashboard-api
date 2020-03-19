@@ -161,7 +161,7 @@ class ProjectsAccessAPIController extends AppBaseController
         $projectAccessRequest = $partnerProject->requests()->create(
             [
                 'user_id' => $user->id,
-                'status' => config( 'constants.PROJECT_ACCESS_REQUESTS_PENDING_STATUS' )
+                'status' => config( 'constants.PROJECT_ACCESS_REQUESTS.PENDING_STATUS' )
             ]
         );
 
