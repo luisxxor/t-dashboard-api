@@ -196,10 +196,7 @@ class User extends Authenticatable implements MustVerifyEmail
             $project = $project->code;
         }
 
-        $needle = [
-            'partner' => $partner,
-            'project' => $project,
-        ];
+        $needle = compact( 'partner', 'project' );
 
         return array_search( $needle, $this->accessible_projects ) !== false;
     }
@@ -233,5 +230,32 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         return false;
+    }
+
+    /**
+     * Adds a partner-project to the user.
+     *
+     * @param  Partner|string  $partner
+     * @param  Project|string  $project
+     *
+     * @return bool
+     */
+    public function addAccessibleProject( $partner, $project )
+    {
+        if ( $partner instanceof Partner ) {
+            $partner = $partner->code;
+        }
+
+        if ( $project instanceof Project ) {
+            $project = $project->code;
+        }
+
+        // get actual accessible partner-projects
+        $accessibleProjects = $this->accessible_projects;
+
+        // add requested partner-project to the user
+        $accessibleProjects[] = compact( 'partner', 'project' );
+        $this->accessible_projects = $accessibleProjects;
+        $this->save();
     }
 }

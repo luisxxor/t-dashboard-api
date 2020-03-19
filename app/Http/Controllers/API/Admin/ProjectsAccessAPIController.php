@@ -120,8 +120,16 @@ class ProjectsAccessAPIController extends AppBaseController
      *         )
      *     ),
      *     @OA\Response(
+     *         response=202,
+     *         description="Cannot change status (already approved|denied)."
+     *     ),
+     *     @OA\Response(
      *         response=401,
      *         description="Unauthenticated."
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Not found."
      *     ),
      *     security={
      *         {"": {}}
@@ -137,26 +145,30 @@ class ProjectsAccessAPIController extends AppBaseController
         // input
         $input = $request->only( [ 'status' ] );
 
+        // get projectAccessRequest
+        $projectAccessRequest = $this->projectAccessRequestRepository->find( $id );
+
+        // validate order
+        if ( empty( $projectAccessRequest ) === true ) {
+            return $this->sendError( 'Project access request not found.', [], 404 );
+        }
+
+        // validates if the access requests already has been approved|denied
+        if ( $projectAccessRequest->status === config( 'constants.PROJECT_ACCESS_REQUESTS.APPROVED_STATUS' ) ||
+            $projectAccessRequest->status === config( 'constants.PROJECT_ACCESS_REQUESTS.DENIED_STATUS' ) ) {
+            return $this->sendError( 'Cannot change status (already approved|denied).', [], 202 );
+        }
+
         // if approved...
         if ( $request->get( 'status' ) === config( 'constants.PROJECT_ACCESS_REQUESTS.APPROVED_STATUS' ) ) {
-            // get projectAccessRequest
-            $projectAccessRequest = $this->projectAccessRequestRepository->find( $id );
-
             // get user
             $user = $projectAccessRequest->user;
 
-            $partnerProject = [
-                'partner' => $projectAccessRequest->partnerProject->partner_code,
-                'project' => $projectAccessRequest->partnerProject->project_code,
-            ];
-
-            // get actual accessible partner-projects
-            $accessibleProjects = $user->accessible_projects;
-
-            // add requested partner-project to the user
-            $accessibleProjects[] = $partnerProject;
-            $user->accessible_projects = $accessibleProjects;
-            $user->save();
+            // add partner-project to the user
+            $user->addAccessibleProject(
+                $projectAccessRequest->partnerProject->partner_code,
+                $projectAccessRequest->partnerProject->project_code
+            );
         }
 
         $projectAccessRequest = $this->projectAccessRequestRepository->update( $input, $id );
