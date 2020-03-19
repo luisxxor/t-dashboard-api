@@ -1318,7 +1318,7 @@
         "/api/dashboard/projects_access": {
             "get": {
                 "tags": [
-                    "Dashboard"
+                    "Project Access"
                 ],
                 "summary": "Display the list of accessible and requested partner-projects.",
                 "operationId": "index",
@@ -1358,7 +1358,7 @@
         "/api/dashboard/projects_access/request": {
             "post": {
                 "tags": [
-                    "Dashboard"
+                    "Project Access"
                 ],
                 "summary": "Create an access request to the given partner-project.",
                 "operationId": "request",

@@ -41,7 +41,7 @@ class ProjectsAccessAPIController extends AppBaseController
      * @OA\Get(
      *     path="/api/dashboard/projects_access",
      *     operationId="index",
-     *     tags={"Dashboard"},
+     *     tags={"Project Access"},
      *     summary="Display the list of accessible and requested partner-projects.",
      *     @OA\Response(
      *         response=200,
@@ -93,7 +93,7 @@ class ProjectsAccessAPIController extends AppBaseController
      * @OA\Post(
      *     path="/api/dashboard/projects_access/request",
      *     operationId="request",
-     *     tags={"Dashboard"},
+     *     tags={"Project Access"},
      *     summary="Create an access request to the given partner-project.",
      *     @OA\Response(
      *         response=200,
