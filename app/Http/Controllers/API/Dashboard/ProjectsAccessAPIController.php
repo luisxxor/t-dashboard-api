@@ -140,6 +140,14 @@ class ProjectsAccessAPIController extends AppBaseController
 
         $user = auth()->user();
 
+        // get partner-project
+        $partnerProject = $this->partnerProjectRepository->getPartnerProject( $partnerCode, $projectCode );
+
+        // validate that the partner-project is valid
+        if ( empty( $partnerProject ) === true ) {
+            return $this->sendError( 'Partner or project not valid.' );
+        }
+
         // validates if the user has already access to this partner-project
         if ( $user->hasPartnerProjectAccess( $partnerCode, $projectCode ) === true ) {
             return $this->sendResponse( [], 'User already has the given partner-project.', 202 );
@@ -148,12 +156,6 @@ class ProjectsAccessAPIController extends AppBaseController
         // validates if the user has a created request for this partner-project
         if ( $user->hasPartnerProjectRequest( $partnerCode, $projectCode ) === true ) {
             return $this->sendResponse( [], 'User has a created request for this partner-project.', 202 );
-        }
-
-        $partnerProject = $this->partnerProjectRepository->getPartnerProject( $partnerCode, $projectCode );
-
-        if ( empty( $partnerProject ) === true ) {
-            return $this->sendError( 'Partner or project not valid.' );
         }
 
         $projectAccessRequest = $partnerProject->requests()->create(

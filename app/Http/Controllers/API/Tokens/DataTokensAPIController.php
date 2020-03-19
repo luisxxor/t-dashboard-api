@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\API\Tokens;
 
 use App\Http\Controllers\AppBaseController;
-use App\Repositories\Dashboard\PartnerRepository;
+use App\Repositories\Dashboard\PartnerProjectRepository;
 use App\Repositories\Tokens\DataTokenRepository;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -20,9 +20,9 @@ class DataTokensAPIController extends AppBaseController
     private $dataTokenRepository;
 
     /**
-     * @var  PartnerRepository
+     * @var  PartnerProjectRepository
      */
-    private $partnerRepository;
+    private $partnerProjectRepository;
 
     /**
      * Create a new controller instance.
@@ -30,10 +30,10 @@ class DataTokensAPIController extends AppBaseController
      * @return void
      */
     public function __construct( DataTokenRepository $dataTokenRepo,
-        PartnerRepository $partnerRepo )
+        PartnerProjectRepository $partnerProjectRepo )
     {
         $this->dataTokenRepository = $dataTokenRepo;
-        $this->partnerRepository = $partnerRepo;
+        $this->partnerProjectRepository = $partnerProjectRepo;
     }
 
     /**
@@ -97,9 +97,9 @@ class DataTokensAPIController extends AppBaseController
 
         $data = $request->get( 'data' );
 
-        // if there is no given partner-project
+        // if there is no given partner-project, get default
         if ( $data === null ) {
-            $default = $this->partnerRepository->getDefaultPartnerProject();
+            $default = $this->partnerProjectRepository->getDefaultPartnerProject();
 
             if ( $default === null ) {
                 return $this->sendError( 'There is no default partner-project.' );
@@ -110,11 +110,12 @@ class DataTokensAPIController extends AppBaseController
                 'partner' => $default->partner_code,
             ];
         }
-
-        // validate that partner-project exists
-        $partner = $this->partnerRepository->find( $data[ 'partner' ] );
-        if ( $partner === null || $partner->hasProject( $data[ 'project' ] ) === false ) {
-            return $this->sendError( 'Partner or project not valid.' );
+        else {
+            // validate that the partner-project is valid
+            $partnerProject = $this->partnerProjectRepository->getPartnerProject( $data[ 'partner' ], $data[ 'project' ] );
+            if ( empty( $partnerProject ) === true ) {
+                return $this->sendError( 'Partner or project not valid.' );
+            }
         }
 
         $dataToken = $this->dataTokenRepository->create( $data );

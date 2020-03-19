@@ -42,18 +42,4 @@ class Partner extends Model
     {
         return $this->belongsToMany( Project::class, 'partner_project', 'partner_code', 'project_code' );
     }
-
-    /**
-     * Checks if the partner has the given project associated.
-     *
-     * @param  Project|string  $project
-     * @return boolean
-     */
-    // public function hasProject( $project ): bool
-    // {
-    //     if ( $project instanceof Project ) {
-    //         $project = $project->code;
-    //     }
-    //     return (bool)$this->projects->where( 'code', $project )->count();
-    // }
 }
