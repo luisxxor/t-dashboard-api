@@ -45,7 +45,7 @@ class ProjectsAccessAPIController extends AppBaseController
      *     summary="Display the list of accessible and requested partner-projects.",
      *     @OA\Response(
      *         response=200,
-     *         description="Data retrived.",
+     *         description="Data retrieved.",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(
@@ -115,6 +115,10 @@ class ProjectsAccessAPIController extends AppBaseController
      *         )
      *     ),
      *     @OA\Response(
+     *         response=202,
+     *         description="Accepted. User already has the given partner-project or has a created request for this partner-project"
+     *     ),
+     *     @OA\Response(
      *         response=401,
      *         description="Unauthenticated."
      *     ),
@@ -136,9 +140,15 @@ class ProjectsAccessAPIController extends AppBaseController
 
         $user = auth()->user();
 
-        # TODO: validar si el usuario ya tiene acceso a este project
+        // validates if the user has already access to this partner-project
+        if ( $user->hasPartnerProjectAccess( $partnerCode, $projectCode ) === true ) {
+            return $this->sendResponse( [], 'User already has the given partner-project.', 202 );
+        }
 
-        # TODO: validar si el usuario ya tiene una solicitud de acceso a este project
+        // validates if the user has a created request for this partner-project
+        if ( $user->hasPartnerProjectRequest( $partnerCode, $projectCode ) === true ) {
+            return $this->sendResponse( [], 'User has a created request for this partner-project.', 202 );
+        }
 
         $partnerProject = $this->partnerProjectRepository->getPartnerProject( $partnerCode, $projectCode );
 

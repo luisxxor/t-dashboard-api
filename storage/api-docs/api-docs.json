@@ -1216,7 +1216,7 @@
                 "operationId": "index",
                 "responses": {
                     "200": {
-                        "description": "Data retrived.",
+                        "description": "Data retrieved.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1275,6 +1275,9 @@
                                 }
                             }
                         }
+                    },
+                    "202": {
+                        "description": "Accepted. User already has the given partner-project or has a created request for this partner-project"
                     },
                     "401": {
                         "description": "Unauthenticated."

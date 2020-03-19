@@ -2,6 +2,8 @@
 
 namespace App\Models\Dashboard;
 
+use App\Models\Dashboard\Partner;
+use App\Models\Dashboard\Project;
 use App\Notifications\ResetPassword as ResetPasswordNotification;
 use App\Notifications\VerifyEmail as VerifyEmailNotification;
 use Caffeinated\Shinobi\Concerns\HasRolesAndPermissions;
@@ -156,11 +158,11 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * @return
+     * @return array
      **/
     public function getProjectAccessRequestList()
     {
-        $projectAccessRequests = $this->projectAccessRequests;
+        $projectAccessRequests = $this->projectAccessRequests()->with( 'partnerProject' )->get();
 
         $list = [];
         foreach ( $projectAccessRequests as $projectAccessRequest ) {
@@ -174,5 +176,62 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         return $list;
+    }
+
+    /**
+     * Checks if the user has the given partner-project associated.
+     *
+     * @param  Partner|string  $partner
+     * @param  Project|string  $project
+     *
+     * @return boolean
+     */
+    public function hasPartnerProjectAccess( $partner, $project )
+    {
+        if ( $partner instanceof Partner ) {
+            $partner = $partner->code;
+        }
+
+        if ( $project instanceof Project ) {
+            $project = $project->code;
+        }
+
+        $needle = [
+            'partner' => $partner,
+            'project' => $project,
+        ];
+
+        return array_search( $needle, $this->accessible_projects ) !== false;
+    }
+
+    /**
+     * Checks if the user has a created requser for the given partner-project.
+     *
+     * @param  Partner|string  $partner
+     * @param  Project|string  $project
+     *
+     * @return boolean
+     */
+    public function hasPartnerProjectRequest( $partner, $project )
+    {
+        if ( $partner instanceof Partner ) {
+            $partner = $partner->code;
+        }
+
+        if ( $project instanceof Project ) {
+            $project = $project->code;
+        }
+
+        $projectAccessRequests = $this->projectAccessRequests()->with( 'partnerProject' )->get();
+
+        foreach ( $projectAccessRequests as $projectAccessRequest ) {
+            $partnerProject = $projectAccessRequest->partnerProject;
+
+            if ( $partnerProject->partner_code === $partner && $partnerProject->project_code === $project ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
