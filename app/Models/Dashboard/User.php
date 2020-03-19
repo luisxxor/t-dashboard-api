@@ -250,6 +250,11 @@ class User extends Authenticatable implements MustVerifyEmail
             $project = $project->code;
         }
 
+        // prevent accesses from overlapping
+        if ( $this->hasPartnerProjectAccess( $partner, $project ) === true ) {
+            return true;
+        }
+
         // get actual accessible partner-projects
         $accessibleProjects = $this->accessible_projects;
 
