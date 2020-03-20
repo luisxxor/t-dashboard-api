@@ -181,22 +181,16 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Checks if the user has the given partner-project associated.
      *
-     * @param  Partner|string  $partner
-     * @param  Project|string  $project
+     * @param  \App\Models\Dashboard\PartnerProject  $$partnerProject
      *
      * @return boolean
      */
-    public function hasPartnerProjectAccess( $partner, $project )
+    public function hasPartnerProjectAccess( $partnerProject )
     {
-        if ( $partner instanceof Partner ) {
-            $partner = $partner->code;
-        }
-
-        if ( $project instanceof Project ) {
-            $project = $project->code;
-        }
-
-        $needle = compact( 'partner', 'project' );
+        $needle = [
+            'partner' => $partnerProject->partner_code,
+            'project' => $partnerProject->project_code,
+        ];
 
         return array_search( $needle, $this->accessible_projects ) !== false;
     }
@@ -204,62 +198,42 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Checks if the user has a created requser for the given partner-project.
      *
-     * @param  Partner|string  $partner
-     * @param  Project|string  $project
+     * @param  \App\Models\Dashboard\PartnerProject  $$partnerProject
      *
      * @return boolean
      */
-    public function hasPartnerProjectRequest( $partner, $project )
+    public function hasPartnerProjectPendingRequest( $partnerProject )
     {
-        if ( $partner instanceof Partner ) {
-            $partner = $partner->code;
-        }
-
-        if ( $project instanceof Project ) {
-            $project = $project->code;
-        }
-
-        $projectAccessRequests = $this->projectAccessRequests()->with( 'partnerProject' )->get();
-
-        foreach ( $projectAccessRequests as $projectAccessRequest ) {
-            $partnerProject = $projectAccessRequest->partnerProject;
-
-            if ( $partnerProject->partner_code === $partner && $partnerProject->project_code === $project ) {
-                return true;
-            }
-        }
-
-        return false;
+        return (bool)$this->projectAccessRequests()
+            ->where( 'partner_project_id', $partnerProject->id )
+            ->where( 'status', config( 'constants.PROJECT_ACCESS_REQUESTS.PENDING_STATUS' ) )
+            ->count();
     }
 
     /**
      * Adds a partner-project to the user.
      *
-     * @param  Partner|string  $partner
-     * @param  Project|string  $project
+     * @param  \App\Models\Dashboard\PartnerProject  $$partnerProject
      *
      * @return bool
      */
-    public function addAccessibleProject( $partner, $project )
+    public function addAccessibleProject( $partnerProject )
     {
-        if ( $partner instanceof Partner ) {
-            $partner = $partner->code;
-        }
-
-        if ( $project instanceof Project ) {
-            $project = $project->code;
-        }
-
         // prevent accesses from overlapping
-        if ( $this->hasPartnerProjectAccess( $partner, $project ) === true ) {
+        if ( $this->hasPartnerProjectAccess( $partnerProject ) === true ) {
             return true;
         }
+
+        $newPartnerProject = [
+            'partner' => $partnerProject->partner_code,
+            'project' => $partnerProject->project_code,
+        ];
 
         // get actual accessible partner-projects
         $accessibleProjects = $this->accessible_projects;
 
         // add requested partner-project to the user
-        $accessibleProjects[] = compact( 'partner', 'project' );
+        $accessibleProjects[] = $newPartnerProject;
         $this->accessible_projects = $accessibleProjects;
         $this->save();
     }

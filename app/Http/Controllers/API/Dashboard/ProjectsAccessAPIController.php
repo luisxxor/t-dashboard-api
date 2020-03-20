@@ -149,12 +149,12 @@ class ProjectsAccessAPIController extends AppBaseController
         }
 
         // validates if the user has already access to this partner-project
-        if ( $user->hasPartnerProjectAccess( $partnerCode, $projectCode ) === true ) {
+        if ( $user->hasPartnerProjectAccess( $partnerProject ) === true ) {
             return $this->sendResponse( [], 'User already has the given partner-project.', 202 );
         }
 
         // validates if the user has a created request for this partner-project
-        if ( $user->hasPartnerProjectRequest( $partnerCode, $projectCode ) === true ) {
+        if ( $user->hasPartnerProjectPendingRequest( $partnerProject ) === true ) {
             return $this->sendResponse( [], 'User has a created request for this partner-project.', 202 );
         }
 

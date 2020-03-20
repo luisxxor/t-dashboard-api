@@ -165,10 +165,7 @@ class ProjectsAccessAPIController extends AppBaseController
             $user = $projectAccessRequest->user;
 
             // add partner-project to the user
-            $user->addAccessibleProject(
-                $projectAccessRequest->partnerProject->partner_code,
-                $projectAccessRequest->partnerProject->project_code
-            );
+            $user->addAccessibleProject( $projectAccessRequest->partnerProject );
         }
 
         $projectAccessRequest = $this->projectAccessRequestRepository->update( $input, $id );
