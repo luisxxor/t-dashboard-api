@@ -99,6 +99,14 @@ class UsersAPIController extends AppBaseController
      *     tags={"Admin"},
      *     summary="Update the specified user's with given data",
      *     @OA\Parameter(
+     *         name="userId",
+     *         required=true,
+     *         in="path",
+     *         @OA\Schema(
+     *             type="int"
+     *         )
+     *     ),
+     *     @OA\Parameter(
      *         name="name",
      *         required=true,
      *         in="query",

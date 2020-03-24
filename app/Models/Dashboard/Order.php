@@ -83,7 +83,7 @@ class Order extends Model
      **/
     public function user()
     {
-        return $this->belongsTo(\App\Models\Dashboard\User::class);
+        return $this->belongsTo( \App\Models\Dashboard\User::class );
     }
 
     /**

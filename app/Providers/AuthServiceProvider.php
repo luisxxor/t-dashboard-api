@@ -32,5 +32,11 @@ class AuthServiceProvider extends ServiceProvider
         Passport::tokensExpireIn( now()->addHour() );
         // Passport::refreshTokensExpireIn(now()->addDays(30));
         // Passport::personalAccessTokensExpireIn(now()->addMonths(6));
+
+        Passport::tokensCan( [
+            'access-pe-properties' => 'Acceder a Propiedades Perú',
+            'access-cl-properties' => 'Acceder a Propiedades Chile',
+            'access-ec-properties' => 'Acceder a Propiedades Ecuador',
+        ] );
     }
 }

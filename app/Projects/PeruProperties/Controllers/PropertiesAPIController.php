@@ -95,6 +95,10 @@ class PropertiesAPIController extends AppBaseController
      *         response=401,
      *         description="Unauthenticated."
      *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Access Denied. User has no access to this proyect."
+     *     ),
      *     security={
      *         {"": {}}
      *     }
@@ -174,6 +178,10 @@ class PropertiesAPIController extends AppBaseController
      *     @OA\Response(
      *         response=401,
      *         description="Unauthenticated."
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Access Denied. User has no access to this proyect."
      *     ),
      *     @OA\Response(
      *         response=422,
@@ -296,6 +304,10 @@ class PropertiesAPIController extends AppBaseController
      *         description="Unauthenticated."
      *     ),
      *     @OA\Response(
+     *         response=403,
+     *         description="Access Denied. User has no access to this proyect."
+     *     ),
+     *     @OA\Response(
      *         response=422,
      *         description="The given data was invalid."
      *     ),
@@ -399,6 +411,10 @@ class PropertiesAPIController extends AppBaseController
      *     @OA\Response(
      *         response=401,
      *         description="Unauthenticated."
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Access Denied. User has no access to this proyect."
      *     ),
      *     @OA\Response(
      *         response=404,
@@ -517,6 +533,10 @@ class PropertiesAPIController extends AppBaseController
      *         description="Unauthenticated."
      *     ),
      *     @OA\Response(
+     *         response=403,
+     *         description="Access Denied. User has no access to this proyect."
+     *     ),
+     *     @OA\Response(
      *         response=404,
      *         description="Order not found."
      *     ),
@@ -624,6 +644,10 @@ class PropertiesAPIController extends AppBaseController
      *     @OA\Response(
      *         response=401,
      *         description="Unauthenticated."
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Access Denied. User has no access to this proyect."
      *     ),
      *     @OA\Response(
      *         response=404,

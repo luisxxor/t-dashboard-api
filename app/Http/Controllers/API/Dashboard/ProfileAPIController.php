@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\API\Dashboard;
 
 use App\Http\Controllers\AppBaseController;
-use App\Http\Requests\API\Dashboard\UpdateProfileAPIRequest;
 use App\Http\Resources\User as UserResource;
 use App\Repositories\Dashboard\UserRepository;
 use App\Rules\CurrentPassword;
@@ -32,7 +31,6 @@ class ProfileAPIController extends AppBaseController
     }
 
     /**
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
@@ -76,7 +74,7 @@ class ProfileAPIController extends AppBaseController
     }
 
     /**
-     * @param UpdateProfileAPIRequest $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Put(

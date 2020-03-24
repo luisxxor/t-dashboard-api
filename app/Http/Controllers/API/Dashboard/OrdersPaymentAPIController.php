@@ -5,7 +5,6 @@ namespace App\Http\Controllers\API\Dashboard;
 use App\Billing\MercadopagoPaymentGateway;
 use App\Billing\PaymentGatewayContract;
 use App\Http\Controllers\AppBaseController;
-use App\Models\Dashboard\Order;
 use App\Repositories\Dashboard\OrderRepository;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;

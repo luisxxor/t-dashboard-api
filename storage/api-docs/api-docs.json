@@ -11,6 +11,112 @@
         }
     ],
     "paths": {
+        "/api/admin/projects_access": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Display the list of partner-projects access requests.",
+                "operationId": "index",
+                "responses": {
+                    "200": {
+                        "description": "Data retrieved.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
+                    }
+                },
+                "security": [
+                    {
+                        "": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/projects_access/{id}": {
+            "put": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Update the partner-project access request with given data.",
+                "operationId": "update-",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of project_access_requests",
+                        "required": true,
+                        "schema": {
+                            "type": "int"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "approved|denied",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "202": {
+                        "description": "Cannot change status (already approved|denied)."
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
+                    },
+                    "404": {
+                        "description": "Not found."
+                    }
+                },
+                "security": [
+                    {
+                        "": []
+                    }
+                ]
+            }
+        },
         "/api/admin/roles": {
             "get": {
                 "tags": [
@@ -99,6 +205,14 @@
                 "summary": "Update the specified user's with given data",
                 "operationId": "update",
                 "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "int"
+                        }
+                    },
                     {
                         "name": "name",
                         "in": "query",
@@ -273,6 +387,14 @@
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
@@ -353,6 +475,14 @@
                     },
                     {
                         "name": "password_confirmation",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "token",
                         "in": "query",
                         "required": true,
                         "schema": {
@@ -1191,6 +1321,89 @@
                 ]
             }
         },
+        "/api/dashboard/projects_access": {
+            "get": {
+                "tags": [
+                    "Project Access"
+                ],
+                "summary": "Display the list of accessible and requested partner-projects.",
+                "operationId": "index",
+                "responses": {
+                    "200": {
+                        "description": "Data retrieved.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
+                    }
+                },
+                "security": [
+                    {
+                        "": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/projects_access/request": {
+            "post": {
+                "tags": [
+                    "Project Access"
+                ],
+                "summary": "Create an access request to the given partner-project.",
+                "operationId": "request",
+                "responses": {
+                    "200": {
+                        "description": "Request done.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "202": {
+                        "description": "Accepted. User already has the given partner-project or has a created request for this partner-project"
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
+                    }
+                },
+                "security": [
+                    {
+                        "": []
+                    }
+                ]
+            }
+        },
         "/api/login/{provider}": {
             "get": {
                 "tags": [
@@ -1202,6 +1415,14 @@
                     {
                         "name": "provider",
                         "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "token",
+                        "in": "query",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -1251,6 +1472,14 @@
                     },
                     {
                         "name": "code",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "token",
                         "in": "query",
                         "required": true,
                         "schema": {
@@ -2256,6 +2485,9 @@
                     },
                     "401": {
                         "description": "Unauthenticated."
+                    },
+                    "403": {
+                        "description": "Access Denied. User has no access to this proyect."
                     }
                 },
                 "security": [
@@ -2328,6 +2560,9 @@
                     },
                     "401": {
                         "description": "Unauthenticated."
+                    },
+                    "403": {
+                        "description": "Access Denied. User has no access to this proyect."
                     },
                     "422": {
                         "description": "The given data was invalid."
@@ -2433,6 +2668,9 @@
                     "401": {
                         "description": "Unauthenticated."
                     },
+                    "403": {
+                        "description": "Access Denied. User has no access to this proyect."
+                    },
                     "422": {
                         "description": "The given data was invalid."
                     }
@@ -2485,6 +2723,9 @@
                     },
                     "401": {
                         "description": "Unauthenticated."
+                    },
+                    "403": {
+                        "description": "Access Denied. User has no access to this proyect."
                     },
                     "404": {
                         "description": "Data not found."
@@ -2584,6 +2825,9 @@
                     "401": {
                         "description": "Unauthenticated."
                     },
+                    "403": {
+                        "description": "Access Denied. User has no access to this proyect."
+                    },
                     "404": {
                         "description": "Order not found."
                     },
@@ -2660,6 +2904,9 @@
                     },
                     "401": {
                         "description": "Unauthenticated."
+                    },
+                    "403": {
+                        "description": "Access Denied. User has no access to this proyect."
                     },
                     "404": {
                         "description": "Order not found."
