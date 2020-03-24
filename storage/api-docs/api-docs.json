@@ -100,8 +100,14 @@
                             }
                         }
                     },
+                    "202": {
+                        "description": "Cannot change status (already approved|denied)."
+                    },
                     "401": {
                         "description": "Unauthenticated."
+                    },
+                    "404": {
+                        "description": "Not found."
                     }
                 },
                 "security": [
