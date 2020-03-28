@@ -119,7 +119,7 @@ class OrdersPaymentAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=403,
-     *         description="Access Denied."
+     *         description="Access Denied. User is not the owner of this order."
      *     ),
      *     @OA\Response(
      *         response=404,

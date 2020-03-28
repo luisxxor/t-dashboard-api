@@ -43,6 +43,11 @@ class PropertiesAPIController extends AppBaseController
     private $orderRepository;
 
     /**
+     * @var string The project in app
+     */
+    private $projectCode = 'pe-properties';
+
+    /**
      * Create a new controller instance.
      *
      * @return void
@@ -639,7 +644,7 @@ class PropertiesAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=400,
-     *         description=" Bad Request."
+     *         description="Bad Request."
      *     ),
      *     @OA\Response(
      *         response=401,
@@ -676,8 +681,15 @@ class PropertiesAPIController extends AppBaseController
         // get user
         $user = auth()->user();
 
-        // get order if exist
-        $order = $this->orderRepository->findByField( 'search_id', $searchId )->first();
+        // check if user has active subscriptions for this project
+        if ( $user->hasActiveSubscriptionsForProject( $this->projectCode ) === false ) {
+            return $this->sendError( 'No puede crear orden porque su subscripcion esta vencida o no tiene', [], 402 );
+        }
+
+        // check if user can make an order for given project
+        if ( $user->canOrder( $this->projectCode ) === false && $user->hasPermissionTo( 'release.order.without.paying' ) === false ) {
+            return $this->sendError( 'couta de descargas agotadas.', [], 409 );
+        }
 
         try {
             // get search model
@@ -694,13 +706,18 @@ class PropertiesAPIController extends AppBaseController
             $total = count( $ids );
         }
 
+        // get order if exist
+        $order = $this->orderRepository->findByField( 'search_id', $searchId )->first();
+
+        dd( 'stop' );
+
         // if order doesn't exist
         if ( empty( $order ) === true ) {
             // create order
             $order = $this->orderRepository->create( [
                 'user_id'               => $user->id,
                 'search_id'             => $searchId,
-                'project'               => config( 'multi-api.pe-properties.backend-info.code' ),
+                'project'               => config( 'multi-api.' . $this->projectCode . '.backend-info.code' ),
                 'total_rows_quantity'   => $total,
                 'status'                => config( 'constants.ORDERS_OPENED_STATUS' ),
             ] );
@@ -720,7 +737,7 @@ class PropertiesAPIController extends AppBaseController
             $guzzleClient = new GuzzleClient( [ 'base_uri' => url( '/' ), 'timeout' => 30.0 ] );
             $guzzleClient->sendAsync( new GuzzleRequest(
                 'GET',
-                route( 'api.' . config( 'multi-api.pe-properties.backend-info.generate_file_url' ), [], false ),
+                route( 'api.' . config( 'multi-api.' . $this->projectCode . '.backend-info.generate_file_url' ), [], false ),
                 [ 'Content-type' => 'application/json' ],
                 json_encode( [ 'orderCode' => $order->code ] )
             ) )->wait( false );
@@ -734,6 +751,16 @@ class PropertiesAPIController extends AppBaseController
 
         // return payment init point link
         return $this->sendResponse( $order, 'Ordered successfully.' );
+
+        /*
+            tiene que retornar:
+                - 200 Ordered successfully. En caso de usuario con Plan cero (debe pagar la descarga en /pay) SOLO PERU
+                - 201 Ordered successfully, file generated. En caso de (i) usuario vip o (ii) usuario con subscripcion activa y cuota de
+                                      descargas no agotadas.
+                - 402 error: No puede crear orden porque su subscripcion no esta activa. En caso de
+                      subscripcion inactiva (vencida o cancelada o no tiene)
+                - 409 error: couta de descargas agotadas.
+        */
     }
 
     /**

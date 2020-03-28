@@ -2,10 +2,10 @@
 
 namespace App\Models\Dashboard;
 
-use App\Models\Dashboard\Partner;
 use App\Models\Dashboard\Project;
 use App\Notifications\ResetPassword as ResetPasswordNotification;
 use App\Notifications\VerifyEmail as VerifyEmailNotification;
+use App\Traits\Subscriptions\HasSubscriptions;
 use Caffeinated\Shinobi\Concerns\HasRolesAndPermissions;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -16,7 +16,7 @@ use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use Notifiable, HasRolesAndPermissions, SoftDeletes, HasApiTokens;
+    use Notifiable, HasRolesAndPermissions, SoftDeletes, HasApiTokens, HasSubscriptions;
 
     protected $dates = [ 'deleted_at' ];
 
@@ -74,6 +74,8 @@ class User extends Authenticatable implements MustVerifyEmail
     public static $rules = [
         //
     ];
+
+    protected $activeSubscriptionsForProject = [];
 
     /**
      * Send the password reset notification.
@@ -213,7 +215,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Adds a partner-project to the user.
      *
-     * @param  \App\Models\Dashboard\PartnerProject  $$partnerProject
+     * @param  \App\Models\Dashboard\PartnerProject  $partnerProject
      *
      * @return bool
      */
@@ -236,5 +238,103 @@ class User extends Authenticatable implements MustVerifyEmail
         $accessibleProjects[] = $newPartnerProject;
         $this->accessible_projects = $accessibleProjects;
         $this->save();
+    }
+
+    /**
+     * Returns the active subscriptions of the user for given project.
+     *
+     * @param  \App\Models\Dashboard\Project|string  $project
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function activeSubscriptionsForProject( $project )
+    {
+        if ( $project instanceof Project ) {
+            $project = $project->code;
+        }
+
+        if ( in_array( $project, $this->activeSubscriptionsForProject ) ) {
+            return $this->activeSubscriptionsForProject[ $project ];
+        }
+
+        $activeSubscriptions = collect();
+
+        foreach ( $this->activeSubscriptions() as $subscription ) {
+            $partnerProject = $subscription->partnerProjectPlan->partnerProject;
+
+            if ( $partnerProject->project_code === $project ) {
+                $subscription->sort_order = $subscription->partnerProjectPlan->plan->sort_order;
+                $activeSubscriptions->push( $subscription );
+            }
+        }
+
+        $this->activeSubscriptionsForProject[ $project ] = $activeSubscriptions->sortByDesc( 'sort_order' )->values();
+
+        return $this->activeSubscriptionsForProject[ $project ];
+    }
+
+    /**
+     * Check if user has active subscriptions for given project.
+     *
+     * @param  \App\Models\Dashboard\Project|string  $project
+     *
+     * @return bool
+     */
+    public function hasActiveSubscriptionsForProject( $project ): bool
+    {
+        // get user's active subscriptions for this project
+        $activeSubscriptionsForProject = in_array( $project, $this->activeSubscriptionsForProject )
+            ? $this->activeSubscriptionsForProject[ $project ]
+            : $this->activeSubscriptionsForProject( $project );
+
+        return (bool)$activeSubscriptionsForProject->count();
+    }
+
+    /**
+     * Check if user can make an order for given project.
+     * This is determined by validating whether the user has a
+     * monthly subscription in that project with remaning usage
+     * or a pay-per-download subscription in that project.
+     *
+     * @param  \App\Models\Dashboard\Project|string  $project
+     *
+     * @return bool
+     */
+    public function canOrder( $project ): bool
+    {
+        if ( $project instanceof Project ) {
+            $project = $project->code;
+        }
+
+        // get user's active subscriptions for this project
+        $activeSubscriptionsForProject = in_array( $project, $this->activeSubscriptionsForProject )
+            ? $this->activeSubscriptionsForProject[ $project ]
+            : $this->activeSubscriptionsForProject( $project );
+
+        $canOrderByMonthlySubscription = false;
+        $canOrderByPayPerDownloadSubscription = false;
+        foreach ( $activeSubscriptionsForProject as $userSubscription ) {
+            // ask if the user can order by monthly subscription
+            $canOrderByMonthlySubscription = $userSubscription->canUseFeature( 'limited-monthly-downloads' );
+
+            if ( $canOrderByMonthlySubscription === true ) {
+                // record usage in subscription
+                $userSubscription->recordFeatureUsage( 'limited-monthly-downloads' ); # separar esto. que el record sea en el controller
+                break;
+            }
+            else {
+                // ask if the user can order by pay-per-download subscription
+                $canOrderByPayPerDownloadSubscription = $userSubscription->canUseFeature( 'pay-per-download' );
+                if ( $canOrderByPayPerDownloadSubscription === true ) {
+                    break;
+                }
+            }
+        }
+
+        if ( $canOrderByMonthlySubscription === true || $canOrderByPayPerDownloadSubscription === true ) {
+            return true;
+        }
+
+        return false;
     }
 }
