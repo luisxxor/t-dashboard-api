@@ -11,6 +11,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Passport\HasApiTokens;
 
@@ -75,7 +76,25 @@ class User extends Authenticatable implements MustVerifyEmail
         //
     ];
 
+    /**
+     * @var array
+     */
     protected $activeSubscriptionsForProject = [];
+
+    /**
+     * @var \App\Models\Subscriptions\PlanSubscription
+     */
+    protected $currentSubscription;
+
+    /**
+     * @var string
+     */
+    protected $currentFeature;
+
+    /**
+     * @var bool
+     */
+    protected $canReleaseOrderBySubscription;
 
     /**
      * Send the password reset notification.
@@ -245,9 +264,9 @@ class User extends Authenticatable implements MustVerifyEmail
      *
      * @param  \App\Models\Dashboard\Project|string  $project
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return \Illuminate\Support\Collection
      */
-    public function activeSubscriptionsForProject( $project )
+    public function activeSubscriptionsForProject( $project ): Collection
     {
         if ( $project instanceof Project ) {
             $project = $project->code;
@@ -282,6 +301,10 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function hasActiveSubscriptionsForProject( $project ): bool
     {
+        if ( $project instanceof Project ) {
+            $project = $project->code;
+        }
+
         // get user's active subscriptions for this project
         $activeSubscriptionsForProject = in_array( $project, $this->activeSubscriptionsForProject )
             ? $this->activeSubscriptionsForProject[ $project ]
@@ -300,7 +323,7 @@ class User extends Authenticatable implements MustVerifyEmail
      *
      * @return bool
      */
-    public function canOrder( $project ): bool
+    public function canOrderBySubscription( $project ): bool
     {
         if ( $project instanceof Project ) {
             $project = $project->code;
@@ -318,14 +341,18 @@ class User extends Authenticatable implements MustVerifyEmail
             $canOrderByMonthlySubscription = $userSubscription->canUseFeature( 'limited-monthly-downloads' );
 
             if ( $canOrderByMonthlySubscription === true ) {
-                // record usage in subscription
-                $userSubscription->recordFeatureUsage( 'limited-monthly-downloads' ); # separar esto. que el record sea en el controller
+                $this->currentFeature = 'limited-monthly-downloads';
+                $this->currentSubscription = $userSubscription;
+                $this->canReleaseOrderBySubscription = true;
                 break;
             }
             else {
                 // ask if the user can order by pay-per-download subscription
                 $canOrderByPayPerDownloadSubscription = $userSubscription->canUseFeature( 'pay-per-download' );
                 if ( $canOrderByPayPerDownloadSubscription === true ) {
+                    $this->currentFeature = 'pay-per-download';
+                    $this->currentSubscription = $userSubscription;
+                    $this->canReleaseOrderBySubscription = false;
                     break;
                 }
             }
@@ -335,6 +362,41 @@ class User extends Authenticatable implements MustVerifyEmail
             return true;
         }
 
+        $this->canReleaseOrderBySubscription = false;
         return false;
+    }
+
+    /**
+     * Check if user can release the order.
+     *
+     * @param  \App\Models\Dashboard\Project|string  $project
+     *
+     * @return bool
+     */
+    public function canReleaseOrderBySubscription( $project ): bool
+    {
+        if ( $project instanceof Project ) {
+            $project = $project->code;
+        }
+
+        if ( $this->canReleaseOrderBySubscription === null ) {
+            $this->canOrderBySubscription( $project );
+        }
+
+        return $this->canReleaseOrderBySubscription;
+    }
+
+    /**
+     * Record subscription usage.
+     *
+     * @return void
+     */
+    public function recordSubscriptionUsage(): void
+    {
+        if ( empty( $this->currentSubscription ) === true ) {
+            return;
+        }
+
+        $this->currentSubscription->recordFeatureUsage( $this->currentFeature );
     }
 }

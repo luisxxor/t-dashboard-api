@@ -639,16 +639,20 @@ class PropertiesAPIController extends AppBaseController
      *         )
      *     ),
      *     @OA\Response(
-     *         response=202,
+     *         response=201,
      *         description="Ordered successfully, file generated."
      *     ),
      *     @OA\Response(
      *         response=400,
-     *         description="Bad Request."
+     *         description="Bad Request. | The order is already created and has already been processed."
      *     ),
      *     @OA\Response(
      *         response=401,
      *         description="Unauthenticated."
+     *     ),
+     *     @OA\Response(
+     *         response=402,
+     *         description="Cannot create order because user has no subscription or is expired."
      *     ),
      *     @OA\Response(
      *         response=403,
@@ -656,7 +660,11 @@ class PropertiesAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Order not found."
+     *         description="Search not found."
+     *     ),
+     *     @OA\Response(
+     *         response=409,
+     *         description="User subscription has exhausted the download quota."
      *     ),
      *     @OA\Response(
      *         response=422,
@@ -682,13 +690,13 @@ class PropertiesAPIController extends AppBaseController
         $user = auth()->user();
 
         // check if user has active subscriptions for this project
-        if ( $user->hasActiveSubscriptionsForProject( $this->projectCode ) === false ) {
-            return $this->sendError( 'No puede crear orden porque su subscripcion esta vencida o no tiene', [], 402 );
+        if ( $user->hasActiveSubscriptionsForProject( $this->projectCode ) === false && $user->hasPermissionTo( 'release.order.without.paying' ) === false ) { # cambiar rol 'release.order.without.paying' por uno nuevo
+            return $this->sendError( 'Cannot create order because user has no subscription or is expired.', [], 402 );
         }
 
         // check if user can make an order for given project
-        if ( $user->canOrder( $this->projectCode ) === false && $user->hasPermissionTo( 'release.order.without.paying' ) === false ) {
-            return $this->sendError( 'couta de descargas agotadas.', [], 409 );
+        if ( $user->canOrderBySubscription( $this->projectCode ) === false && $user->hasPermissionTo( 'release.order.without.paying' ) === false ) { # cambiar rol 'release.order.without.paying' por uno nuevo
+            return $this->sendError( 'User subscription has exhausted the download quota.', [], 409 );
         }
 
         try {
@@ -709,8 +717,6 @@ class PropertiesAPIController extends AppBaseController
         // get order if exist
         $order = $this->orderRepository->findByField( 'search_id', $searchId )->first();
 
-        dd( 'stop' );
-
         // if order doesn't exist
         if ( empty( $order ) === true ) {
             // create order
@@ -721,8 +727,16 @@ class PropertiesAPIController extends AppBaseController
                 'total_rows_quantity'   => $total,
                 'status'                => config( 'constants.ORDERS_OPENED_STATUS' ),
             ] );
+
+            // record subscription usage
+            $user->recordSubscriptionUsage();
         }
         else {
+            // if order is already processed
+            if ( $order->status !== config( 'constants.ORDERS_OPENED_STATUS' ) ) {
+                return $this->sendError( 'The order is already created and has already been processed.', [], 400 );
+            }
+
             // update order
             $order->total_rows_quantity = $total;
             $order->save();
@@ -731,36 +745,40 @@ class PropertiesAPIController extends AppBaseController
         // update the search to save selected ids by user
         $this->propertyRepository->updateSelectedPropertiesInSearch( $search, $ids );
 
-        // if user has permission to release order without paying, generate file
-        if ( $user->hasPermissionTo( 'release.order.without.paying' ) === true ) {
-            // generate files request
-            $guzzleClient = new GuzzleClient( [ 'base_uri' => url( '/' ), 'timeout' => 30.0 ] );
-            $guzzleClient->sendAsync( new GuzzleRequest(
-                'GET',
-                route( 'api.' . config( 'multi-api.' . $this->projectCode . '.backend-info.generate_file_url' ), [], false ),
-                [ 'Content-type' => 'application/json' ],
-                json_encode( [ 'orderCode' => $order->code ] )
-            ) )->wait( false );
+        // check if user can release order whether by subscription or by permission
+        if ( $user->canReleaseOrderBySubscription( $this->projectCode ) === true || $user->hasPermissionTo( 'release.order.without.paying' ) === true ) {
+            $order = $this->releaseOrder( $order );
 
-            // release order.
-            $order->status = config( 'constants.ORDERS_RELEASED_STATUS' );
-            $order->save();
-
-            return $this->sendResponse( $order, 'Ordered successfully, file generated.', 202 );
+            return $this->sendResponse( $order, 'Ordered successfully, file generated.', 201 );
         }
 
         // return payment init point link
         return $this->sendResponse( $order, 'Ordered successfully.' );
+    }
 
-        /*
-            tiene que retornar:
-                - 200 Ordered successfully. En caso de usuario con Plan cero (debe pagar la descarga en /pay) SOLO PERU
-                - 201 Ordered successfully, file generated. En caso de (i) usuario vip o (ii) usuario con subscripcion activa y cuota de
-                                      descargas no agotadas.
-                - 402 error: No puede crear orden porque su subscripcion no esta activa. En caso de
-                      subscripcion inactiva (vencida o cancelada o no tiene)
-                - 409 error: couta de descargas agotadas.
-        */
+    /**
+     * Releases the order (generate file and change status).
+     *
+     * @param \App\Models\Dashboard\Order $order
+     *
+     * @return \App\Models\Dashboard\Order
+     */
+    protected function releaseOrder( $order )
+    {
+        // generate files request
+        $guzzleClient = new GuzzleClient( [ 'base_uri' => url( '/' ), 'timeout' => 30.0 ] );
+        $guzzleClient->sendAsync( new GuzzleRequest(
+            'GET',
+            route( 'api.' . config( 'multi-api.' . $this->projectCode . '.backend-info.generate_file_url' ), [], false ),
+            [ 'Content-type' => 'application/json' ],
+            json_encode( [ 'orderCode' => $order->code ] )
+        ) )->wait( false );
+
+        // release order.
+        $order->status = config( 'constants.ORDERS_RELEASED_STATUS' );
+        $order->save();
+
+        return $order;
     }
 
     /**
