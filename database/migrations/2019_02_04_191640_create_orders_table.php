@@ -26,10 +26,6 @@ class CreateOrdersTable extends Migration
             $table->unsignedBigInteger( 'user_id' )->nullable()->default( null );
             $table->foreign( 'user_id' )->references( 'id' )->on( 'users' );
 
-            // amounts
-            $table->double( 'total_amount', 12, 2)->nullable()->default( null );
-            $table->double( 'total_tax', 12, 2)->nullable()->default( null );
-
             // status
             $table->string( 'status', 100)->nullable()->default( null );
 

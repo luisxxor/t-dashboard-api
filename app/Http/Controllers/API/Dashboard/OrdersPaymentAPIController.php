@@ -6,6 +6,7 @@ use App\Billing\MercadopagoPaymentGateway;
 use App\Billing\PaymentGatewayContract;
 use App\Http\Controllers\AppBaseController;
 use App\Repositories\Dashboard\OrderRepository;
+use App\Repositories\Dashboard\ReceiptRepository;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -37,13 +38,20 @@ class OrdersPaymentAPIController extends AppBaseController
     private $orderRepository;
 
     /**
+     * @var  ReceiptRepository
+     */
+    private $receiptRepository;
+
+    /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct( OrderRepository $orderRepo )
+    public function __construct( OrderRepository $orderRepo,
+        ReceiptRepository $receiptRepo )
     {
         $this->orderRepository = $orderRepo;
+        $this->receiptRepository = $receiptRepo;
     }
 
     /**
@@ -167,16 +175,15 @@ class OrdersPaymentAPIController extends AppBaseController
 
         // if order is already released
         if ( $order->status === config( 'constants.ORDERS_RELEASED_STATUS' ) ) {
-
             return $this->sendResponse( $order, 'Order already released.', 202 );
         }
 
+        # validar el estatus del recibo, no de la orden
         // if order is already processed but not released (to_pay or pending)
         if ( $order->status === config( 'constants.ORDERS_TO_PAY_STATUS' )
             || $order->status === config( 'constants.ORDERS_PENDING_STATUS' ) ) {
-
             return $this->sendResponse(
-                $order->payment_info[ 'init_point' ],
+                $order->receipt->payment_info[ 'init_point' ],
                 'Payment preference already exists. Init point returned successfully.'
             );
         }
@@ -184,22 +191,32 @@ class OrdersPaymentAPIController extends AppBaseController
         // amount
         $amount = $this->calculateAmount( $order->total_rows_quantity );
 
+        // create receipt
+        $receipt = $this->receiptRepository->findOrCreateByReceiptable( $order );
+
         try {
             // charge
-            $paymentResult = $paymentGateway->charge( $orderCode, $amount, $order->total_rows_quantity );
+            $paymentResult = $paymentGateway->charge(
+                $receipt->code,
+                $amount,
+                [ 'title' => 'Información de ' . $order->total_rows_quantity . ' registros de Tasing!' ]
+            );
         } catch ( \Exception $e ) {
             \Log::error( 'Error at payment.', [ $order, $e->getMessage() ] );
 
-            return $this->sendError( $e->getMessage(), 400 );
+            return $this->sendError( $e->getMessage(), [], 400 );
         }
 
-        // save payment info
-        $order->payment_type    = $paymentType;
-        $order->currency        = $currency;
-        $order->total_amount    = $amount;
-        $order->total_tax       = 0.0;
-        $order->payment_info    = $paymentResult;
-        $order->status          = config( 'constants.ORDERS_TO_PAY_STATUS' );
+        // save payment info in receipt
+        $receipt->payment_type  = $paymentType;
+        $receipt->currency      = $currency;
+        $receipt->total_amount  = $amount;
+        $receipt->total_tax     = 0.0;
+        $receipt->payment_info  = $paymentResult;
+        $receipt->save();
+
+        // change order status
+        $order->status = config( 'constants.ORDERS_TO_PAY_STATUS' );
         $order->save();
 
         return $this->sendResponse( $paymentResult[ 'init_point' ], 'Payment preference created. Init point returned successfully.' );

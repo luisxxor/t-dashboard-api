@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\API\Dashboard;
+namespace App\Http\Controllers\API\IPN;
 
 use App\Http\Controllers\AppBaseController;
 use App\Lib\Handlers\MercadoPagoHandler;
-use App\Repositories\Dashboard\OrderRepository;
+use App\Repositories\Dashboard\ReceiptRepository;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
@@ -12,27 +12,27 @@ use Response;
 
 /**
  * Class MercadopagoAPIController
- * @package App\Http\Controllers\API\Dashboard
+ * @package App\Http\Controllers\API\IPN
  */
 class MercadopagoAPIController extends AppBaseController
 {
     /**
-     * @var OrderRepository
+     * @var ReceiptRepository
      */
-    private $orderRepository;
+    private $receiptRepository;
 
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct( OrderRepository $orderRepo )
+    public function __construct( ReceiptRepository $receiptRepo )
     {
-        $this->orderRepository = $orderRepo;
+        $this->receiptRepository = $receiptRepo;
     }
 
     /**
-     * POST /dashboard/notifications/mp
+     * POST /api/dashboard/notifications/mp
      *
      * @param  \Illuminate\Http\Request  $request
      * @return  Response
@@ -77,14 +77,14 @@ class MercadopagoAPIController extends AppBaseController
             // get external reference id
             $externalReferenceId = $merchantOrderInfo->external_reference;
 
-            // get order
-            $order = $this->orderRepository->findByField( 'code', $externalReferenceId )->first();
+            // get receipt
+            $receipt = $this->receiptRepository->findByField( 'code', $externalReferenceId )->first();
 
             // si el codigo externo corresponde con una compra del sistema
-            if ( empty( $order ) === false ) {
+            if ( empty( $receipt ) === false ) {
 
                 // link payment info
-                $order->fill( [ 'payment_info->payment' => $merchantOrderInfo->getAttributes() ] );
+                $receipt->fill( [ 'payment_info->payment' => $merchantOrderInfo->getAttributes() ] );
 
                 // calculate the payment's transaction amount (it should be only one)
                 $paidAmount = 0;
@@ -98,25 +98,12 @@ class MercadopagoAPIController extends AppBaseController
                 // if the payment's transaction amount is equal (or bigger) than the
                 // merchantOrder's amount then release item
                 if ( $paidAmount >= $merchantOrderInfo->total_amount ) {
-
-                    // generate files request
-                    $guzzleClient = new GuzzleClient( [ 'base_uri' => url( '/' ), 'timeout' => 30.0 ] );
-                    $guzzleClient->sendAsync( new GuzzleRequest(
-                        'GET',
-                        route( 'api.' . config( 'multi-api.' . $order->project . '.backend-info.generate_file_url' ), [], false ),
-                        [ 'Content-type' => 'application/json' ],
-                        json_encode( [ 'orderCode' => $order->code ] )
-                    ) )->wait( false );
-
-                    // release item.
-                    $order->status = config( 'constants.ORDERS_RELEASED_STATUS' );
-                    $order->save();
+                    $receipt->setReleasedStatus();
                 }
                 else {
                     // not paid yet. Do not release the item.
-                    if ( $order->status !== config( 'constants.ORDERS_RELEASED_STATUS' ) ) {
-                        $order->status = config( 'constants.ORDERS_PENDING_STATUS' );
-                        $order->save();
+                    if ( $receipt->isReleasedStatus() === false ) {
+                        $receipt->setPendingStatus();
                     }
                 }
             }

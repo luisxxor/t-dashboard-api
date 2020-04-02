@@ -3,12 +3,15 @@
 namespace App\Models\Subscriptions;
 
 use App\Models\Subscriptions\PlanSubscriptionUsage;
+use App\Traits\Dashboard\HasReceipt;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Rinvex\Subscriptions\Models\PlanSubscription as RinvexPlanSubscription;
 use Rinvex\Subscriptions\Models\PlanSubscriptionUsage as RinvexPlanSubscriptionUsage;
 
 class PlanSubscription extends RinvexPlanSubscription
 {
+    use HasReceipt;
+
     /**
      * {@inheritdoc}
      */

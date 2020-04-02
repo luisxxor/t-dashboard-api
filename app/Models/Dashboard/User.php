@@ -317,7 +317,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * Check if user can make an order for given project.
      * This is determined by validating whether the user has a
      * monthly subscription in that project with remaning usage
-     * or a pay-per-download subscription in that project.
+     * or a pay per download subscription in that project.
      *
      * @param  \App\Models\Dashboard\Project|string  $project
      *
@@ -337,20 +337,20 @@ class User extends Authenticatable implements MustVerifyEmail
         $canOrderByMonthlySubscription = false;
         $canOrderByPayPerDownloadSubscription = false;
         foreach ( $activeSubscriptionsForProject as $userSubscription ) {
-            // ask if the user can order by monthly subscription
-            $canOrderByMonthlySubscription = $userSubscription->canUseFeature( 'limited-monthly-downloads' );
+            // ask if the user can order by limited-monthly-downloads subscription
+            $canOrderByMonthlySubscription = $userSubscription->canUseFeature( config( 'rinvex.subscriptions.features.limited-monthly-downloads' ) );
 
             if ( $canOrderByMonthlySubscription === true ) {
-                $this->currentFeature = 'limited-monthly-downloads';
+                $this->currentFeature = config( 'rinvex.subscriptions.features.limited-monthly-downloads' );
                 $this->currentSubscription = $userSubscription;
                 $this->canReleaseOrderBySubscription = true;
                 break;
             }
             else {
                 // ask if the user can order by pay-per-download subscription
-                $canOrderByPayPerDownloadSubscription = $userSubscription->canUseFeature( 'pay-per-download' );
+                $canOrderByPayPerDownloadSubscription = $userSubscription->canUseFeature( config( 'rinvex.subscriptions.features.pay-per-download' ) );
                 if ( $canOrderByPayPerDownloadSubscription === true ) {
-                    $this->currentFeature = 'pay-per-download';
+                    $this->currentFeature = config( 'rinvex.subscriptions.features.pay-per-download' );
                     $this->currentSubscription = $userSubscription;
                     $this->canReleaseOrderBySubscription = false;
                     break;

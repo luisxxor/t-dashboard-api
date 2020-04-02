@@ -2,6 +2,7 @@
 
 namespace App\Models\Dashboard;
 
+use App\Traits\Dashboard\HasReceipt;
 use Eloquent as Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -12,39 +13,30 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Order extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasReceipt;
 
     public $table = 'orders';
 
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
-
     protected $dates = ['deleted_at'];
-
 
     public $fillable = [
         'user_id',
         'search_id',
         'project',
         'total_rows_quantity',
-        // 'payment_type',
-        // 'currency',
         'status',
-
-        'payment_info->payment',
     ];
 
     protected $hidden = [
         'user_id',
-        'payment_info',
+        'search_id',
+        'project',
         'files_info',
         'updated_at',
         'deleted_at',
-        'search_id',
-        'payment_type',
-        'currency',
-        'project',
     ];
 
     /**
@@ -56,15 +48,9 @@ class Order extends Model
         'id' => 'integer',
         'code' => 'string',
         'user_id' => 'integer',
-        'total_amount' => 'float',
-        'total_tax' => 'float',
         'status' => 'string',
-
         'search_id' => 'string',
         'project' => 'string',
-        'currency' => 'string',
-        'payment_type' => 'string',
-        'payment_info' => 'array',
         'files_info' => 'array',
         'total_rows_quantity' => 'integer',
     ];

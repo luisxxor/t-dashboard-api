@@ -19,6 +19,11 @@ class CreateReceiptsTable extends Migration
             $table->string( 'code', 100 )->nullable()->default( null )->unique();
             $table->morphs( 'receiptable' );
             $table->string( 'currency', 100 )->nullable()->default( null )->comment( 'currency iso code, e.g: PEN (peruvian sol).' );
+
+            // amounts
+            $table->double( 'total_amount', 12, 2)->nullable()->default( null );
+            $table->double( 'total_tax', 12, 2)->nullable()->default( null );
+
             $table->string( 'payment_type', 100 )->nullable()->default( null )->comment( 'payment type, e.g: mercadopago. if null, no payment was made.' );
             $table->jsonb( 'payment_info' )->nullable()->default( null );
 

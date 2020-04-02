@@ -27,4 +27,10 @@ return [
 
     ],
 
+    // features slugs in database
+    'features' => [
+        'limited-monthly-downloads' => 'descargas-mensuales-limitadas',
+        'pay-per-download' => 'pagar-por-descarga',
+    ],
+
 ];

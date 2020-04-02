@@ -7,12 +7,12 @@ interface PaymentGatewayContract
     /**
      * Charge payment.
      *
-     * @param string $orderCode
+     * @param string $receiptCode
      * @param float $amount
-     * @param int $itemsQuantity
+     * @param array $options
      *
      * @return array
      * @throws \Exception
      */
-    public function charge( string $orderCode, float $amount, int $itemsQuantity ): array;
+    public function charge( string $receiptCode, float $amount, array $options = [] ): array;
 }
