@@ -21,6 +21,11 @@ class MercadopagoAPIController extends AppBaseController
     private $receiptRepository;
 
     /**
+     * @var MercadoPagoHandler
+     */
+    private $mercadoPago;
+
+    /**
      * Create a new controller instance.
      *
      * @return void
@@ -28,6 +33,7 @@ class MercadopagoAPIController extends AppBaseController
     public function __construct( ReceiptRepository $receiptRepo )
     {
         $this->receiptRepository = $receiptRepo;
+        $this->mercadoPago = new MercadoPagoHandler( config( 'services.mercadopago.access_token' ) );
     }
 
     /**
@@ -43,34 +49,29 @@ class MercadopagoAPIController extends AppBaseController
         }
 
         // request values
-        $topic           = $request->get( 'topic' );
+        $topic          = $request->get( 'topic' );
         $notificationId = $request->get( 'id' );
 
         Log::debug( [ 'debug' => 'MercadopagoAPIController', 'id' => $request->get( 'id' ), 'topic' => $request->get( 'topic' ) ] );
 
-        $mercadoPago = new MercadoPagoHandler( config( 'services.mercadopago.access_token' ) );
-
-        // merchantOrder
-        $merchantOrderInfo = null;
-
         // get the merchantOrder
         switch( $topic ) {
             case 'payment':
-                $payment = $mercadoPago->getPayment( $notificationId );
+                $payment = $this->mercadoPago->getPayment( $notificationId );
 
                 // get the payment and the corresponding merchantOrder reported by the IPN.
-                $merchantOrderInfo = $mercadoPago->getMerchantOrder( $payment->order->id ?? null );
+                $merchantOrderInfo = $this->mercadoPago->getMerchantOrder( $payment->order->id ?? null );
 
                 break;
 
             case 'merchant_order':
-                $merchantOrderInfo = $mercadoPago->getMerchantOrder( $notificationId );
+                $merchantOrderInfo = $this->mercadoPago->getMerchantOrder( $notificationId );
 
                 break;
         }
 
         // si el existe informacion del pago
-        if ( $merchantOrderInfo !== null ) {
+        if ( isset( $merchantOrderInfo ) === true && $merchantOrderInfo !== null ) {
 
             // get external reference id
             $externalReferenceId = $merchantOrderInfo->external_reference;
