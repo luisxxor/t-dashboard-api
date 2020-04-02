@@ -6,6 +6,7 @@ use App\Http\Controllers\AppBaseController;
 use App\Lib\Handlers\MercadoPagoHandler;
 use App\Repositories\Dashboard\ReceiptRepository;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Response;
 
 /**
@@ -45,8 +46,7 @@ class MercadopagoAPIController extends AppBaseController
         $topic           = $request->get( 'topic' );
         $notificationId = $request->get( 'id' );
 
-        \Log::info( 'request values' );
-        \Log::debug( [ 'id' => $request->get( 'id' ), 'topic' => $request->get( 'topic' ) ] );
+        Log::debug( [ 'debug' => 'MercadopagoAPIController', 'id' => $request->get( 'id' ), 'topic' => $request->get( 'topic' ) ] );
 
         $mercadoPago = new MercadoPagoHandler( config( 'services.mercadopago.access_token' ) );
 
