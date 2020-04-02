@@ -28,7 +28,6 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton( PaymentGatewayContract::class, function ( $app ) {
-
             switch ( request()->get( 'paymentType' ) ) {
                 case config( 'constants.payment_gateways.MERCADOPAGO' ):
 

@@ -12,7 +12,7 @@ class MercadopagoPaymentGateway implements PaymentGatewayContract
     private $currency;
 
     /**
-     * @var \App\Lib\Handlers\MercadoPagoHandler
+     * @var MercadoPagoHandler
      */
     private $mercadoPago;
 

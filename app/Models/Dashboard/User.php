@@ -227,7 +227,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return (bool)$this->projectAccessRequests()
             ->where( 'partner_project_id', $partnerProject->id )
-            ->where( 'status', config( 'constants.PROJECT_ACCESS_REQUESTS.PENDING_STATUS' ) )
+            ->where( 'status', config( 'constants.PROJECT_ACCESS_REQUESTS.STATUS.PENDING' ) )
             ->count();
     }
 

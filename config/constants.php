@@ -27,9 +27,11 @@ return [
     ],
 
     'PROJECT_ACCESS_REQUESTS' => [
-        'PENDING_STATUS' => 'pending',
-        'APPROVED_STATUS' => 'approved',
-        'DENIED_STATUS' => 'denied',
+        'STATUS' => [
+            'PENDING' => 'pending', // initial status
+            'APPROVED' => 'approved',
+            'DENIED' => 'denied',
+        ],
     ],
 
     'payment_gateways' => [
