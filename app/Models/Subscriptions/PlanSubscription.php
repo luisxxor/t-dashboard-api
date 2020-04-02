@@ -177,4 +177,28 @@ class PlanSubscription extends RinvexPlanSubscription
 
         return $feature->value ?? null;
     }
+
+    /**
+     * Set 'pending' status in PlanSubscription.
+     *
+     * @return \App\Models\Subscriptions\PlanSubscription
+     */
+    public function setPendingStatus()
+    {
+        # TODO
+
+        return $this;
+    }
+
+    /**
+     * Set 'released' status in PlanSubscription.
+     *
+     * @return \App\Models\Subscriptions\PlanSubscription
+     */
+    public function setReleasedStatus()
+    {
+        # TODO
+
+        return $this;
+    }
 }
