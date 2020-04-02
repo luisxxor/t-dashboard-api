@@ -70,7 +70,7 @@ class Receipt extends Model
      */
     public function isReleasedStatus(): bool
     {
-        return $this->status === config( 'constants.ORDERS_RELEASED_STATUS' );
+        return $this->status === config( 'constants.RECEIPTS.STATUS.RELEASED' );
     }
 
     /**
@@ -98,7 +98,7 @@ class Receipt extends Model
     public function setReleasedStatus()
     {
         // receipt status
-        $this->status = config( 'constants.RECEIPTS.STATUS.PENDING' );
+        $this->status = config( 'constants.RECEIPTS.STATUS.RELEASED' );
         $this->save();
 
         // receiptable status

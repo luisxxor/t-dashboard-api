@@ -65,7 +65,9 @@ class ReceiptRepository extends BaseRepository
         }
 
         // create receipt
-        $receipt = $receiptable->receipt()->create( [] );
+        $receipt = $receiptable->receipt()->create( [
+            'status' => config( 'constants.RECEIPTS.STATUS.TO_PAY' )
+        ] );
 
         // create code
         $receipt->code = $receipt->id;

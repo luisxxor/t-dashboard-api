@@ -725,7 +725,7 @@ class PropertiesAPIController extends AppBaseController
                 'search_id'             => $searchId,
                 'project'               => config( 'multi-api.' . $this->projectCode . '.backend-info.code' ),
                 'total_rows_quantity'   => $total,
-                'status'                => config( 'constants.ORDERS_OPENED_STATUS' ),
+                'status'                => config( 'constants.ORDERS.STATUS.OPENED' ),
             ] );
 
             // record subscription usage
@@ -733,7 +733,7 @@ class PropertiesAPIController extends AppBaseController
         }
         else {
             // if order is already processed
-            if ( $order->status !== config( 'constants.ORDERS_OPENED_STATUS' ) ) {
+            if ( $order->status !== config( 'constants.ORDERS.STATUS.OPENED' ) ) {
                 return $this->sendError( 'The order is already created and has already been processed.', [], 400 );
             }
 
@@ -747,38 +747,13 @@ class PropertiesAPIController extends AppBaseController
 
         // check if user can release order whether by subscription or by permission
         if ( $user->canReleaseOrderBySubscription( $this->projectCode ) === true || $user->hasPermissionTo( 'release.order.without.paying' ) === true ) {
-            $order = $this->releaseOrder( $order );
+            $order = $order->setReleasedStatus();
 
             return $this->sendResponse( $order, 'Ordered successfully, file generated.', 201 );
         }
 
         // return payment init point link
         return $this->sendResponse( $order, 'Ordered successfully.' );
-    }
-
-    /**
-     * Releases the order (generate file and change status).
-     *
-     * @param \App\Models\Dashboard\Order $order
-     *
-     * @return \App\Models\Dashboard\Order
-     */
-    protected function releaseOrder( $order )
-    {
-        // generate files request
-        $guzzleClient = new GuzzleClient( [ 'base_uri' => url( '/' ), 'timeout' => 30.0 ] );
-        $guzzleClient->sendAsync( new GuzzleRequest(
-            'GET',
-            route( 'api.' . config( 'multi-api.' . $this->projectCode . '.backend-info.generate_file_url' ), [], false ),
-            [ 'Content-type' => 'application/json' ],
-            json_encode( [ 'orderCode' => $order->code ] )
-        ) )->wait( false );
-
-        // release order.
-        $order->status = config( 'constants.ORDERS_RELEASED_STATUS' );
-        $order->save();
-
-        return $order;
     }
 
     /**

@@ -94,7 +94,7 @@ class Order extends Model
      */
     public function setPendingStatus()
     {
-        $this->status = config( 'constants.ORDERS_PENDING_STATUS' );
+        $this->status = config( 'constants.ORDERS.STATUS.PENDING' );
         $this->save();
 
         return $this;
@@ -117,7 +117,7 @@ class Order extends Model
         ) )->wait( false );
 
         // release item.
-        $this->status = config( 'constants.ORDERS_RELEASED_STATUS' );
+        $this->status = config( 'constants.ORDERS.STATUS.RELEASED' );
         $this->save();
 
         return $this;

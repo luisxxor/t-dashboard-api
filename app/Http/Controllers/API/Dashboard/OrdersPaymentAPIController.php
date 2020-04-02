@@ -174,14 +174,14 @@ class OrdersPaymentAPIController extends AppBaseController
         }
 
         // if order is already released
-        if ( $order->status === config( 'constants.ORDERS_RELEASED_STATUS' ) ) {
+        if ( $order->status === config( 'constants.ORDERS.STATUS.RELEASED' ) ) {
             return $this->sendResponse( $order, 'Order already released.', 202 );
         }
 
         # validar el estatus del recibo, no de la orden
         // if order is already processed but not released (to_pay or pending)
-        if ( $order->status === config( 'constants.ORDERS_TO_PAY_STATUS' )
-            || $order->status === config( 'constants.ORDERS_PENDING_STATUS' ) ) {
+        if ( $order->status === config( 'constants.ORDERS.STATUS.TO_PAY' )
+            || $order->status === config( 'constants.ORDERS.STATUS.PENDING' ) ) {
             return $this->sendResponse(
                 $order->receipt->payment_info[ 'init_point' ],
                 'Payment preference already exists. Init point returned successfully.'
@@ -216,7 +216,7 @@ class OrdersPaymentAPIController extends AppBaseController
         $receipt->save();
 
         // change order status
-        $order->status = config( 'constants.ORDERS_TO_PAY_STATUS' );
+        $order->status = config( 'constants.ORDERS.STATUS.TO_PAY' );
         $order->save();
 
         return $this->sendResponse( $paymentResult[ 'init_point' ], 'Payment preference created. Init point returned successfully.' );

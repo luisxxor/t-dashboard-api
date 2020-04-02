@@ -9,10 +9,14 @@ return [
     |
     */
 
-    'ORDERS_OPENED_STATUS' => 'opened', // initial status
-    'ORDERS_PENDING_STATUS' => 'pending',
-    'ORDERS_TO_PAY_STATUS' => 'to_pay',
-    'ORDERS_RELEASED_STATUS' => 'released',
+    'ORDERS' => [
+        'STATUS' => [
+            'OPENED' => 'opened', // initial status
+            'TO_PAY' => 'to_pay',
+            'PENDING' => 'pending',
+            'RELEASED' => 'released',
+        ],
+    ],
 
     'RECEIPTS' => [
         'STATUS' => [
