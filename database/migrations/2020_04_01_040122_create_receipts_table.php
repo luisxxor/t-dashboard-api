@@ -18,6 +18,10 @@ class CreateReceiptsTable extends Migration
 
             $table->string( 'code', 100 )->nullable()->default( null )->unique();
             $table->morphs( 'receiptable' );
+
+            // status
+            $table->string( 'status', 100)->nullable()->default( null );
+
             $table->string( 'currency', 100 )->nullable()->default( null )->comment( 'currency iso code, e.g: PEN (peruvian sol).' );
 
             // amounts

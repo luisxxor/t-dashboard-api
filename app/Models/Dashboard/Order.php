@@ -4,6 +4,8 @@ namespace App\Models\Dashboard;
 
 use App\Traits\Dashboard\HasReceipt;
 use Eloquent as Model;
+use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\Psr7\Request as GuzzleRequest;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -83,5 +85,41 @@ class Order extends Model
         $prefix = config( 'app.env' ) !== 'production' ? 'dev.' : '';
 
         $this->attributes[ 'code' ] = $prefix . 'orden-' . str_pad( $value, 8, '0', STR_PAD_LEFT );
+    }
+
+    /**
+     * Set 'pending' status in Order.
+     *
+     * @return \App\Models\Dashboard\Order
+     */
+    public function setPendingStatus()
+    {
+        $this->status = config( 'constants.ORDERS_PENDING_STATUS' );
+        $this->save();
+
+        return $this;
+    }
+
+    /**
+     * Set 'released' status in Order.
+     *
+     * @return \App\Models\Dashboard\Order
+     */
+    public function setReleasedStatus()
+    {
+        // generate files request
+        $guzzleClient = new GuzzleClient( [ 'base_uri' => url( '/' ), 'timeout' => 30.0 ] );
+        $guzzleClient->sendAsync( new GuzzleRequest(
+            'GET',
+            route( 'api.' . config( 'multi-api.' . $this->project . '.backend-info.generate_file_url' ), [], false ),
+            [ 'Content-type' => 'application/json' ],
+            json_encode( [ 'orderCode' => $this->code ] )
+        ) )->wait( false );
+
+        // release item.
+        $this->status = config( 'constants.ORDERS_RELEASED_STATUS' );
+        $this->save();
+
+        return $this;
     }
 }

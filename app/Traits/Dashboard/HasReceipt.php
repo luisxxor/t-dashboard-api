@@ -27,4 +27,18 @@ trait HasReceipt
     {
         return $this->morphOne( \App\Models\Dashboard\Receipt::class, 'receiptable' );
     }
+
+    /**
+     * Set 'pending' status in model.
+     *
+     * @return \Illuminate\Database\Eloquent\Model
+     */
+    abstract public function setPendingStatus();
+
+    /**
+     * Set 'released' status in model.
+     *
+     * @return \Illuminate\Database\Eloquent\Model
+     */
+    abstract public function setReleasedStatus();
 }

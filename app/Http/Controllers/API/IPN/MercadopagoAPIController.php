@@ -6,8 +6,6 @@ use App\Http\Controllers\AppBaseController;
 use App\Lib\Handlers\MercadoPagoHandler;
 use App\Repositories\Dashboard\ReceiptRepository;
 use Illuminate\Http\Request;
-use GuzzleHttp\Client as GuzzleClient;
-use GuzzleHttp\Psr7\Request as GuzzleRequest;
 use Response;
 
 /**

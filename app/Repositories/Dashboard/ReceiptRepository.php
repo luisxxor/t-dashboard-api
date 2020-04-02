@@ -22,6 +22,7 @@ class ReceiptRepository extends BaseRepository
         'currency',
         'payment_type',
         'payment_info',
+        'status',
     ];
 
     /**

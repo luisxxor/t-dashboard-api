@@ -22,6 +22,7 @@ class Receipt extends Model
 
     public $fillable = [
         'payment_info->payment',
+        'status',
     ];
 
     /**
@@ -36,6 +37,7 @@ class Receipt extends Model
         'currency' => 'string',
         'payment_type' => 'string',
         'payment_info' => 'array',
+        'status' => 'string',
     ];
 
     /**
@@ -61,38 +63,47 @@ class Receipt extends Model
         $this->attributes[ 'code' ] = $prefix . 'receipt-' . str_pad( $value, 8, '0', STR_PAD_LEFT );
     }
 
+    /**
+     * Check if the receipt has released status.
+     *
+     * @return bool
+     */
     public function isReleasedStatus(): bool
     {
         return $this->status === config( 'constants.ORDERS_RELEASED_STATUS' );
     }
 
+    /**
+     * Set 'pending' status in receipt and receiptable.
+     *
+     * @return \App\Models\Dashboard\Receipt
+     */
     public function setPendingStatus()
     {
+        // receipt status
         $this->status = config( 'constants.RECEIPTS.STATUS.PENDING' );
         $this->save();
 
-        /// order
-        // $order->status = config( 'constants.ORDERS_PENDING_STATUS' );
-        // $order->save();
+        // receiptable status
+        $this->receiptable->setPendingStatus();
+
+        return $this;
     }
 
+    /**
+     * Set 'released' status in receipt and receiptable.
+     *
+     * @return \App\Models\Dashboard\Receipt
+     */
     public function setReleasedStatus()
     {
+        // receipt status
         $this->status = config( 'constants.RECEIPTS.STATUS.PENDING' );
         $this->save();
 
-        /// order
-        // // generate files request
-        // $guzzleClient = new GuzzleClient( [ 'base_uri' => url( '/' ), 'timeout' => 30.0 ] );
-        // $guzzleClient->sendAsync( new GuzzleRequest(
-        //     'GET',
-        //     route( 'api.' . config( 'multi-api.' . $order->project . '.backend-info.generate_file_url' ), [], false ),
-        //     [ 'Content-type' => 'application/json' ],
-        //     json_encode( [ 'orderCode' => $order->code ] )
-        // ) )->wait( false );
-        //
-        // // release item.
-        // $order->status = config( 'constants.ORDERS_RELEASED_STATUS' );
-        // $order->save();
+        // receiptable status
+        $this->receiptable->setReleasedStatus();
+
+        return $this;
     }
 }

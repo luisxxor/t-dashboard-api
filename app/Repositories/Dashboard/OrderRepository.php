@@ -21,7 +21,6 @@ class OrderRepository extends BaseRepository
         'total_amount',
         'total_tax',
         'status',
-
         'search_id',
         'project',
     ];
