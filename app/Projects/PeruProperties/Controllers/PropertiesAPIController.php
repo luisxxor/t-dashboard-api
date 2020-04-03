@@ -552,16 +552,21 @@ class PropertiesAPIController extends AppBaseController
     public function paginateSearch( Request $request )
     {
         $request->validate( [
-            'searchId'      => [ 'required', 'string' ],
-            'lastItem'      => [ 'required', 'array', 'filled' ],
-            'perpage'       => [ 'required', 'integer', 'min:1', 'max:500' ],
-            'field'         => [ 'nullable', 'string', Rule::notIn( [ 'distance', '_id' ] ) ],
-            'sort'          => [ 'nullable', 'integer', 'in:1,-1' ],
+            'searchId'                  => [ 'required', 'string' ],
+            'lastItem'                  => [ 'required', 'array', 'filled' ],
+            'lastItem._id'              => [ 'required', 'integer', 'filled' ],
+            'lastItem.publication_date' => [ 'required', 'date_format:Y-m-d H:i:s', 'filled' ],
+            'perpage'                   => [ 'required', 'integer', 'min:1', 'max:500' ],
+            'field'                     => [ 'nullable', 'string', Rule::notIn( [ 'distance', '_id' ] ) ],
+            'sort'                      => [ 'nullable', 'integer', 'in:1,-1' ],
         ] );
 
         // input
         $searchId   = $request->get( 'searchId' );
-        $lastItem   = $request->get( 'lastItem' );
+        $lastItem   = [
+            '_id'               => (int)$request->get( 'lastItem' )[ '_id' ],
+            'publication_date'  => $request->get( 'lastItem' )[ 'publication_date' ],
+        ];
         $perpage    = (int)$request->get( 'perpage' );
         $field      = $request->get( 'field' )      ?? 'publication_date';
         $sort       = $request->get( 'sort' )       ?? -1;
