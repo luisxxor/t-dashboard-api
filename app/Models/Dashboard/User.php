@@ -2,6 +2,8 @@
 
 namespace App\Models\Dashboard;
 
+use App\Models\Dashboard\Partner;
+use App\Models\Dashboard\Project;
 use App\Notifications\ResetPassword as ResetPasswordNotification;
 use App\Notifications\VerifyEmail as VerifyEmailNotification;
 use Caffeinated\Shinobi\Concerns\HasRolesAndPermissions;
@@ -116,6 +118,22 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get user scopes.
+     *
+     * @return array
+     */
+    public function getScopes()
+    {
+        $accessibleProjects = array_column( $this->accessible_projects, 'project' );
+
+        foreach ( $accessibleProjects as $key => $accessibleProject ) {
+            $accessibleProjects[ $key ] = 'access-' . $accessibleProject;
+        };
+
+        return $accessibleProjects;
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function orders()
@@ -129,5 +147,94 @@ class User extends Authenticatable implements MustVerifyEmail
     public function linkedSocialAccounts()
     {
         return $this->hasMany( \App\Models\Dashboard\LinkedSocialAccount::class );
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     **/
+    public function projectAccessRequests()
+    {
+        return $this->hasMany( \App\Models\Dashboard\ProjectAccessRequest::class );
+    }
+
+    /**
+     * @return array
+     **/
+    public function getProjectAccessRequestList()
+    {
+        $projectAccessRequests = $this->projectAccessRequests()->with( 'partnerProject' )->get();
+
+        $list = [];
+        foreach ( $projectAccessRequests as $projectAccessRequest ) {
+            $partnerProject = $projectAccessRequest->partnerProject;
+
+            $list[] = [
+                'partner' => $partnerProject->partner,
+                'project' => $partnerProject->project,
+                'status' => $projectAccessRequest->status,
+            ];
+        }
+
+        return $list;
+    }
+
+    /**
+     * Checks if the user has the given partner-project associated.
+     *
+     * @param  \App\Models\Dashboard\PartnerProject  $$partnerProject
+     *
+     * @return boolean
+     */
+    public function hasPartnerProjectAccess( $partnerProject )
+    {
+        $needle = [
+            'partner' => $partnerProject->partner_code,
+            'project' => $partnerProject->project_code,
+        ];
+
+        return array_search( $needle, $this->accessible_projects ) !== false;
+    }
+
+    /**
+     * Checks if the user has a created requser for the given partner-project.
+     *
+     * @param  \App\Models\Dashboard\PartnerProject  $$partnerProject
+     *
+     * @return boolean
+     */
+    public function hasPartnerProjectPendingRequest( $partnerProject )
+    {
+        return (bool)$this->projectAccessRequests()
+            ->where( 'partner_project_id', $partnerProject->id )
+            ->where( 'status', config( 'constants.PROJECT_ACCESS_REQUESTS.PENDING_STATUS' ) )
+            ->count();
+    }
+
+    /**
+     * Adds a partner-project to the user.
+     *
+     * @param  \App\Models\Dashboard\PartnerProject  $$partnerProject
+     *
+     * @return bool
+     */
+    public function addAccessibleProject( $partnerProject )
+    {
+        // prevent accesses from overlapping
+        if ( $this->hasPartnerProjectAccess( $partnerProject ) === true ) {
+            return true;
+        }
+
+        $newPartnerProject = [
+            'partner' => $partnerProject->partner_code,
+            'project' => $partnerProject->project_code,
+        ];
+
+        // get actual accessible partner-projects
+        $accessibleProjects = $this->accessible_projects;
+
+        // add requested partner-project to the user
+        $accessibleProjects[] = $newPartnerProject;
+        $this->accessible_projects = $accessibleProjects;
+        $this->save();
     }
 }

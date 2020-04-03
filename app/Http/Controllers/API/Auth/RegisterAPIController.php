@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\Auth;
 use App\Http\Controllers\AppBaseController;
 use App\Http\Resources\User as UserResource;
 use App\Repositories\Dashboard\UserRepository;
+use App\Repositories\Tokens\DataTokenRepository;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -17,13 +18,20 @@ class RegisterAPIController extends AppBaseController
     private $userRepository;
 
     /**
+     * @var  DataTokenRepository
+     */
+    private $dataTokenRepository;
+
+    /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct( UserRepository $userRepo )
+    public function __construct( UserRepository $userRepo,
+        DataTokenRepository $dataTokenRepo )
     {
         $this->userRepository = $userRepo;
+        $this->dataTokenRepository = $dataTokenRepo;
     }
 
     /**
@@ -75,6 +83,14 @@ class RegisterAPIController extends AppBaseController
      *             type="string"
      *         )
      *     ),
+     *     @OA\Parameter(
+     *         name="token",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
      *      @OA\Response(
      *          response=200,
      *          description="User registered successfully.",
@@ -114,19 +130,24 @@ class RegisterAPIController extends AppBaseController
 
         $this->validator( $input )->validate();
 
-        # TODO: put here the array of accessible projects for user
-        $input[ 'accessible_projects' ] = [ '*' ];
+        // validate and get token
+        $request->validate( [ 'token' => [ 'required', 'string', 'exists:data_tokens,token' ] ] );
+        $dataToken = $this->dataTokenRepository->findAndDelete( $request->get( 'token' ) );
+
+        // array of accessible prtner-projects for user
+        $input[ 'accessible_projects' ] = [ $dataToken[ 'data' ] ];
 
         event( new Registered( $user = $this->create( $input ) ) );
 
-        // # ver que scopes asignar/crear
-        $scopes = [];
+        // scopes to which the user has access
+        $scopes = $user->getScopes();
 
         $accessToken = $user->createToken( 'authToken', $scopes )->accessToken;
 
         $response = [
             'user' => new UserResource( $user ),
-            'access_token' => $accessToken,
+            'accessToken' => $accessToken,
+            'attemptedProjectAccess' => $dataToken[ 'data' ],
         ];
 
         return $this->sendResponse( $response, 'User registered successfully.' );

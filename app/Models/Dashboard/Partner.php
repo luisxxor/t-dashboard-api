@@ -2,11 +2,12 @@
 
 namespace App\Models\Dashboard;
 
+use App\Models\Dashboard\Project;
 use Illuminate\Database\Eloquent\Model;
 
-class Project extends Model
+class Partner extends Model
 {
-    public $table = 'projects';
+    public $table = 'partners';
 
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
@@ -35,10 +36,10 @@ class Project extends Model
     ];
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      **/
-    public function orders()
+    public function projects()
     {
-        return $this->hasMany( \App\Models\Dashboard\Order::class, 'project', 'code' );
+        return $this->belongsToMany( Project::class, 'partner_project', 'partner_code', 'project_code' );
     }
 }

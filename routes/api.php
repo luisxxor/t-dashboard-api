@@ -54,6 +54,12 @@ Route::prefix( 'dashboard' )->middleware( 'auth:api', 'verified' )->group( funct
 
     Route::post( 'payments/process', 'API\Dashboard\OrdersPaymentAPIController@pay' )->name( 'dashboard.payments.pay' )
         ->middleware( 'can:pay.own.order' );
+
+    // projects access
+
+    Route::get( 'projects_access', 'API\Dashboard\ProjectsAccessAPIController@index' )->name( 'dashboard.projects_access.index' );
+
+    Route::post( 'projects_access/request', 'API\Dashboard\ProjectsAccessAPIController@request' )->name( 'dashboard.projects_access.request' );
 } );
 
 Route::prefix( 'admin' )->middleware( 'auth:api', 'verified' )->group( function () {
@@ -68,28 +74,40 @@ Route::prefix( 'admin' )->middleware( 'auth:api', 'verified' )->group( function 
 
     Route::put( 'users/{userId}', 'API\Admin\UsersAPIController@update' )->name( 'admin.users.update' )
         ->middleware( 'can:manage.users' );
+
+    // projects access
+
+    Route::get( 'projects_access', 'API\Admin\ProjectsAccessAPIController@index' )->name( 'admin.projects_access.index' );
+
+    Route::put( 'projects_access/{projectAccessRequestId}', 'API\Admin\ProjectsAccessAPIController@update' )->name( 'admin.projects_access.update' );
 } );
 
 Route::prefix( 'peru_properties' )->middleware( 'auth:api', 'verified' )->group( function () {
 
     // peru properties
 
-    Route::get( 'filters/property_type', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@getPropertyTypeFilterData' )->name( 'peru_properties.filters.propertyType' );
+    Route::get( 'filters/property_type', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@getPropertyTypeFilterData' )->name( 'peru_properties.filters.propertyType' )
+        ->middleware( 'scopes:access-pe-properties' );
 
     Route::get( 'ghost_search', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@ghostSearch' )->name( 'peru_properties.ghostSearch' )
-        ->middleware( 'can:search.properties' );
+        ->middleware( 'can:search.properties' )
+        ->middleware( 'scopes:access-pe-properties' );
 
     Route::post( 'search', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@searchProperties' )->name( 'peru_properties.searchProperties' )
-        ->middleware( 'can:search.properties' );
+        ->middleware( 'can:search.properties' )
+        ->middleware( 'scopes:access-pe-properties' );
 
     Route::get( 'paginate', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@paginateSearch' )->name( 'peru_properties.paginateSearch' )
-        ->middleware( 'can:search.properties' );
+        ->middleware( 'can:search.properties' )
+        ->middleware( 'scopes:access-pe-properties' );
 
     Route::get( 'count', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@countSearch' )->name( 'peru_properties.countSearch' )
-        ->middleware( 'can:search.properties' );
+        ->middleware( 'can:search.properties' )
+        ->middleware( 'scopes:access-pe-properties' );
 
     Route::post( 'order', '\App\Projects\PeruProperties\Controllers\PropertiesAPIController@order' )->name( 'peru_properties.processOrder' )
-        ->middleware( 'can:order.properties' );
+        ->middleware( 'can:order.properties' )
+        ->middleware( 'scopes:access-pe-properties' );
 } );
 
 // generate peru properties profile

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\API\Admin;
 
 use App\Http\Controllers\AppBaseController;
 use App\Repositories\Admin\RoleRepository;
-use Caffeinated\Shinobi\Models\Role;
 
 /**
  * Class RolesAPIController

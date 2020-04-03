@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\Auth;
 
 use App\Http\Controllers\AppBaseController;
 use App\Http\Resources\User as UserResource;
+use App\Repositories\Tokens\DataTokenRepository;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 
@@ -36,6 +37,14 @@ class LoginAPIController extends AppBaseController
      *     ),
      *     @OA\Parameter(
      *         name="password",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="token",
      *         required=true,
      *         in="query",
      *         @OA\Schema(
@@ -85,6 +94,21 @@ class LoginAPIController extends AppBaseController
     protected $maxAttempts = 3;
 
     /**
+     * @var  DataTokenRepository
+     */
+    private $dataTokenRepository;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct( DataTokenRepository $dataTokenRepo )
+    {
+        $this->dataTokenRepository = $dataTokenRepo;
+    }
+
+    /**
      * Validate the user login request.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -101,6 +125,22 @@ class LoginAPIController extends AppBaseController
     }
 
     /**
+     * Attempt to log the user into the application.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return bool
+     */
+    protected function attemptLogin( Request $request )
+    {
+        // validate token
+        $request->validate( [ 'token' => [ 'required', 'string', 'exists:data_tokens,token' ] ] );
+
+        return $this->guard()->attempt(
+            $this->credentials( $request ), $request->filled( 'remember' )
+        );
+    }
+
+    /**
      * Send the response after the user was authenticated.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -108,16 +148,22 @@ class LoginAPIController extends AppBaseController
      */
     protected function sendLoginResponse( Request $request )
     {
+        // get token
+        $dataToken = $this->dataTokenRepository->findAndDelete( $request->get( 'token' ) );
+
         $this->clearLoginAttempts( $request );
 
-        // # ver que scopes asignar/crear
-        $scopes = [];
+        $user = $this->guard()->user();
 
-        $accessToken = $this->guard()->user()->createToken( 'authToken', $scopes )->accessToken;
+        // scopes to which the user has access
+        $scopes = $user->getScopes();
+
+        $accessToken = $user->createToken( 'authToken', $scopes )->accessToken;
 
         $response = [
-            'user' => new UserResource( $this->guard()->user() ),
-            'access_token' => $accessToken,
+            'user' => new UserResource( $user ),
+            'accessToken' => $accessToken,
+            'attemptedProjectAccess' => $dataToken[ 'data' ],
         ];
 
         return $this->sendResponse( $response, 'User logged successfully.' );
