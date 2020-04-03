@@ -4,9 +4,9 @@ namespace App\Models\Subscriptions;
 
 use Illuminate\Database\Eloquent\Model;
 
-class PartnerProjectPlan extends Model
+class PlanProject extends Model
 {
-    public $table = 'partner_project_plan';
+    public $table = 'plan_project';
 
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
@@ -25,9 +25,9 @@ class PartnerProjectPlan extends Model
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      **/
-    public function partnerProject()
+    public function project()
     {
-        return $this->belongsTo( \App\Models\Dashboard\PartnerProject::class );
+        return $this->belongsTo( \App\Models\Dashboard\Project::class );
     }
 
     /**

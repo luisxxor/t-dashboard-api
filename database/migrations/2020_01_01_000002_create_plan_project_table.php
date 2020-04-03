@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePartnerProjectPlanTable extends Migration
+class CreatePlanProjectTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,12 @@ class CreatePartnerProjectPlanTable extends Migration
      */
     public function up()
     {
-        Schema::create( 'partner_project_plan', function ( Blueprint $table ) {
+        Schema::create( 'plan_project', function ( Blueprint $table ) {
             $table->bigIncrements( 'id' );
 
-            // partner_project reference
-            $table->unsignedBigInteger( 'partner_project_id' );
-            $table->foreign( 'partner_project_id' )->references( 'id' )->on( 'partner_project' )
+            // projects reference
+            $table->string( 'project_code' );
+            $table->foreign( 'project_code' )->references( 'code' )->on( 'projects' )
                 ->onDelete( 'cascade' )->onUpdate( 'cascade' );
 
             // plans reference
@@ -26,8 +26,8 @@ class CreatePartnerProjectPlanTable extends Migration
             $table->foreign( 'plan_id' )->references( 'id' )->on( 'plans' )
                 ->onDelete( 'cascade' )->onUpdate( 'cascade' );
 
-            // there can only be one plan partner_project combination
-            $table->unique( [ 'partner_project_id', 'plan_id' ] );
+            // there can only be one plan project combination
+            $table->unique( [ 'project_code', 'plan_id' ] );
 
             $table->timestamps();
             $table->softDeletes();
@@ -41,6 +41,6 @@ class CreatePartnerProjectPlanTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists( 'partner_project_plan' );
+        Schema::dropIfExists( 'plan_project' );
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Traits\Subscriptions;
 
-use App\Models\Subscriptions\PartnerProjectPlan;
+use App\Models\Subscriptions\PlanProject;
 use App\Models\Subscriptions\PlanSubscription;
 use Illuminate\Database\Eloquent\Collection;
 use Rinvex\Subscriptions\Services\Period;
@@ -28,20 +28,20 @@ trait HasSubscriptions
      * Subscribe user to a new plan.
      *
      * @param string $subscription
-     * @param \App\Models\Subscriptions\PartnerProjectPlan $partnerProjectPlan
+     * @param \App\Models\Subscriptions\PlanProject $planProject
      *
      * @return \App\Models\Subscriptions\PlanSubscription
      */
-    public function newSubscription( $subscription, PartnerProjectPlan $partnerProjectPlan ): PlanSubscription
+    public function newSubscription( $subscription, PlanProject $planProject ): PlanSubscription
     {
-        $plan = $partnerProjectPlan->plan;
+        $plan = $planProject->plan;
 
         $trial = new Period( $plan->trial_interval, $plan->trial_period, now() );
         $period = new Period( $plan->invoice_interval, $plan->invoice_period, $trial->getEndDate() );
 
         return $this->subscriptions()->create( [
             'name' => $subscription,
-            'partner_project_plan_id' => $partnerProjectPlan->getKey(),
+            'plan_project_id' => $planProject->getKey(),
             'trial_ends_at' => $trial->getEndDate(),
             'starts_at' => $period->getStartDate(),
             'ends_at' => $period->getEndDate(),

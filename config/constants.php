@@ -26,6 +26,14 @@ return [
         ],
     ],
 
+    'PLAN_SUBSCRIPTIONS' => [
+        'STATUS' => [
+            'TO_PAY' => 'to_pay', // initial status
+            'PENDING' => 'pending',
+            'RELEASED' => 'released',
+        ],
+    ],
+
     'PROJECT_ACCESS_REQUESTS' => [
         'STATUS' => [
             'PENDING' => 'pending', // initial status

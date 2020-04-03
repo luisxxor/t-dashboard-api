@@ -279,10 +279,10 @@ class User extends Authenticatable implements MustVerifyEmail
         $activeSubscriptions = collect();
 
         foreach ( $this->activeSubscriptions() as $subscription ) {
-            $partnerProject = $subscription->partnerProjectPlan->partnerProject;
+            $planProject = $subscription->planProject;
 
-            if ( $partnerProject->project_code === $project ) {
-                $subscription->sort_order = $subscription->partnerProjectPlan->plan->sort_order;
+            if ( $planProject->project_code === $project ) {
+                $subscription->sort_order = $subscription->planProject->plan->sort_order;
                 $activeSubscriptions->push( $subscription );
             }
         }

@@ -18,7 +18,7 @@ class PlanSubscription extends RinvexPlanSubscription
     protected $fillable = [
         'user_id',
         'user_type',
-        'partner_project_plan_id',
+        'plan_project_id',
         'slug',
         'name',
         'description',
@@ -35,7 +35,7 @@ class PlanSubscription extends RinvexPlanSubscription
     protected $casts = [
         'user_id' => 'integer',
         'user_type' => 'string',
-        'partner_project_plan_id' => 'integer',
+        'plan_project_id' => 'integer',
         'slug' => 'string',
         'trial_ends_at' => 'datetime',
         'starts_at' => 'datetime',
@@ -59,7 +59,7 @@ class PlanSubscription extends RinvexPlanSubscription
             'name' => 'required|string|max:150',
             'description' => 'nullable|string|max:10000',
             'slug' => 'required|alpha_dash|max:150|unique:' . config( 'rinvex.subscriptions.tables.plan_subscriptions' ) . ',slug',
-            'partner_project_plan_id' => 'required|integer|exists:partner_project_plan,id',
+            'plan_project_id' => 'required|integer|exists:plan_project,id',
             'user_id' => 'required|integer',
             'user_type' => 'required|string',
             'trial_ends_at' => 'nullable|date',
@@ -75,9 +75,9 @@ class PlanSubscription extends RinvexPlanSubscription
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function partnerProjectPlan(): BelongsTo
+    public function planProject(): BelongsTo
     {
-        return $this->belongsTo( \App\Models\Subscriptions\PartnerProjectPlan::class );
+        return $this->belongsTo( \App\Models\Subscriptions\PlanProject::class );
     }
 
     /**
@@ -90,7 +90,7 @@ class PlanSubscription extends RinvexPlanSubscription
      */
     public function recordFeatureUsage( string $featureSlug, int $uses = 1, bool $incremental = true ): RinvexPlanSubscriptionUsage
     {
-        $feature = $this->partnerProjectPlan->plan->features()->where( 'slug', $featureSlug )->first();
+        $feature = $this->planProject->plan->features()->where( 'slug', $featureSlug )->first();
 
         $usage = $this->usage()->firstOrNew( [
             'subscription_id' => $this->getKey(),
@@ -173,7 +173,7 @@ class PlanSubscription extends RinvexPlanSubscription
      */
     public function getFeatureValue( string $featureSlug )
     {
-        $feature = $this->partnerProjectPlan->plan->features()->where( 'slug', $featureSlug )->first();
+        $feature = $this->planProject->plan->features()->where( 'slug', $featureSlug )->first();
 
         return $feature->value ?? null;
     }

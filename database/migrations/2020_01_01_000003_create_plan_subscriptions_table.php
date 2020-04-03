@@ -17,7 +17,7 @@ class CreatePlanSubscriptionsTable extends Migration
         Schema::create( config( 'rinvex.subscriptions.tables.plan_subscriptions' ), function ( Blueprint $table ) {
             $table->bigIncrements( 'id' );
             $table->morphs( 'user' );
-            $table->bigInteger( 'partner_project_plan_id' )->unsigned();
+            $table->bigInteger( 'plan_project_id' )->unsigned();
             $table->string( 'slug' );
             $table->{$this->jsonable()}( 'name' );
             $table->{$this->jsonable()}( 'description' )->nullable();
@@ -32,7 +32,7 @@ class CreatePlanSubscriptionsTable extends Migration
 
             // Indexes
             $table->unique( 'slug' );
-            $table->foreign( 'partner_project_plan_id' )->references( 'id' )->on( 'partner_project_plan' )
+            $table->foreign( 'plan_project_id' )->references( 'id' )->on( 'plan_project' )
                   ->onDelete( 'cascade' )->onUpdate( 'cascade' );
         } );
     }
