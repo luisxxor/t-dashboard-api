@@ -82,7 +82,19 @@ class UserRepository extends BaseRepository
         return $defaultPlanProject;
     }
 
-    public function login( User $user, array $dataToken )
+    /**
+     * Login user by creating accessToken.
+     *
+     * @param User $user
+     * @param array $dataToken {
+     *     Data of token with which user attempted to log.
+     *
+     *     @type string $partner [required]
+     *     @type string $project [required]
+     * }
+     * @return array
+     */
+    public function login( User $user, array $dataToken ): array
     {
         // scopes to which the user has access
         $scopes = $user->getScopes();
