@@ -54,7 +54,6 @@ class SocialiteAPIController extends AppBaseController
     /**
      * @param  string $provider
      * @param  \Illuminate\Http\Request $request
-     *
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
@@ -113,7 +112,6 @@ class SocialiteAPIController extends AppBaseController
     /**
      * @param  string $provider
      * @param  \Illuminate\Http\Request $request
-     *
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
@@ -228,7 +226,6 @@ class SocialiteAPIController extends AppBaseController
      * @param \Laravel\Socialite\Two\User $userProviderData
      * @param string $provider
      * @param \App\Models\Tokens\DataToken $dataToken
-     *
      * @return \App\Models\Dashboard\User
      */
     protected function registerUser( $userProviderData, string $provider, $dataToken )
@@ -274,7 +271,6 @@ class SocialiteAPIController extends AppBaseController
      * Create a new user instance after a valid registration.
      *
      * @param  array  $data
-     *
      * @return \App\Models\Dashboard\User
      */
     protected function create( array $data )
@@ -286,8 +282,6 @@ class SocialiteAPIController extends AppBaseController
             'email_verified_at' => now(),
             'accessible_projects' => $data[ 'accessible_projects' ],
         ] );
-
-        $user->assignRoles( 'regular-user' );
 
         return $user;
     }

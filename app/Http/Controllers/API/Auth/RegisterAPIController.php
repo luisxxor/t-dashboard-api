@@ -185,8 +185,6 @@ class RegisterAPIController extends AppBaseController
             'accessible_projects' => $data[ 'accessible_projects' ],
         ] );
 
-        $user->assignRoles( 'regular-user' );
-
         return $user;
     }
 }

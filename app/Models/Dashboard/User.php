@@ -28,13 +28,9 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $fillable = [
         'name', 'lastname', 'email',
-
         'phone_number1', 'address_line1', 'address_line2',
-
         'password',
-
         'email_verified_at',
-
         'accessible_projects',
     ];
 
@@ -48,13 +44,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'name' => 'string',
         'lastname' => 'string',
         'email' => 'string',
-
         'phone_number1' => 'integer',
         'address_line1' => 'string',
         'address_line2' => 'string',
-
         'password' => 'string',
-
         'accessible_projects' => 'array',
     ];
 
@@ -72,9 +65,7 @@ class User extends Authenticatable implements MustVerifyEmail
      *
      * @var array
      */
-    public static $rules = [
-        //
-    ];
+    public static $rules = [];
 
     /**
      * @var array
