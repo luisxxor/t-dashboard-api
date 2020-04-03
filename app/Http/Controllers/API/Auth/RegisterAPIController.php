@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\API\Auth;
 
 use App\Http\Controllers\AppBaseController;
-use App\Http\Resources\User as UserResource;
 use App\Repositories\Dashboard\UserRepository;
 use App\Repositories\Tokens\DataTokenRepository;
 use Illuminate\Auth\Events\Registered;
@@ -139,16 +138,7 @@ class RegisterAPIController extends AppBaseController
 
         event( new Registered( $user = $this->create( $input ) ) );
 
-        // scopes to which the user has access
-        $scopes = $user->getScopes();
-
-        $accessToken = $user->createToken( 'authToken', $scopes )->accessToken;
-
-        $response = [
-            'user' => new UserResource( $user ),
-            'accessToken' => $accessToken,
-            'attemptedProjectAccess' => $dataToken[ 'data' ],
-        ];
+        $response = $this->userRepository->login( $user, $dataToken[ 'data' ] );
 
         return $this->sendResponse( $response, 'User registered successfully.' );
     }

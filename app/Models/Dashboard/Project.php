@@ -35,6 +35,15 @@ class Project extends Model
     ];
 
     /**
+     * The attributes that should be casted to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'data' => 'array',
+    ];
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      **/
     public function orders()

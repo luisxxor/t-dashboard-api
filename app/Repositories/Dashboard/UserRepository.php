@@ -2,6 +2,8 @@
 
 namespace App\Repositories\Dashboard;
 
+use App\Http\Resources\User as UserResource;
+use App\Models\Dashboard\PartnerProject;
 use App\Models\Dashboard\User;
 use App\Models\Subscriptions\PlanFeature;
 use App\Models\Subscriptions\PlanProject;
@@ -78,6 +80,28 @@ class UserRepository extends BaseRepository
         }
 
         return $defaultPlanProject;
+    }
+
+    public function login( User $user, array $dataToken )
+    {
+        // scopes to which the user has access
+        $scopes = $user->getScopes();
+
+        $accessToken = $user->createToken( 'authToken', $scopes )->accessToken;
+
+        // get attempted partner-project info
+        $partnerProject = PartnerProject::byPartner( $dataToken[ 'partner' ] )->byProject( $dataToken[ 'project' ] )
+            ->with( [ 'partner', 'project' ] )->first();
+        $attemptedPartnerProject = [
+            'partner' => $partnerProject->partner,
+            'project' => $partnerProject->project,
+        ];
+
+        return [
+            'user' => new UserResource( $user ),
+            'accessToken' => $accessToken,
+            'attemptedPartnerProject' => $attemptedPartnerProject,
+        ];
     }
 
     /**
