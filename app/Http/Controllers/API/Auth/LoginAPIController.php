@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\API\Auth;
 
 use App\Http\Controllers\AppBaseController;
-use App\Http\Resources\User as UserResource;
+use App\Repositories\Dashboard\UserRepository;
 use App\Repositories\Tokens\DataTokenRepository;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
@@ -99,13 +99,20 @@ class LoginAPIController extends AppBaseController
     private $dataTokenRepository;
 
     /**
+     * @var  UserRepository
+     */
+    private $userRepository;
+
+    /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct( DataTokenRepository $dataTokenRepo )
+    public function __construct( DataTokenRepository $dataTokenRepo,
+        UserRepository $userRepo )
     {
         $this->dataTokenRepository = $dataTokenRepo;
+        $this->userRepository = $userRepo;
     }
 
     /**
@@ -155,16 +162,7 @@ class LoginAPIController extends AppBaseController
 
         $user = $this->guard()->user();
 
-        // scopes to which the user has access
-        $scopes = $user->getScopes();
-
-        $accessToken = $user->createToken( 'authToken', $scopes )->accessToken;
-
-        $response = [
-            'user' => new UserResource( $user ),
-            'accessToken' => $accessToken,
-            'attemptedProjectAccess' => $dataToken[ 'data' ],
-        ];
+        $response = $this->userRepository->login( $user, $dataToken[ 'data' ] );
 
         return $this->sendResponse( $response, 'User logged successfully.' );
     }

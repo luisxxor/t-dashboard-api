@@ -15,18 +15,22 @@ class ProjectsTableSeeder extends Seeder
             [
                 'code' => 'pe-properties',
                 'name' => 'Perú Propiedades',
+                'data' => null,
             ],
             [
                 'code' => 'pe-vehicles',
                 'name' => 'Perú Vehiculos',
+                'data' => null,
             ],
             [
                 'code' => 'cl-properties',
                 'name' => 'Chile Propiedades',
+                'data' => null,
             ],
             [
                 'code' => 'ec-properties',
                 'name' => 'Ecuador Propiedades',
+                'data' => null,
             ]
         ] );
     }

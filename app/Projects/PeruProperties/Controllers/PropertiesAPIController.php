@@ -43,6 +43,11 @@ class PropertiesAPIController extends AppBaseController
     private $orderRepository;
 
     /**
+     * @var string The project in app
+     */
+    private $projectCode = 'pe-properties';
+
+    /**
      * Create a new controller instance.
      *
      * @return void
@@ -639,16 +644,20 @@ class PropertiesAPIController extends AppBaseController
      *         )
      *     ),
      *     @OA\Response(
-     *         response=202,
+     *         response=201,
      *         description="Ordered successfully, file generated."
      *     ),
      *     @OA\Response(
      *         response=400,
-     *         description=" Bad Request."
+     *         description="Bad Request. | The order is already created and has already been processed."
      *     ),
      *     @OA\Response(
      *         response=401,
      *         description="Unauthenticated."
+     *     ),
+     *     @OA\Response(
+     *         response=402,
+     *         description="Cannot create order because user has no subscription or is expired."
      *     ),
      *     @OA\Response(
      *         response=403,
@@ -656,7 +665,11 @@ class PropertiesAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Order not found."
+     *         description="Search not found."
+     *     ),
+     *     @OA\Response(
+     *         response=409,
+     *         description="User subscription has exhausted the download quota."
      *     ),
      *     @OA\Response(
      *         response=422,
@@ -681,8 +694,15 @@ class PropertiesAPIController extends AppBaseController
         // get user
         $user = auth()->user();
 
-        // get order if exist
-        $order = $this->orderRepository->findByField( 'search_id', $searchId )->first();
+        // check if user has active subscriptions for this project
+        if ( $user->hasActiveSubscriptionsForProject( $this->projectCode ) === false && $user->hasPermissionTo( 'release.order.without.paying' ) === false ) { # cambiar rol 'release.order.without.paying' por uno nuevo
+            return $this->sendError( 'Cannot create order because user has no subscription or is expired.', [], 402 );
+        }
+
+        // check if user can make an order for given project
+        if ( $user->canOrderBySubscription( $this->projectCode ) === false && $user->hasPermissionTo( 'release.order.without.paying' ) === false ) { # cambiar rol 'release.order.without.paying' por uno nuevo
+            return $this->sendError( 'User subscription has exhausted the download quota.', [], 409 );
+        }
 
         try {
             // get search model
@@ -699,18 +719,29 @@ class PropertiesAPIController extends AppBaseController
             $total = count( $ids );
         }
 
+        // get order if exist
+        $order = $this->orderRepository->findByField( 'search_id', $searchId )->first();
+
         // if order doesn't exist
         if ( empty( $order ) === true ) {
             // create order
             $order = $this->orderRepository->create( [
                 'user_id'               => $user->id,
                 'search_id'             => $searchId,
-                'project'               => config( 'multi-api.pe-properties.backend-info.code' ),
+                'project'               => config( 'multi-api.' . $this->projectCode . '.backend-info.code' ),
                 'total_rows_quantity'   => $total,
-                'status'                => config( 'constants.ORDERS_OPENED_STATUS' ),
+                'status'                => config( 'constants.ORDERS.STATUS.OPENED' ),
             ] );
+
+            // record subscription usage
+            $user->recordSubscriptionUsage();
         }
         else {
+            // if order is already processed
+            if ( $order->status !== config( 'constants.ORDERS.STATUS.OPENED' ) ) {
+                return $this->sendError( 'The order is already created and has already been processed.', [], 400 );
+            }
+
             // update order
             $order->total_rows_quantity = $total;
             $order->save();
@@ -719,22 +750,11 @@ class PropertiesAPIController extends AppBaseController
         // update the search to save selected ids by user
         $this->propertyRepository->updateSelectedPropertiesInSearch( $search, $ids );
 
-        // if user has permission to release order without paying, generate file
-        if ( $user->hasPermissionTo( 'release.order.without.paying' ) === true ) {
-            // generate files request
-            $guzzleClient = new GuzzleClient( [ 'base_uri' => url( '/' ), 'timeout' => 30.0 ] );
-            $guzzleClient->sendAsync( new GuzzleRequest(
-                'GET',
-                route( 'api.' . config( 'multi-api.pe-properties.backend-info.generate_file_url' ), [], false ),
-                [ 'Content-type' => 'application/json' ],
-                json_encode( [ 'orderCode' => $order->code ] )
-            ) )->wait( false );
+        // check if user can release order whether by subscription or by permission
+        if ( $user->canReleaseOrderBySubscription( $this->projectCode ) === true || $user->hasPermissionTo( 'release.order.without.paying' ) === true ) {
+            $order = $order->setReleasedStatus();
 
-            // release order.
-            $order->status = config( 'constants.ORDERS_RELEASED_STATUS' );
-            $order->save();
-
-            return $this->sendResponse( $order, 'Ordered successfully, file generated.', 202 );
+            return $this->sendResponse( $order, 'Ordered successfully, file generated.', 201 );
         }
 
         // return payment init point link

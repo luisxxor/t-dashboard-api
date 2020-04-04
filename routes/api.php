@@ -169,4 +169,4 @@ Route::get( 'chile_properties/generate_file', '\App\Projects\ChileProperties\Con
 # DOCUMENTAR
 // IPN para que mercadopago notifique cuando una transaccion fue completada
 // http://panel.tasing.pe/api/dashboard/notifications/mp
-Route::post( 'dashboard/notifications/mp', 'API\Dashboard\MercadopagoAPIController@ipnNotification' );
+Route::post( 'dashboard/notifications/mp', 'API\IPN\MercadopagoAPIController@ipnNotification' );

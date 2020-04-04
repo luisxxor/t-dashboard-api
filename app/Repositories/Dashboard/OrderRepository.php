@@ -2,7 +2,6 @@
 
 namespace App\Repositories\Dashboard;
 
-use App\Lib\Handlers\MercadoPagoHandler;
 use App\Models\Dashboard\Order;
 use App\Repositories\BaseRepository;
 
@@ -22,7 +21,6 @@ class OrderRepository extends BaseRepository
         'total_amount',
         'total_tax',
         'status',
-
         'search_id',
         'project',
     ];

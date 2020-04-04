@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddProjectIdToPurchases extends Migration
+class AddProjectIdToOrders extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class AddProjectIdToPurchases extends Migration
      */
     public function up()
     {
-        Schema::table( 'purchases', function ( Blueprint $table ) {
+        Schema::table( 'orders', function ( Blueprint $table ) {
             $table->string( 'project' )->nullable()->default( null );
             $table->foreign( 'project' )->references( 'code' )->on( 'projects' )->onDelete( 'no action' );
         } );
@@ -26,7 +26,7 @@ class AddProjectIdToPurchases extends Migration
      */
     public function down()
     {
-        Schema::table( 'purchases', function ( Blueprint $table ) {
+        Schema::table( 'orders', function ( Blueprint $table ) {
             $table->dropColumn( 'project' );
         } );
     }

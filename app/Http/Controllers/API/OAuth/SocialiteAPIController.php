@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\API\OAuth;
 
 use App\Http\Controllers\AppBaseController;
-use App\Http\Resources\User as UserResource;
 use App\Providers\GoogleProvider;
 use App\Repositories\Dashboard\UserRepository;
 use App\Repositories\Tokens\DataTokenRepository;
@@ -54,7 +53,6 @@ class SocialiteAPIController extends AppBaseController
     /**
      * @param  string $provider
      * @param  \Illuminate\Http\Request $request
-     *
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
@@ -113,7 +111,6 @@ class SocialiteAPIController extends AppBaseController
     /**
      * @param  string $provider
      * @param  \Illuminate\Http\Request $request
-     *
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
@@ -208,16 +205,7 @@ class SocialiteAPIController extends AppBaseController
             ] );
         }
 
-        // scopes to which the user has access
-        $scopes = $user->getScopes();
-
-        $accessToken = $user->createToken( 'authToken', $scopes )->accessToken;
-
-        $response = [
-            'user' => new UserResource( $user ),
-            'accessToken' => $accessToken,
-            'attemptedProjectAccess' => $dataToken[ 'data' ],
-        ];
+        $response = $this->userRepository->login( $user, $dataToken[ 'data' ] );
 
         return $this->sendResponse( $response, 'User logged successfully.' );
     }
@@ -228,7 +216,6 @@ class SocialiteAPIController extends AppBaseController
      * @param \Laravel\Socialite\Two\User $userProviderData
      * @param string $provider
      * @param \App\Models\Tokens\DataToken $dataToken
-     *
      * @return \App\Models\Dashboard\User
      */
     protected function registerUser( $userProviderData, string $provider, $dataToken )
@@ -274,7 +261,6 @@ class SocialiteAPIController extends AppBaseController
      * Create a new user instance after a valid registration.
      *
      * @param  array  $data
-     *
      * @return \App\Models\Dashboard\User
      */
     protected function create( array $data )
@@ -286,8 +272,6 @@ class SocialiteAPIController extends AppBaseController
             'email_verified_at' => now(),
             'accessible_projects' => $data[ 'accessible_projects' ],
         ] );
-
-        $user->assignRoles( 'regular-user' );
 
         return $user;
     }

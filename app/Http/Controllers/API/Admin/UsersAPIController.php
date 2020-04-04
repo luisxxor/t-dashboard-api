@@ -212,9 +212,7 @@ class UsersAPIController extends AppBaseController
     {
         $input = $request->only( [
             'name', 'lastname', 'phone_number1', 'address_line1', 'address_line2', 'password',
-
             'accessible_projects',
-
             'roles',
         ] );
 
@@ -229,9 +227,7 @@ class UsersAPIController extends AppBaseController
             'address_line1' => [ 'nullable', 'string', 'min:5', 'max:50' ],
             'address_line2' => [ 'nullable', 'string', 'min:5', 'max:50' ],
             'password' => [ 'nullable', 'string', 'min:8', 'max:30' ],
-
             'accessible_projects' => [ 'nullable', 'array', 'filled', Rule::in( $projects ) ],
-
             'roles' => [ 'nullable', 'array', 'filled', Rule::in( $roles ) ],
         ] )->validate();
 

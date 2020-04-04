@@ -601,7 +601,7 @@ class PropertiesAPIController extends AppBaseController
                 'search_id'             => $searchId,
                 'project'               => config( 'multi-api.ec-properties.backend-info.code' ),
                 'total_rows_quantity'   => $total,
-                'status'                => config( 'constants.ORDERS_OPENED_STATUS' ),
+                'status'                => config( 'constants.ORDERS.STATUS.OPENED' ),
             ] );
         }
         else {
@@ -626,7 +626,7 @@ class PropertiesAPIController extends AppBaseController
             ) )->wait( false );
 
             // release order.
-            $order->status = config( 'constants.ORDERS_RELEASED_STATUS' );
+            $order->status = config( 'constants.ORDERS.STATUS.RELEASED' );
             $order->save();
 
             return $this->sendResponse( $order, 'Ordered successfully, file generated.', 202 );

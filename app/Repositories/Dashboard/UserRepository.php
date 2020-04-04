@@ -2,9 +2,13 @@
 
 namespace App\Repositories\Dashboard;
 
+use App\Http\Resources\User as UserResource;
+use App\Models\Dashboard\PartnerProject;
 use App\Models\Dashboard\User;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Subscriptions\PlanFeature;
+use App\Models\Subscriptions\PlanProject;
 use App\Repositories\BaseRepository;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Class UserRepository
@@ -38,11 +42,85 @@ class UserRepository extends BaseRepository
     }
 
     /**
+     * Create model record
+     *
+     * @param array $input
+     * @return \Illuminate\Database\Eloquent\Model
+     */
+    public function create( $input )
+    {
+        $user = parent::create( $input );
+
+        // assign default roles
+        $user->assignRoles( 'regular-user' );
+
+        // create default subscription (pay-per-download feature)
+        if ( $defaultPlanProject = $this->defaultPlanProject( $user ) ) {
+            $user->newSubscription( 'main', $defaultPlanProject );
+        }
+
+        return $user;
+    }
+
+    /**
+     * Get default PlanProject for the project with which the user
+     * has been registered.
+     *
+     * @param User $user
+     * @return PlanProject|null
+     */
+    protected function defaultPlanProject( User $user ): ?PlanProject
+    {
+        try {
+            $project = $user->accessible_projects[ 0 ][ 'project' ];
+            $defaultPlanFeature = PlanFeature::bySlug( config( 'rinvex.subscriptions.features.pay-per-download' ) )->first();
+            $defaultPlanProject = $defaultPlanFeature->plan->planProjects->where( 'project_code', $project )->first();
+        } catch ( \Exception $e ) {
+            return null;
+        }
+
+        return $defaultPlanProject;
+    }
+
+    /**
+     * Login user by creating accessToken.
+     *
+     * @param User $user
+     * @param array $dataToken {
+     *     Data of token with which user attempted to log.
+     *
+     *     @type string $partner [required]
+     *     @type string $project [required]
+     * }
+     * @return array
+     */
+    public function login( User $user, array $dataToken ): array
+    {
+        // scopes to which the user has access
+        $scopes = $user->getScopes();
+
+        $accessToken = $user->createToken( 'authToken', $scopes )->accessToken;
+
+        // get attempted partner-project info
+        $partnerProject = PartnerProject::byPartner( $dataToken[ 'partner' ] )->byProject( $dataToken[ 'project' ] )
+            ->with( [ 'partner', 'project' ] )->first();
+        $attemptedPartnerProject = [
+            'partner' => $partnerProject->partner,
+            'project' => $partnerProject->project,
+        ];
+
+        return [
+            'user' => new UserResource( $user ),
+            'accessToken' => $accessToken,
+            'attemptedPartnerProject' => $attemptedPartnerProject,
+        ];
+    }
+
+    /**
      * Update a entity in repository by id
      *
      * @param array $attributes
      * @param       $id
-     *
      * @return mixed
      */
     public function update( array $attributes, $id )

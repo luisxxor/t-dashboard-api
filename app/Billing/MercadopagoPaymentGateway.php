@@ -6,7 +6,15 @@ use App\Lib\Handlers\MercadoPagoHandler;
 
 class MercadopagoPaymentGateway implements PaymentGatewayContract
 {
+    /**
+     * @var string
+     */
     private $currency;
+
+    /**
+     * @var MercadoPagoHandler
+     */
+    private $mercadoPago;
 
     /**
      * Create a new class instance.
@@ -16,44 +24,53 @@ class MercadopagoPaymentGateway implements PaymentGatewayContract
     public function __construct( $currency )
     {
         $this->currency = $currency;
+        $this->mercadoPago = new MercadoPagoHandler( config( 'services.mercadopago.access_token' ) );
     }
 
     /**
      * Charge payment with Mercadopago.
      *
-     * @param string $orderCode
+     * @param string $receiptCode
      * @param float $amount
-     * @param int $itemsQuantity
+     * @param array $options {
+     *     Configuration options.
+     *
+     *     @type string $title [optional] Title of item being charged.
+     * }
      *
      * @return array
      * @throws \Exception
      */
-    public function charge( string $orderCode, float $amount, int $itemsQuantity ): array
+    public function charge( string $receiptCode, float $amount, array $options = [] ): array
     {
-        $mercadoPago = new MercadoPagoHandler( config( 'services.mercadopago.access_token' ) );
+        $opt[ 'title' ] = 'Descarga de registros de Tasing!';
+
+        foreach ( $options as $optionName => $o ) {
+            $opt[ $optionName ] = $o;
+        }
 
         // set preference with external reference
-        $mercadoPago->setPreference( [ 'external_reference' => $orderCode ] );
+        $this->mercadoPago->setPreference( [ 'external_reference' => $receiptCode ] );
 
         // create item to process order
         $item = [
             // 'id'            => 'aqui iria el id, si lo tuviera',
-            'title'         => 'Información de ' . $itemsQuantity . ' registros de Tasing!',
+            'title'         => $opt[ 'title' ],
             'quantity'      => 1,
             'currency_id'   => $this->currency,
             'unit_price'    => $amount,
         ];
 
         // add item to MercadoPago Preference
-        $mercadoPago->addItem( $item );
+        $this->mercadoPago->addItem( $item );
 
         // execute MercadoPago Preference
-        $mercadoPago->save();
+        $this->mercadoPago->save();
 
         return [
             'total_amount' => $amount,
-            'init_point' => $mercadoPago->getLink(),
-            'preference' => $mercadoPago->getPreference(),
+            'init_point' => $this->mercadoPago->getLink(),
+            'preference' => $this->mercadoPago->getPreference(),
         ];
     }
 }

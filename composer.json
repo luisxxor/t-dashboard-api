@@ -26,9 +26,10 @@
         "laravel/socialite": "^4.2",
         "laravel/tinker": "^1.0",
         "laravelcollective/html": "^6.0",
-        "mercadopago/dx-php": "dev-master",
+        "mercadopago/dx-php": "1.8.1",
         "mongodb/mongodb": "^1.4",
-        "rap2hpoutre/laravel-log-viewer": "^1.3"
+        "rap2hpoutre/laravel-log-viewer": "^1.3",
+        "rinvex/laravel-subscriptions": "^3.0"
     },
     "require-dev": {
         "facade/ignition": "^1.4",

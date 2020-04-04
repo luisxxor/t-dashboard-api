@@ -139,7 +139,7 @@ class ProjectsAccessAPIController extends AppBaseController
     public function update( $id, Request $request )
     {
         $request->validate( [
-            'status' => [ 'required', 'string', Rule::in( array_values( config( 'constants.PROJECT_ACCESS_REQUESTS' ) ) ) ],
+            'status' => [ 'required', 'string', Rule::in( array_values( config( 'constants.PROJECT_ACCESS_REQUESTS.STATUS' ) ) ) ],
         ] );
 
         // input
@@ -154,13 +154,13 @@ class ProjectsAccessAPIController extends AppBaseController
         }
 
         // validates if the access requests already has been approved|denied
-        if ( $projectAccessRequest->status === config( 'constants.PROJECT_ACCESS_REQUESTS.APPROVED_STATUS' ) ||
-            $projectAccessRequest->status === config( 'constants.PROJECT_ACCESS_REQUESTS.DENIED_STATUS' ) ) {
+        if ( $projectAccessRequest->status === config( 'constants.PROJECT_ACCESS_REQUESTS.STATUS.APPROVED' ) ||
+            $projectAccessRequest->status === config( 'constants.PROJECT_ACCESS_REQUESTS.STATUS.DENIED' ) ) {
             return $this->sendError( 'Cannot change status (already approved|denied).', [], 202 );
         }
 
         // if approved...
-        if ( $request->get( 'status' ) === config( 'constants.PROJECT_ACCESS_REQUESTS.APPROVED_STATUS' ) ) {
+        if ( $request->get( 'status' ) === config( 'constants.PROJECT_ACCESS_REQUESTS.STATUS.APPROVED' ) ) {
             // get user
             $user = $projectAccessRequest->user;
 

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class RenamePurchasesToOrders extends Migration
+class CreatePartnersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,12 @@ class RenamePurchasesToOrders extends Migration
      */
     public function up()
     {
-        Schema::rename( 'purchases', 'orders' );
+        Schema::create( 'partners', function ( Blueprint $table ) {
+            $table->string( 'code' )->unique();
+            $table->string( 'name' );
+            $table->jsonb( 'data' )->nullable()->default( null );
+            $table->timestamps();
+        } );
     }
 
     /**
@@ -23,6 +28,6 @@ class RenamePurchasesToOrders extends Migration
      */
     public function down()
     {
-        Schema::rename( 'orders', 'purchases' );
+        Schema::dropIfExists( 'partners' );
     }
 }
