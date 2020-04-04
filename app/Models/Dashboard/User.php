@@ -193,9 +193,9 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Checks if the user has the given partner-project associated.
      *
-     * @param  \App\Models\Dashboard\PartnerProject  $$partnerProject
+     * @param  \App\Models\Dashboard\PartnerProject  $partnerProject
      *
-     * @return boolean
+     * @return bool
      */
     public function hasPartnerProjectAccess( $partnerProject )
     {
@@ -208,11 +208,25 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Checks if the user has the given project associated.
+     *
+     * @param  \App\Models\Dashboard\Project|string  $project
+     *
+     * @return bool
+     */
+    public function hasProjectAccess( $project )
+    {
+        $accessibleProjects = array_column( $this->accessible_projects, 'project' );
+
+        return array_search( $project, $accessibleProjects ) !== false;
+    }
+
+    /**
      * Checks if the user has a created requser for the given partner-project.
      *
-     * @param  \App\Models\Dashboard\PartnerProject  $$partnerProject
+     * @param  \App\Models\Dashboard\PartnerProject  $partnerProject
      *
-     * @return boolean
+     * @return bool
      */
     public function hasPartnerProjectPendingRequest( $partnerProject )
     {

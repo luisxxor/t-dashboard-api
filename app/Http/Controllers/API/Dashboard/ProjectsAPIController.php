@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\Dashboard;
 
 use App\Http\Controllers\AppBaseController;
 use App\Repositories\Dashboard\ProjectRepository;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Response;
 
@@ -143,6 +144,11 @@ class ProjectsAPIController extends AppBaseController
 
         // formato del archivo
         $projectCode = $request->get( 'project' );
+
+        // check if user has access to the project
+        if ( auth()->user()->hasProjectAccess( $projectCode ) === false ) {
+            throw new AuthorizationException;
+        }
 
         // validate project
         $project = $this->projectRepository->findByField( 'code', $projectCode );
