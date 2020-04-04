@@ -26,7 +26,7 @@ class CreatePlansTable extends Migration
             $table->string( 'currency', 3);
             $table->smallInteger( 'trial_period' )->unsigned()->default( 0 );
             $table->string( 'trial_interval' )->default( 'day' );
-            $table->smallInteger( 'invoice_period' )->unsigned()->default( 0 );
+            $table->smallInteger( 'invoice_period' )->unsigned()->default( 0 )->comment( 'if zero, the subscriptions will not expire.' );
             $table->string( 'invoice_interval' )->default( 'month' );
             $table->smallInteger( 'grace_period' )->unsigned()->default( 0 );
             $table->string( 'grace_interval' )->default( 'day' );

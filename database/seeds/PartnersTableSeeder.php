@@ -15,6 +15,7 @@ class PartnersTableSeeder extends Seeder
             [
                 'code' => 't',
                 'name' => 'Tasing',
+                'data' => '{"url":"https://tasing.pe/"}',
             ]
         ] );
     }

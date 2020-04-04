@@ -2,6 +2,7 @@
 
 use App\Models\Subscriptions\Plan;
 use App\Models\Subscriptions\PlanFeature;
+use App\Models\Subscriptions\PlanProject;
 use Illuminate\Database\Seeder;
 
 class PlansTableSeader extends Seeder
@@ -13,6 +14,7 @@ class PlansTableSeader extends Seeder
      */
     public function run()
     {
+        // create plan
         $plan = Plan::create( [
             'name' => 'Plan de pagar por descarga',
             'description' => 'Plan de pagar por descarga',
@@ -25,11 +27,14 @@ class PlansTableSeader extends Seeder
             'sort_order' => 1,
             'currency' => 'PEN',
         ] );
-
         $plan->features()->saveMany( [
             new PlanFeature( [ 'name' => 'Pagar por descarga', 'value' => 'true', 'sort_order' => 1 ] ),
         ] );
 
+        // create planProject pe-properties
+        $planProject = PlanProject::create( [ 'project_code' => 'pe-properties', 'plan_id' => $plan->id ] );
+
+        // create plan
         $plan = Plan::create( [
             'name' => 'Plan de descargas mensuales limitadas',
             'description' => 'Plan de descargas mensuales limitadas',
@@ -42,9 +47,11 @@ class PlansTableSeader extends Seeder
             'sort_order' => 2,
             'currency' => 'PEN',
         ] );
-
         $plan->features()->saveMany( [
             new PlanFeature( [ 'name' => 'Descargas mensuales limitadas', 'value' => '3', 'sort_order' => 2 ] ),
         ] );
+
+        // create planProject pe-properties
+        $planProject = PlanProject::create( [ 'project_code' => 'pe-properties', 'plan_id' => $plan->id ] );
     }
 }

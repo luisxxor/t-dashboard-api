@@ -64,10 +64,20 @@ class PlanSubscription extends RinvexPlanSubscription
             'user_type' => 'required|string',
             'trial_ends_at' => 'nullable|date',
             'starts_at' => 'required|date',
-            'ends_at' => 'required|date',
+            'ends_at' => 'nullable|date',
             'cancels_at' => 'nullable|date',
             'canceled_at' => 'nullable|date',
         ] );
+    }
+
+    /**
+     * The "booting" method of the model.
+     *
+     * @return void
+     */
+    protected static function boot()
+    {
+        static::bootTraits();
     }
 
     /**

@@ -44,7 +44,7 @@ trait HasSubscriptions
             'plan_project_id' => $planProject->getKey(),
             'trial_ends_at' => $trial->getEndDate(),
             'starts_at' => $period->getStartDate(),
-            'ends_at' => $period->getEndDate(),
+            'ends_at' => $plan->invoice_period === 0 ? null : $period->getEndDate(),
         ] );
     }
 }
