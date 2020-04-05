@@ -13,6 +13,16 @@ trait HasSubscriptions
     use RinvexHasSubscriptions;
 
     /**
+     * A model may have many active subscriptions.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function activeSubscriptions(): Collection
+    {
+        return $this->subscriptions->reject->inactive()->filter->released()->values();
+    }
+
+    /**
      * Get a subscription by slug.
      *
      * @param string $subscriptionSlug
@@ -45,6 +55,27 @@ trait HasSubscriptions
             'trial_ends_at' => $trial->getEndDate(),
             'starts_at' => $period->getStartDate(),
             'ends_at' => $plan->invoice_period === 0 ? null : $period->getEndDate(),
+            'status' => $plan->isFree() === true ? config( 'constants.PLAN_SUBSCRIPTIONS.STATUS.RELEASED' ) : config( 'constants.PLAN_SUBSCRIPTIONS.STATUS.TO_PAY' ),
         ] );
+    }
+
+    /**
+     * Get subscribed planProjects Ids.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function subscribedPlanProjectIds()
+    {
+        return $this->subscriptions->reject->inactive()->pluck( 'plan_project_id' )->unique();
+    }
+
+    /**
+     * Get subscribed planProjects.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function subscribedPlanProjects()
+    {
+        return PlanProject::whereIn( 'id', $this->subscribedPlanProjectIds() )->get();
     }
 }

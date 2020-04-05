@@ -13,6 +13,33 @@ class PermissionsTableSeeder extends Seeder
     {
         DB::table( 'permissions' )->insert( [
             [
+                'name' => 'Manage users',
+                'slug' => 'manage.users',
+                'description' => null,
+            ],
+            [
+                'name' => 'Manage projects access',
+                'slug' => 'manage.projects.access',
+                'description' => null,
+            ],
+            [
+                'name' => 'See foreign orders list',
+                'slug' => 'see.foreign.orders.list',
+                'description' => null,
+            ],
+            [
+                'name' => 'See foreign order',
+                'slug' => 'see.foreign.order',
+                'description' => null,
+            ],
+            [
+                'name' => 'Download foreign order',
+                'slug' => 'download.foreign.order',
+                'description' => null,
+            ],
+
+
+            [
                 'name' => 'Search properties',
                 'slug' => 'search.properties',
                 'description' => null,
@@ -47,26 +74,14 @@ class PermissionsTableSeeder extends Seeder
                 'slug' => 'manage.own.profile',
                 'description' => null,
             ],
-
-
             [
-                'name' => 'Manage users',
-                'slug' => 'manage.users',
+                'name' => 'Manage own projects access',
+                'slug' => 'manage.own.projects.access',
                 'description' => null,
             ],
             [
-                'name' => 'See foreign orders list',
-                'slug' => 'see.foreign.orders.list',
-                'description' => null,
-            ],
-            [
-                'name' => 'See foreign order',
-                'slug' => 'see.foreign.order',
-                'description' => null,
-            ],
-            [
-                'name' => 'Download foreign order',
-                'slug' => 'download.foreign.order',
+                'name' => 'Manage own subscriptions',
+                'slug' => 'manage.own.subscriptions',
                 'description' => null,
             ],
 
