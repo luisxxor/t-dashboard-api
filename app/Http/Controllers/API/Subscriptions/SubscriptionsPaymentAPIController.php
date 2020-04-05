@@ -39,7 +39,7 @@ class SubscriptionsPaymentAPIController extends AppBaseController
      *
      * @OA\Post(
      *     path="/api/subscriptions/payments/process",
-     *     operationId="pay",
+     *     operationId="pay-",
      *     tags={"Payments"},
      *     summary="Pay subscription.",
      *     @OA\Parameter(

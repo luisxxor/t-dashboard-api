@@ -1686,7 +1686,7 @@
                     "Payments"
                 ],
                 "summary": "Pay subscription.",
-                "operationId": "pay",
+                "operationId": "pay-",
                 "parameters": [
                     {
                         "name": "subscriptionId",
