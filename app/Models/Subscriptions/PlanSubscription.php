@@ -91,6 +91,23 @@ class PlanSubscription extends RinvexPlanSubscription
     }
 
     /**
+     * The model always belongs to a plan.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOneThrough
+     */
+    public function realPlan()
+    {
+        return $this->hasOneThrough(
+            \App\Models\Subscriptions\Plan::class,
+            \App\Models\Subscriptions\PlanProject::class,
+            'id', // Local key on PlanProject
+            'id', // Local key on Plan
+            'plan_project_id', // Foreign key on PlanSubscription
+            'plan_id' // Foreign key on PlanProject
+        );
+    }
+
+    /**
      * Record feature usage.
      *
      * @param string $featureSlug
