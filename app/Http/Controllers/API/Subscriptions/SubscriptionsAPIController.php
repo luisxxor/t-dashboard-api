@@ -271,10 +271,9 @@ class SubscriptionsAPIController extends AppBaseController
             return $this->sendError( 'El usuario ya tiene este plan project.', [], 202 );
         }
 
+        // create subscription (in 'to_pay' status)
+        $subscription = $user->newSubscription( 'subscribed', $planProject );
 
-        # TODO
-        $availablePlans = [];
-
-        return $this->sendResponse( $availablePlans, 'Data retrieved.' );
+        return $this->sendResponse( new SubscriptionResource( $subscription ), 'Data retrieved.' );
     }
 }

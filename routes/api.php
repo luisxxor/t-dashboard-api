@@ -76,6 +76,11 @@ Route::prefix( 'subscriptions' )->middleware( 'auth:api', 'verified' )->group( f
 
     Route::post( 'subscribe', 'API\Subscriptions\SubscriptionsAPIController@subscribe' )->name( 'subscriptions.subscribe' )
         ->middleware( 'can:manage.own.subscriptions' );
+
+    // payments
+
+    Route::post( 'payments/process', 'API\Subscriptions\SubscriptionsPaymentAPIController@pay' )->name( 'subscriptions..payments.pay' )
+        ->middleware( 'can:manage.own.subscriptions' );
 } );
 
 Route::prefix( 'admin' )->middleware( 'auth:api', 'verified' )->group( function () {

@@ -27,6 +27,7 @@ class PlanSubscription extends RinvexPlanSubscription
         'ends_at',
         'cancels_at',
         'canceled_at',
+        'status',
     ];
 
     /**
@@ -67,6 +68,7 @@ class PlanSubscription extends RinvexPlanSubscription
             'ends_at' => 'nullable|date',
             'cancels_at' => 'nullable|date',
             'canceled_at' => 'nullable|date',
+            'status' => 'required|string',
         ] );
     }
 
@@ -206,13 +208,24 @@ class PlanSubscription extends RinvexPlanSubscription
     }
 
     /**
+     * Check if subscription is released.
+     *
+     * @return bool
+     */
+    public function released(): bool
+    {
+        return $this->status === config( 'constants.PLAN_SUBSCRIPTIONS.STATUS.RELEASED' );
+    }
+
+    /**
      * Set 'pending' status in PlanSubscription.
      *
      * @return \App\Models\Subscriptions\PlanSubscription
      */
     public function setPendingStatus()
     {
-        # TODO
+        $this->status = config( 'constants.PLAN_SUBSCRIPTIONS.STATUS.PENDING' );
+        $this->save();
 
         return $this;
     }
@@ -224,7 +237,8 @@ class PlanSubscription extends RinvexPlanSubscription
      */
     public function setReleasedStatus()
     {
-        # TODO
+        $this->status = config( 'constants.PLAN_SUBSCRIPTIONS.STATUS.RELEASED' );
+        $this->save();
 
         return $this;
     }

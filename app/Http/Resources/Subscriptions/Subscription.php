@@ -16,18 +16,17 @@ class Subscription extends JsonResource
      */
     public function toArray( $request )
     {
-        return $this->mergeWhen( true, [
-            [
-                'project' => $this->planProject->project_code,
-                'id' => $this->id,
-                'starts_at' => $this->starts_at,
-                'ends_at' => $this->ends_at,
-                'calcels_at' => $this->calcels_at,
-                'canceled_at' => $this->canceled_at,
-                'plan' => new PlanResource( $this->whenLoaded( 'realPlan' ) ),
-                'usage' => SubscriptionUsageResource::collection( $this->whenLoaded( 'usage' ) ),
-                'created_at' => $this->created_at,
-            ]
-        ] );
+        return [
+            'project' => $this->planProject->project_code,
+            'id' => $this->id,
+            'starts_at' => $this->starts_at,
+            'ends_at' => $this->ends_at,
+            'calcels_at' => $this->calcels_at,
+            'canceled_at' => $this->canceled_at,
+            'status' => $this->status,
+            'plan' => new PlanResource( $this->whenLoaded( 'realPlan' ) ),
+            'usage' => SubscriptionUsageResource::collection( $this->whenLoaded( 'usage' ) ),
+            'created_at' => $this->created_at,
+        ];
     }
 }

@@ -1,41 +1,21 @@
 <?php
 
-namespace App\Http\Controllers\API\Dashboard;
+namespace App\Http\Controllers\API\Subscriptions;
 
 use App\Billing\PaymentGatewayContract;
 use App\Http\Controllers\AppBaseController;
-use App\Repositories\Dashboard\OrderRepository;
+use App\Models\Subscriptions\PlanSubscription;
 use App\Repositories\Dashboard\ReceiptRepository;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 /**
- * Class OrdersPaymentAPIController
- * @package App\Http\Controllers\API\Dashboard
+ * Class SubscriptionsPaymentAPIController
+ * @package App\Http\Controllers\API\Subscriptions
  */
-class OrdersPaymentAPIController extends AppBaseController
+class SubscriptionsPaymentAPIController extends AppBaseController
 {
-    /**
-     * @const float
-     */
-    const BASE_PRICE = 35.0;
-
-    /**
-     * @const int
-     */
-    const BASE_QUANTITY = 15;
-
-    /**
-     * @const float
-     */
-    const ADDITIONAL_PRICE = 1;
-
-    /**
-     * @var  OrderRepository
-     */
-    private $orderRepository;
-
     /**
      * @var  ReceiptRepository
      */
@@ -46,10 +26,8 @@ class OrdersPaymentAPIController extends AppBaseController
      *
      * @return void
      */
-    public function __construct( OrderRepository $orderRepo,
-        ReceiptRepository $receiptRepo )
+    public function __construct( ReceiptRepository $receiptRepo )
     {
-        $this->orderRepository = $orderRepo;
         $this->receiptRepository = $receiptRepo;
     }
 
@@ -60,16 +38,16 @@ class OrdersPaymentAPIController extends AppBaseController
      * @throws \Illuminate\Auth\Access\AuthorizationException
      *
      * @OA\Post(
-     *     path="/api/dashboard/payments/process",
+     *     path="/api/subscriptions/payments/process",
      *     operationId="pay",
      *     tags={"Payments"},
-     *     summary="Pay order.",
+     *     summary="Pay subscription.",
      *     @OA\Parameter(
-     *         name="orderCode",
+     *         name="subscriptionId",
      *         required=true,
      *         in="query",
      *         @OA\Schema(
-     *             type="string"
+     *             type="integer"
      *         )
      *     ),
      *     @OA\Parameter(
@@ -114,7 +92,7 @@ class OrdersPaymentAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=202,
-     *         description="Order already released."
+     *         description="Subscription already released."
      *     ),
      *     @OA\Response(
      *         response=400,
@@ -126,11 +104,11 @@ class OrdersPaymentAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=403,
-     *         description="Access Denied. User is not the owner of this order."
+     *         description="Access Denied. User is not the owner of this subscription."
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Order not found."
+     *         description="Subscription not found."
      *     ),
      *     @OA\Response(
      *         response=422,
@@ -144,64 +122,58 @@ class OrdersPaymentAPIController extends AppBaseController
     public function pay( Request $request, PaymentGatewayContract $paymentGateway )
     {
         $request->validate( [
-            'orderCode'         => [ 'required', 'string' ],
+            'subscriptionId'    => [ 'required', 'integer' ],
             'paymentType'       => [ 'required', 'string', Rule::in( array_values( config( 'constants.payment_gateways' ) ) ) ],
             'currency'          => [ 'required', 'string', Rule::in( array_values( config( 'constants.payment_currencies' ) ) ) ],
         ] );
 
         // input
-        $orderCode      = $request->get( 'orderCode' );
+        $subscriptionId = $request->get( 'subscriptionId' );
         $paymentType    = $request->get( 'paymentType' );
         $currency       = $request->get( 'currency' );
 
-        // get order
-        $order = $this->orderRepository->findByField( 'code', $orderCode )->first();
+        // get subscription
+        $subscription = PlanSubscription::find( $subscriptionId );
 
-        # TODO: aqui hay que verificar que la search aun exista en mongodb,
-        #       porque si no existe el usuario va a pagar y no se va a generar nada
-
-        // validate order
-        if ( empty( $order ) === true ) {
-            \Log::info( 'Order not found.', [ $orderCode ] );
-
-            return $this->sendError( 'Order not found.', [], 404 );
+        // validate subscription
+        if ( empty( $subscription ) === true ) {
+            return $this->sendError( 'Subscription not found.', [], 404 );
         }
 
-        // validate if the order belongs to the user
-        if ( $order->user_id != auth()->user()->getKey() ) {
+        // validate if the subscription belongs to the user
+        if ( $subscription->user_id != auth()->user()->getKey() ) {
             throw new AuthorizationException;
         }
 
-        // if order is already released
-        if ( $order->status === config( 'constants.ORDERS.STATUS.RELEASED' ) ) {
-            return $this->sendResponse( $order, 'Order already released.', 202 );
+        // if subscription is already released
+        if ( $subscription->status === config( 'constants.PLAN_SUBSCRIPTIONS.STATUS.RELEASED' ) ) {
+            return $this->sendResponse( $subscription, 'Subscription already released.', 202 );
         }
 
-        # validar el estatus del recibo, no de la orden
-        // if order is already processed but not released (to_pay or pending)
-        if ( $order->status === config( 'constants.ORDERS.STATUS.TO_PAY' )
-            || $order->status === config( 'constants.ORDERS.STATUS.PENDING' ) ) {
+        # validar el estatus del recibo, no de la suscripcion
+        // if subscription is already processed but not released (to_pay or pending)
+        if ( $subscription->status === config( 'constants.PLAN_SUBSCRIPTIONS.STATUS.PENDING' ) ) {
             return $this->sendResponse(
-                $order->receipt->payment_info[ 'init_point' ],
+                $subscription->receipt->payment_info[ 'init_point' ],
                 'Payment preference already exists. Init point returned successfully.'
             );
         }
 
         // amount
-        $amount = $this->calculateAmount( $order->total_rows_quantity );
+        $amount = $subscription->realPlan->price;
 
         // create receipt
-        $receipt = $this->receiptRepository->findOrCreateByReceiptable( $order );
+        $receipt = $this->receiptRepository->findOrCreateByReceiptable( $subscription );
 
         try {
             // charge
             $paymentResult = $paymentGateway->charge(
                 $receipt->code,
                 $amount,
-                [ 'title' => 'Información de ' . $order->total_rows_quantity . ' registros de Tasing!' ]
+                [ 'title' => 'TASING SAC | Pago de subscription al ' . $subscription->realPlan->name . '' ]
             );
         } catch ( \Exception $e ) {
-            \Log::error( 'Error at payment.', [ $order, $e->getMessage() ] );
+            \Log::error( 'Error at payment.', [ $subscription, $e->getMessage() ] );
 
             return $this->sendError( $e->getMessage(), [], 400 );
         }
@@ -214,34 +186,10 @@ class OrdersPaymentAPIController extends AppBaseController
         $receipt->payment_info  = $paymentResult;
         $receipt->save();
 
-        // change order status
-        $order->status = config( 'constants.ORDERS.STATUS.TO_PAY' );
-        $order->save();
+        // change subscription status
+        $subscription->status = config( 'constants.PLAN_SUBSCRIPTIONS.STATUS.TO_PAY' );
+        $subscription->save();
 
         return $this->sendResponse( $paymentResult[ 'init_point' ], 'Payment preference created. Init point returned successfully.' );
-    }
-
-    /**
-     * Calculate the amount with the rows quantity.
-     *
-     * @param int $rowQuantity
-     *
-     * @return float
-     */
-    protected function calculateAmount( int $rowQuantity ): float
-    {
-        $amount = self::BASE_PRICE;
-
-        // if the number of records is greater than the base price
-        if ( $rowQuantity > self::BASE_QUANTITY ) {
-
-            // get the number of additional records
-            $additionalQuantity = $rowQuantity - self::BASE_QUANTITY;
-
-            // add the additional price
-            $amount += $additionalQuantity * self::ADDITIONAL_PRICE;
-        }
-
-        return $amount;
     }
 }
