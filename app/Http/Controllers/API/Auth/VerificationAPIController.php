@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\Auth;
 
 use App\Http\Controllers\AppBaseController;
+use App\Repositories\Dashboard\UserRepository;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
@@ -10,15 +11,21 @@ use Illuminate\Http\Request;
 class VerificationAPIController extends AppBaseController
 {
     /**
+     * @var  UserRepository
+     */
+    private $userRepository;
+
+    /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct( UserRepository $userRepo )
     {
-        $this->middleware( 'auth:api' );
+        $this->middleware( 'auth:api' )->only( 'show', 'resend' );
         $this->middleware( 'signed' )->only( 'verify' );
         $this->middleware( 'throttle:6,1' )->only( 'verify', 'resend' );
+        $this->userRepository = $userRepo;
     }
 
     /**
@@ -140,7 +147,7 @@ class VerificationAPIController extends AppBaseController
      *     ),
      *     @OA\Response(
      *         response=403,
-     *         description="Invalid signature; or user logged isn't the same as user looking for verification."
+     *         description="Invalid signature; or invalid hash."
      *     ),
      *     security={
      *         {"": {}}
@@ -149,23 +156,25 @@ class VerificationAPIController extends AppBaseController
      */
     public function verify( Request $request )
     {
-        if ( hash_equals( (string) $request->route( 'id' ), (string) auth()->user()->getKey() ) === false ) {
+        $user = $this->userRepository->find( $request->route( 'id' ) );
+
+        if ( empty( $user ) === true ) {
             throw new AuthorizationException;
         }
 
-        if ( hash_equals( (string) $request->route( 'hash' ), sha1( auth()->user()->getEmailForVerification() ) ) === false ) {
+        if ( hash_equals( (string) $request->route( 'hash' ), sha1( $user->getEmailForVerification() ) ) === false ) {
             throw new AuthorizationException;
         }
 
-        if ( auth()->user()->hasVerifiedEmail() ) {
+        if ( $user->hasVerifiedEmail() ) {
             return $this->sendError( 'Already verified.', [], 202 );
         }
 
-        if ( auth()->user()->markEmailAsVerified() ) {
-            event( new Verified( auth()->user() ) );
+        if ( $user->markEmailAsVerified() ) {
+            event( new Verified( $user ) );
         }
 
-        return $this->sendResponse( 'Verificado con éxito!', 'Verified successfully.' );
+        return $this->sendResponse( $user->accessible_projects[ 0 ], 'Verified successfully.' );
     }
 
     /**
