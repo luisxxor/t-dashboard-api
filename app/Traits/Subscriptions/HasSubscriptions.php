@@ -47,4 +47,24 @@ trait HasSubscriptions
             'ends_at' => $plan->invoice_period === 0 ? null : $period->getEndDate(),
         ] );
     }
+
+    /**
+     * Get subscribed planProjects Ids.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function subscribedPlanProjectIds()
+    {
+        return $this->subscriptions->reject->inactive()->pluck( 'plan_project_id' )->unique();
+    }
+
+    /**
+     * Get subscribed planProjects.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function subscribedPlanProjects()
+    {
+        return PlanProject::whereIn( 'id', $this->subscribedPlanProjectIds() )->get();
+    }
 }

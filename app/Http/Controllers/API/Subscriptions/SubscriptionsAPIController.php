@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\API\Subscriptions;
 
 use App\Http\Controllers\AppBaseController;
+use App\Http\Resources\Subscriptions\PlanProject as PlanProjectResource;
+use App\Http\Resources\Subscriptions\Subscription as SubscriptionResource;
+use App\Models\Subscriptions\PlanProject;
 use App\Repositories\Dashboard\PartnerProjectRepository;
-use App\Repositories\Dashboard\PartnerRepository;
+use App\Repositories\Dashboard\ProjectRepository;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 
 /**
@@ -14,9 +18,9 @@ use Illuminate\Http\Request;
 class SubscriptionsAPIController extends AppBaseController
 {
     /**
-     * @var  PartnerRepository
+     * @var  ProjectRepository
      */
-    private $partnerRepository;
+    private $projectRepository;
 
     /**
      * @var  PartnerProjectRepository
@@ -28,10 +32,10 @@ class SubscriptionsAPIController extends AppBaseController
      *
      * @return void
      */
-    public function __construct( PartnerRepository $partnerRepo,
+    public function __construct( ProjectRepository $projectRepo,
         PartnerProjectRepository $partnerProjectRepo )
     {
-        $this->partnerRepository = $partnerRepo;
+        $this->projectRepository = $projectRepo;
         $this->partnerProjectRepository = $partnerProjectRepo;
     }
 
@@ -75,6 +79,14 @@ class SubscriptionsAPIController extends AppBaseController
      *         response=401,
      *         description="Unauthenticated."
      *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Data not found."
+     *     ),
      *     security={
      *         {"": {}}
      *     }
@@ -86,14 +98,25 @@ class SubscriptionsAPIController extends AppBaseController
             'project' => [ 'required', 'string', 'filled' ],
         ] );
 
-        // input
-        $projectCode    = $request->get( 'project' );
+        $projectCode = $request->get( 'project' );
+
+        $project = $this->projectRepository->find( $projectCode );
+
+        if ( empty( $project ) === true ) {
+            return $this->sendError( 'Project not found.', [], 404 );
+        }
 
         $user = auth()->user();
 
-        # TODO: solo las del proyecto indicado en request
+        if ( $user->hasProjectAccess( $projectCode ) === false ) {
+            throw new AuthorizationException;
+        }
 
-        $subscriptions = $user->subscriptions()->with( [ 'planProject', 'realPlan' ] )->get();
+        $planProjectIds = PlanProject::byProject( $projectCode )->pluck( 'id' );
+
+        $subscriptions = SubscriptionResource::collection(
+            $user->subscriptions()->with( [ 'realPlan', 'planProject', 'usage' ] )->whereIn( 'plan_project_id', $planProjectIds )->get()
+        );
 
         return $this->sendResponse( $subscriptions, 'Data retrieved.' );
     }
@@ -138,6 +161,10 @@ class SubscriptionsAPIController extends AppBaseController
      *         response=401,
      *         description="Unauthenticated."
      *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Data not found."
+     *     ),
      *     security={
      *         {"": {}}
      *     }
@@ -149,13 +176,25 @@ class SubscriptionsAPIController extends AppBaseController
             'project' => [ 'required', 'string', 'filled' ],
         ] );
 
-        // input
-        $projectCode    = $request->get( 'project' );
+        $projectCode = $request->get( 'project' );
+
+        $project = $this->projectRepository->find( $projectCode );
+
+        if ( empty( $project ) === true ) {
+            return $this->sendError( 'Project not found.', [], 404 );
+        }
 
         $user = auth()->user();
 
-        # TODO
-        $planProjects = [];
+        if ( $user->hasProjectAccess( $projectCode ) === false ) {
+            throw new AuthorizationException;
+        }
+
+        $subscribedPlanProjectIds = $user->subscribedPlanProjectIds()->values();
+
+        $planProjects = PlanProjectResource::collection(
+            PlanProject::byProject( $projectCode )->with( [ 'plan' ] )->whereNotIn( 'id', $subscribedPlanProjectIds )->get()
+        );
 
         return $this->sendResponse( $planProjects, 'Data retrieved.' );
     }
@@ -212,10 +251,26 @@ class SubscriptionsAPIController extends AppBaseController
             'planProjectId' => [ 'required', 'integer', 'filled' ],
         ] );
 
-        // input
-        $planProject = $request->get( 'planProjectId' );
+        $planProjectId = $request->get( 'planProjectId' );
+
+        $planProject = PlanProject::find( $planProjectId );
+
+        if ( empty( $planProject ) === true ) {
+            return $this->sendError( 'Plan Project not found.', [], 404 );
+        }
 
         $user = auth()->user();
+
+        if ( $user->hasProjectAccess( $planProject->project_code ) === false ) {
+            throw new AuthorizationException;
+        }
+
+        // check if user already has the given partner project
+        $subscribedPlanProjectIds = $user->subscribedPlanProjectIds()->values();
+        if ( $subscribedPlanProjectIds->search( $planProjectId ) !== false ) {
+            return $this->sendError( 'El usuario ya tiene este plan project.', [], 202 );
+        }
+
 
         # TODO
         $availablePlans = [];
