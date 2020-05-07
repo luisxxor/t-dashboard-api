@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Projects\PeruProperties\Controllers;
+namespace Modules\PeruProperties\Controllers;
 
 use App\Http\Controllers\AppBaseController;
 use App\Lib\Handlers\GoogleStorageHandler;
 use App\Lib\Writer\Common\FileWriterFactory;
-use App\Projects\PeruProperties\Repositories\PropertyRepository;
-use App\Projects\PeruProperties\Repositories\PropertyTypeRepository;
-use App\Projects\PeruProperties\Repositories\SearchRepository;
+use Modules\PeruProperties\Repositories\PropertyRepository;
+use Modules\PeruProperties\Repositories\PropertyTypeRepository;
+use Modules\PeruProperties\Repositories\SearchRepository;
 use App\Repositories\Dashboard\OrderRepository;
 use Carbon\Carbon;
 use DateTime;
@@ -18,7 +18,7 @@ use Illuminate\Validation\Rule;
 
 /**
  * Class PropertiesAPIController
- * @package App\Projects\PeruProperties\Controllers
+ * @package Modules\PeruProperties\Controllers
  */
 class PropertiesAPIController extends AppBaseController
 {

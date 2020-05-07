@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Projects\PeruProperties\Models;
+namespace Modules\PeruProperties\Models;
 
 use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
 
-class Property extends Moloquent
+class PropertyType extends Moloquent
 {
     /**
      * @var string
@@ -14,15 +14,10 @@ class Property extends Moloquent
     /**
      * @var string
      */
-    protected $collection = 'properties';
+    protected $collection = 'property_types';
 
     /**
      * @var string
      */
     protected $primaryKey = '_id';
-
-    /**
-     * @var array
-     */
-    protected $dates = [ 'publication_date' ];
 }

@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Projects\PeruProperties\Pipelines;
+namespace Modules\PeruProperties\Pipelines;
 
-use App\Projects\PeruProperties\Models\PropertyType;
+use Modules\PeruProperties\Models\PropertyType;
 use Carbon\Carbon;
 use MongoDB\BSON\UTCDateTime;
 
 /**
  * Trait FilterPipelines
- * @package App\Projects\PeruProperties\Pipelines
+ * @package Modules\PeruProperties\Pipelines
  * @version Dec 24, 2019, 16:37 UTC
 */
 trait FilterPipelines

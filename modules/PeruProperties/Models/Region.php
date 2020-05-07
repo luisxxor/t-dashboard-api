@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Projects\PeruProperties\Models;
+namespace Modules\PeruProperties\Models;
 
 use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
 
-class PropertyType extends Moloquent
+class Region extends Moloquent
 {
     /**
      * @var string
@@ -14,7 +14,7 @@ class PropertyType extends Moloquent
     /**
      * @var string
      */
-    protected $collection = 'property_types';
+    protected $collection = 'regions';
 
     /**
      * @var string

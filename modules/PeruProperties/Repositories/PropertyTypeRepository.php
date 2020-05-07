@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Projects\PeruProperties\Repositories;
+namespace Modules\PeruProperties\Repositories;
 
-use App\Projects\PeruProperties\Models\PropertyType;
+use Modules\PeruProperties\Models\PropertyType;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Class PropertyTypeRepository
- * @package App\Projects\PeruProperties\Repositories
+ * @package Modules\PeruProperties\Repositories
  * @version Ago 22, 2019, 2:19 am UTC
 */
 class PropertyTypeRepository

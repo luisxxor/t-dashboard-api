@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Projects\PeruProperties\Models;
+namespace Modules\PeruProperties\Models;
 
 use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
 

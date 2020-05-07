@@ -1,0 +1,13 @@
+{
+    "name": "PeruProperties",
+    "alias": "peruproperties",
+    "description": "",
+    "keywords": [],
+    "order": 0,
+    "providers": [
+        "Modules\\PeruProperties\\Providers\\PeruPropertiesServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

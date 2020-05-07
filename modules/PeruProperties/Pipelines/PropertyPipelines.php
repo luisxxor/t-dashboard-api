@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Projects\PeruProperties\Pipelines;
+namespace Modules\PeruProperties\Pipelines;
 
-use App\Projects\PeruProperties\Models\Search;
+use Modules\PeruProperties\Models\Search;
 use MongoDB\BSON\ObjectID;
 
 /**
  * Trait PropertyPipelines
- * @package App\Projects\PeruProperties\Pipelines
+ * @package Modules\PeruProperties\Pipelines
  * @version Dec 24, 2019, 15:31 UTC
 */
 trait PropertyPipelines

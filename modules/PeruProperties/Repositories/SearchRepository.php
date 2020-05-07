@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Projects\PeruProperties\Repositories;
+namespace Modules\PeruProperties\Repositories;
 
-use App\Projects\PeruProperties\Models\Search;
+use Modules\PeruProperties\Models\Search;
 
 /**
  * Class SearchRepository
- * @package App\Projects\PeruProperties\Repositories
+ * @package Modules\PeruProperties\Repositories
  * @version Jun 28, 2019, 2:34 pm UTC
 */
 class SearchRepository
@@ -16,7 +16,7 @@ class SearchRepository
      *
      * @param array $attributes
      *
-     * @return \App\Projects\PeruProperties\Models\Search
+     * @return \Modules\PeruProperties\Models\Search
      */
     public function create( array $attributes )
     {
@@ -27,7 +27,7 @@ class SearchRepository
      *
      * @param  mixed  $id
      *
-     * @return \App\Projects\PeruProperties\Models\Search
+     * @return \Modules\PeruProperties\Models\Search
      */
     public function find( $id )
     {
@@ -39,7 +39,7 @@ class SearchRepository
      *
      * @param  mixed  $id
      *
-     * @return \App\Projects\PeruProperties\Models\Search
+     * @return \Modules\PeruProperties\Models\Search
      * @throws \Exception
      */
     public function findOrFail( $id )
@@ -59,7 +59,7 @@ class SearchRepository
      * @param  array $attributes
      * @param  mixed $id
      *
-     * @return \App\Projects\PeruProperties\Models\Search
+     * @return \Modules\PeruProperties\Models\Search
      */
     public function update( array $attributes, $id )
     {

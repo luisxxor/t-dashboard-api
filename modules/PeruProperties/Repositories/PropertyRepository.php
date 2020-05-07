@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Projects\PeruProperties\Repositories;
+namespace Modules\PeruProperties\Repositories;
 
-use App\Projects\PeruProperties\Models\Property;
-use App\Projects\PeruProperties\Models\Search;
-use App\Projects\PeruProperties\Pipelines\FilterPipelines;
-use App\Projects\PeruProperties\Pipelines\PropertyPipelines;
+use Modules\PeruProperties\Models\Property;
+use Modules\PeruProperties\Models\Search;
+use Modules\PeruProperties\Pipelines\FilterPipelines;
+use Modules\PeruProperties\Pipelines\PropertyPipelines;
 use MongoDB\BSON\ObjectID;
 
 /**
  * Class PropertyRepository
- * @package App\Projects\PeruProperties\Repositories
+ * @package Modules\PeruProperties\Repositories
  * @version May 31, 2019, 5:17 am UTC
 */
 class PropertyRepository
