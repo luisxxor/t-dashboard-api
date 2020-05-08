@@ -61,7 +61,7 @@ class PropertiesAPIController extends AppBaseController
         SearchRepository $searchRepo,
         OrderRepository $orderRepo )
     {
-        $this->fileHandler = new FileHandler();
+        // $this->fileHandler = new FileHandler();
         $this->propertyTypeRepository = $propertyTypeRepo;
         $this->publicationTypeRepository = $publicationTypeRepo;
         $this->propertyRepository = $propertyRepo;
