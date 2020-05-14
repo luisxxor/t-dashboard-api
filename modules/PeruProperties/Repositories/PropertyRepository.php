@@ -2,6 +2,7 @@
 
 namespace Modules\PeruProperties\Repositories;
 
+use Illuminate\Database\Eloquent\Collection;
 use Modules\PeruProperties\Models\Property;
 use Modules\PeruProperties\Models\Search;
 use Modules\PeruProperties\Pipelines\FilterPipelines;
@@ -21,21 +22,6 @@ class PropertyRepository
      * @var array
      */
     protected $constants;
-
-    /**
-     * @var array
-     */
-    protected $outputFields = [
-        'id',
-        'dollars_price',
-        'others_price',
-        'bedrooms',
-        'bathrooms',
-        'parkings',
-        'property_type',
-        'publication_date_formated',
-        'image_list',
-    ];
 
     /**
      * Fields and its order to sort the properties.
@@ -87,30 +73,6 @@ class PropertyRepository
     }
 
     /**
-     * Make a search of properties but not specting response.
-     *
-     * @param float $lat
-     * @param float $lng
-     * @param int $maxDistance The maximum distance from the center
-     *        point that the documents can be (in meters).
-     *
-     * @return void
-     */
-    public function searchPropertiesOnlyByGeonear( float $lat, float $lng, int $maxDistance ): void
-    {
-        // pipeline to get distance (parameters)
-        $distance = $this->pipelineDistanceToQuery( $lat, $lng, $maxDistance );
-
-        // pipeline
-        $pipeline = $this->pipelinePropertiesOnlyByGeonear( $distance );
-
-        // exec query
-        Property::raw( ( function ( $collection ) use ( $pipeline ) {
-            return $collection->aggregate( $pipeline );
-        } ) );
-    }
-
-    /**
      * Returns output fields of matched properties
      * from given search, with pagination.
      *
@@ -125,9 +87,9 @@ class PropertyRepository
      *     @type array $lastItem [optional] The last item to paginate from.
      * }
      *
-     * @return array
+     * @return Collection
      */
-    public function searchPropertiesReturnOutputFields( Search $search, array $pagination ): array
+    public function searchPropertiesReturnOutputFields( Search $search, array $pagination ): Collection
     {
         // pipeline
         $pipeline = $this->pipelineSearchProperties( $search, $pagination );
@@ -159,7 +121,7 @@ class PropertyRepository
                 'publication_date' => [ '$ifNull' => [ '$publication_date', null ] ],
                 'image_list' => [ '$ifNull' => [ '$image_list', null ] ],
                 'distance' => [ '$convert' => [ 'input' => '$distance', 'to' => 'int', 'onError' => 'Error', 'onNull' => null ] ],
-                'geometry' => '$geo_location'
+                'geometry' => '$geo_location',
             ]
         ];
 
@@ -168,7 +130,7 @@ class PropertyRepository
             return $collection->aggregate( $pipeline );
         } ) );
 
-        return $collect->toArray();
+        return $collect;
     }
 
     /**
@@ -177,9 +139,9 @@ class PropertyRepository
      *
      * @param Search $search The search model to match the properties.
      *
-     * @return void
+     * @return Collection
      */
-    public function searchPropertiesReturnIds( Search $search ): array
+    public function searchPropertiesReturnIds( Search $search ): Collection
     {
         // pipeline
         $pipeline = $this->pipelineSearchProperties( $search );
@@ -196,7 +158,7 @@ class PropertyRepository
             return $collection->aggregate( $pipeline );
         } ) );
 
-        return $collect->toArray();
+        return $collect;
     }
 
     /**
@@ -355,9 +317,9 @@ class PropertyRepository
      *     @type array $lastItem [optional] The last item to paginate from.
      * }
      *
-     * @return array
+     * @return Collection
      */
-    public function getSelectedPropertiesFromProperties( Search $search, array $pagination ): array
+    public function getSelectedPropertiesFromProperties( Search $search, array $pagination ): Collection
     {
         // pipeline
         $pipeline = $this->pipelineSelectedPropertiesFromProperties( $search, $pagination );
@@ -367,6 +329,6 @@ class PropertyRepository
             return $collection->aggregate( $pipeline );
         } ) );
 
-        return $collect->toArray();
+        return $collect;
     }
 }
