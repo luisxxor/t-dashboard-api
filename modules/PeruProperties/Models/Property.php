@@ -9,7 +9,7 @@ class Property extends Moloquent
     /**
      * @var string
      */
-    protected $connection = 'peru_properties';
+    protected $connection = 'pe-properties';
 
     /**
      * @var string
