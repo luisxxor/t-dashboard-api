@@ -166,25 +166,17 @@ return [
          * Package Service Providers...
          */
         Caffeinated\Shinobi\ShinobiServiceProvider::class,
-
-        /*
-         * Socialite Service Providers...
-         */
         Laravel\Socialite\SocialiteServiceProvider::class,
+        Jenssegers\Mongodb\MongodbServiceProvider::class,
 
         /*
          * Application Service Providers...
          */
         App\Providers\AppServiceProvider::class,
         App\Providers\AuthServiceProvider::class,
-        // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-
-        /*
-         * Jenssegers Mongodb Service Providers...
-         */
-        Jenssegers\Mongodb\MongodbServiceProvider::class,
+        App\Billing\PaymentGatewayServiceProvider::class,
     ],
 
     /*
