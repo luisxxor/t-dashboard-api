@@ -47,6 +47,7 @@ class RouteServiceProvider extends ServiceProvider
     {
         Route::prefix( 'api' )
             ->middleware( 'api' )
+            ->as( 'api.' )
             ->namespace( $this->moduleNamespace )
             ->group( module_path( 'PeruProperties', '/Routes/api.php' ) );
     }
