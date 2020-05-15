@@ -22,6 +22,11 @@ class Property extends Moloquent
     protected $primaryKey = '_id';
 
     /**
+     * @var string
+     */
+    protected $keyType = 'int';
+
+    /**
      * @var array
      */
     protected $dates = [ 'publication_date' ];

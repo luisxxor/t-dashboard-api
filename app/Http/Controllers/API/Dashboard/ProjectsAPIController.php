@@ -157,7 +157,7 @@ class ProjectsAPIController extends AppBaseController
             return $this->sendError( 'Project not found.', [], 404 );
         }
 
-        $frontInfo = config( 'multi-api.' . $projectCode . '.front-info' );
+        $frontInfo = config( $projectCode . '.multiapi.front-info' );
 
         return $this->sendResponse( $frontInfo, 'Front info retrived successfully.' );
     }

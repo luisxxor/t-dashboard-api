@@ -34,14 +34,14 @@ class PeruPropertiesServiceProvider extends ServiceProvider
      */
     protected function registerConfig()
     {
-        // scans up to one levels of directories
-        foreach ( array_diff( scandir( module_path( 'PeruProperties', 'Config/' ) ), [ '.', '..' ] ) as $key => $value ) {
-            if ( is_dir( module_path( 'PeruProperties', 'Config/' . $value ) ) === true ) {
-                foreach ( array_diff( scandir( module_path( 'PeruProperties', 'Config/' . $value ) ), [ '.', '..' ] ) as $key => $subcontent ) {
+        // scans up to one level of directories
+        foreach ( array_diff( scandir( module_path( 'PeruProperties', 'Config/' ) ), [ '.', '..' ] ) as $content ) {
+            if ( is_dir( module_path( 'PeruProperties', 'Config/' . $content ) ) === true ) {
+                foreach ( array_diff( scandir( module_path( 'PeruProperties', 'Config/' . $content ) ), [ '.', '..' ] ) as $subcontent ) {
                     $this->publishesConfig(
-                        module_path( 'PeruProperties', 'Config/' . $value . '/' . $subcontent ),
-                        config_path( 'peruproperties/' . $value . '/' . $subcontent ),
-                        'peruproperties.' . $value . '.' . $subcontent
+                        module_path( 'PeruProperties', 'Config/' . $content . '/' . $subcontent ),
+                        config_path( 'pe-properties/' . $content . '/' . $subcontent ),
+                        'pe-properties.' . $content . '.' . pathinfo( $subcontent, PATHINFO_FILENAME )
                     );
                 }
 
@@ -49,13 +49,13 @@ class PeruPropertiesServiceProvider extends ServiceProvider
             }
 
             $this->publishesConfig(
-                module_path( 'PeruProperties', 'Config/' . $value ),
-                config_path( 'peruproperties/' . $value ),
-                'peruproperties.' . $value
+                module_path( 'PeruProperties', 'Config/' . $content ),
+                config_path( 'pe-properties/' . $content ),
+                'pe-properties.' . pathinfo( $content, PATHINFO_FILENAME )
             );
         }
 
-        config( [ 'database.connections.peru_properties' => config( 'peruproperties.database.connections.mongo' ) ] );
+        config( [ 'database.connections.peru_properties' => config( 'pe-properties.database.connections.mongo' ) ] );
     }
 
     /**

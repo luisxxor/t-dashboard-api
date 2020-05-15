@@ -11,11 +11,6 @@ return [
     |
     */
 
-    'ghostSearchURL' => [
-        'method' => 'get',
-        'path' => env( 'APP_URL' ) . '/api/peru_properties/ghost_search',
-    ],
-
     'searchURL' => [
         'method' => 'post',
         'path' => env( 'APP_URL' ) . '/api/peru_properties/search',

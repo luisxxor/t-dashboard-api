@@ -2,7 +2,6 @@
 
 namespace Modules\PeruProperties\Repositories;
 
-use Illuminate\Database\Eloquent\Collection;
 use Modules\PeruProperties\Models\Property;
 use Modules\PeruProperties\Models\Search;
 use Modules\PeruProperties\Pipelines\FilterPipelines;
@@ -87,9 +86,9 @@ class PropertyRepository
      *     @type array $lastItem [optional] The last item to paginate from.
      * }
      *
-     * @return Collection
+     * @return array
      */
-    public function searchPropertiesReturnOutputFields( Search $search, array $pagination ): Collection
+    public function searchPropertiesReturnOutputFields( Search $search, array $pagination ): array
     {
         // pipeline
         $pipeline = $this->pipelineSearchProperties( $search, $pagination );
@@ -130,7 +129,7 @@ class PropertyRepository
             return $collection->aggregate( $pipeline );
         } ) );
 
-        return $collect;
+        return $collect->toArray();
     }
 
     /**
@@ -139,9 +138,9 @@ class PropertyRepository
      *
      * @param Search $search The search model to match the properties.
      *
-     * @return Collection
+     * @return array
      */
-    public function searchPropertiesReturnIds( Search $search ): Collection
+    public function searchPropertiesReturnIds( Search $search ): array
     {
         // pipeline
         $pipeline = $this->pipelineSearchProperties( $search );
@@ -158,7 +157,7 @@ class PropertyRepository
             return $collection->aggregate( $pipeline );
         } ) );
 
-        return $collect;
+        return $collect->toArray();
     }
 
     /**
@@ -317,9 +316,9 @@ class PropertyRepository
      *     @type array $lastItem [optional] The last item to paginate from.
      * }
      *
-     * @return Collection
+     * @return array
      */
-    public function getSelectedPropertiesFromProperties( Search $search, array $pagination ): Collection
+    public function getSelectedPropertiesFromProperties( Search $search, array $pagination ): array
     {
         // pipeline
         $pipeline = $this->pipelineSelectedPropertiesFromProperties( $search, $pagination );
@@ -329,6 +328,6 @@ class PropertyRepository
             return $collection->aggregate( $pipeline );
         } ) );
 
-        return $collect;
+        return $collect->toArray();
     }
 }
