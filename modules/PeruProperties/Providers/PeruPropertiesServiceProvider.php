@@ -8,6 +8,16 @@ use Illuminate\Database\Eloquent\Factory;
 class PeruPropertiesServiceProvider extends ServiceProvider
 {
     /**
+     * @var string
+     */
+    protected $moduleName = 'PeruProperties';
+
+    /**
+     * @var string
+     */
+    protected $projectCode = 'pe-properties';
+
+    /**
      * Boot the application events.
      *
      * @return void
@@ -35,13 +45,23 @@ class PeruPropertiesServiceProvider extends ServiceProvider
     protected function registerConfig()
     {
         // scans up to one level of directories
-        foreach ( array_diff( scandir( module_path( 'PeruProperties', 'Config/' ) ), [ '.', '..' ] ) as $content ) {
-            if ( is_dir( module_path( 'PeruProperties', 'Config/' . $content ) ) === true ) {
-                foreach ( array_diff( scandir( module_path( 'PeruProperties', 'Config/' . $content ) ), [ '.', '..' ] ) as $subcontent ) {
+        foreach ( array_diff( scandir( module_path( $this->moduleName, 'Config/' ) ), [ '.', '..' ] ) as $content ) {
+            if ( is_dir( module_path( $this->moduleName, 'Config/' . $content ) ) === true ) {
+                foreach ( array_diff( scandir( module_path( $this->moduleName, 'Config/' . $content ) ), [ '.', '..' ] ) as $subcontent ) {
+                    if ( $content === 'multi-api' ) {
+                        $this->publishesConfig(
+                            module_path( $this->moduleName, 'Config/' . $content . '/' . $subcontent ),
+                            config_path( $content . '/' . $this->projectCode . '/' . $subcontent ),
+                            $content . '.' . $this->projectCode . '.' . pathinfo( $subcontent, PATHINFO_FILENAME )
+                        );
+
+                        continue;
+                    }
+
                     $this->publishesConfig(
-                        module_path( 'PeruProperties', 'Config/' . $content . '/' . $subcontent ),
-                        config_path( 'pe-properties/' . $content . '/' . $subcontent ),
-                        'pe-properties.' . $content . '.' . pathinfo( $subcontent, PATHINFO_FILENAME )
+                        module_path( $this->moduleName, 'Config/' . $content . '/' . $subcontent ),
+                        config_path( $this->projectCode . '/' . $content . '/' . $subcontent ),
+                        $this->projectCode . '.' . $content . '.' . pathinfo( $subcontent, PATHINFO_FILENAME )
                     );
                 }
 
@@ -49,13 +69,13 @@ class PeruPropertiesServiceProvider extends ServiceProvider
             }
 
             $this->publishesConfig(
-                module_path( 'PeruProperties', 'Config/' . $content ),
-                config_path( 'pe-properties/' . $content ),
-                'pe-properties.' . pathinfo( $content, PATHINFO_FILENAME )
+                module_path( $this->moduleName, 'Config/' . $content ),
+                config_path( $this->projectCode . '/' . $content ),
+                $this->projectCode . '.' . pathinfo( $content, PATHINFO_FILENAME )
             );
         }
 
-        config( [ 'database.connections.peru_properties' => config( 'pe-properties.database.connections.mongo' ) ] );
+        config( [ 'database.connections.' . $this->projectCode => config( $this->projectCode . '.database.connections.mongo' ) ] );
     }
 
     /**
