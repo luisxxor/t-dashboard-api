@@ -1,0 +1,25 @@
+{
+    "name": "nwidart/dominicanaproperties",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\DominicanaProperties\\Providers\\DominicanaPropertiesServiceProvider"
+            ],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\DominicanaProperties\\": ""
+        }
+    }
+}

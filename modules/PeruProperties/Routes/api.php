@@ -29,5 +29,4 @@ Route::prefix( 'peru_properties' )->middleware( 'auth:api', 'verified', 'scopes:
         ->middleware( 'can:order.properties' );
 } );
 
-// generate peru properties profile
 Route::get( 'peru_properties/generate_file', 'PropertiesController@generatePropertiesFile' )->name( config( 'multi-api.pe-properties.backend-info.generate_file_url' ) );

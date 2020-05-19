@@ -37,6 +37,7 @@ class AuthServiceProvider extends ServiceProvider
             'access-pe-properties' => 'Acceder a Propiedades Perú',
             'access-cl-properties' => 'Acceder a Propiedades Chile',
             'access-ec-properties' => 'Acceder a Propiedades Ecuador',
+            'access-do-properties' => 'Acceder a Propiedades Dominicana',
         ] );
     }
 }

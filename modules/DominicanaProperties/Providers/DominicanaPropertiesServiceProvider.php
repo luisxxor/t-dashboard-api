@@ -1,20 +1,20 @@
 <?php
 
-namespace Modules\PeruProperties\Providers;
+namespace Modules\DominicanaProperties\Providers;
 
 use Modules\Common\Providers\CommonServiceProvider;
 
-class PeruPropertiesServiceProvider extends CommonServiceProvider
+class DominicanaPropertiesServiceProvider extends CommonServiceProvider
 {
     /**
      * @var string
      */
-    protected $moduleName = 'PeruProperties';
+    protected $moduleName = 'DominicanaProperties';
 
     /**
      * @var string
      */
-    protected $projectCode = 'pe-properties';
+    protected $projectCode = 'do-properties';
 
     /**
      * Boot the application events.
