@@ -21,6 +21,6 @@ class PropertyTypeRepository
      */
     public function distinct( string $field ): Collection
     {
-        return PropertyType::distinct( 'owner_name' )->get();
+        return PropertyType::distinct( $field )->get();
     }
 }

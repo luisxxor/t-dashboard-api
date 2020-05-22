@@ -78,7 +78,7 @@ class PropertiesController extends CommonPropertiesController
     public function getPropertyTypeFilterData()
     {
         // select
-        $propertyTypes = $this->propertyTypeRepository->distinct( 'owner_name' );
+        $propertyTypes = $this->propertyTypeRepository->distinct( 'name' );
 
         // property types
         $propertyTypes = array_column( $propertyTypes->toArray(), 0 );
