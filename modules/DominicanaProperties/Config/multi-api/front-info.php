@@ -226,8 +226,7 @@ return [
                 'label' => 'Nuevo/Usado',
                 'type' => 'dropdown',
                 'placeholder' => 'Seleccione la condición',
-                'values' =>
-                [
+                'values' => [
                     [
                         'value' => true,
                         'text' => 'Nuevo',

@@ -1,14 +1,14 @@
 <?php
 
-namespace Modules\DominicanaProperties\Pipelines;
+namespace Modules\Common\Pipelines;
 
-use Modules\DominicanaProperties\Models\Search;
+use Modules\Common\Models\Search;
 use MongoDB\BSON\ObjectID;
 
 /**
  * Trait PropertyPipelines
- * @package Modules\DominicanaProperties\Pipelines
- * @version Dec 24, 2019, 15:31 UTC
+ * @package Modules\Common\Pipelines
+ * @version May 25, 2020, 18:42 UTC
 */
 trait PropertyPipelines
 {

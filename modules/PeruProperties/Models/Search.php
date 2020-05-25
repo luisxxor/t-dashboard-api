@@ -2,9 +2,9 @@
 
 namespace Modules\PeruProperties\Models;
 
-use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
+use Modules\Common\Models\Search as CommonSearch;
 
-class Search extends Moloquent
+class Search extends CommonSearch
 {
     /**
      * @var string

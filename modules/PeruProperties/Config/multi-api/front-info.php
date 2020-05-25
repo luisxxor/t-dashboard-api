@@ -219,8 +219,7 @@ return [
                 'label' => 'Tipo publicación',
                 'type' => 'dropdown',
                 'placeholder' => 'Seleccione el tipo de publicación',
-                'values' =>
-                [
+                'values' => [
                     [
                         'value' => 'venta',
                         'text' => 'Venta',

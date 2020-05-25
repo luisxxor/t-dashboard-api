@@ -5,11 +5,11 @@ namespace Modules\Common\Pipelines;
 use Exception;
 
 /**
- * Trait CommonFilterPipelines
+ * Trait FilterPipelines
  * @package Modules\Common\Pipelines
  * @version May 25, 2020, 05:11 UTC
 */
-trait CommonFilterPipelines
+trait FilterPipelines
 {
     /**
      * @var array
@@ -129,13 +129,13 @@ trait CommonFilterPipelines
     }
 
     /**
-     * Return filter fields and its settings.
+     * Return filter fields (for $match aggregation pipeline operators).
      *
      * @return array
      */
     protected function filterFields(): array
     {
-        throw new Exception( 'Should implement filterFields() method.' );
+        throw new Exception( 'should implement filterFields() method.' );
     }
 
     /**

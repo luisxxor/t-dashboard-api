@@ -5,7 +5,7 @@ namespace Modules\DominicanaProperties\Http\Controllers;
 use App\Lib\Handlers\GoogleStorageHandler;
 use App\Repositories\Dashboard\OrderRepository;
 use Illuminate\Http\Request;
-use Modules\Common\Http\Controllers\CommonPropertiesController;
+use Modules\Common\Http\Controllers\PropertiesController as CommonPropertiesController;
 use Modules\DominicanaProperties\Repositories\PropertyRepository;
 use Modules\DominicanaProperties\Repositories\PropertyTypeRepository;
 use Modules\DominicanaProperties\Repositories\PublicationTypeRepository;

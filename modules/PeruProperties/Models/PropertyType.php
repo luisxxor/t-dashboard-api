@@ -2,9 +2,9 @@
 
 namespace Modules\PeruProperties\Models;
 
-use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
+use Modules\Common\Models\PropertyType as CommonPropertyType;
 
-class PropertyType extends Moloquent
+class PropertyType extends CommonPropertyType
 {
     /**
      * @var string

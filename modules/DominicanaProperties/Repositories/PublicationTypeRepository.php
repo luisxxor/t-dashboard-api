@@ -2,25 +2,23 @@
 
 namespace Modules\DominicanaProperties\Repositories;
 
+use Modules\Common\Repositories\Repository;
 use Modules\DominicanaProperties\Models\PublicationType;
-use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Class PublicationTypeRepository
  * @package Modules\DominicanaProperties\Repositories
  * @version May 25, 2020, 04:58 UTC
 */
-class PublicationTypeRepository
+class PublicationTypeRepository extends Repository
 {
     /**
-     * Save a new document in collection
-     *
-     * @param array $attributes
+     * Configure the Model
      *
      * @return string
      */
-    public function distinct( string $field ): Collection
+    public function model()
     {
-        return PublicationType::distinct( $field )->get();
+        return PublicationType::class;
     }
 }

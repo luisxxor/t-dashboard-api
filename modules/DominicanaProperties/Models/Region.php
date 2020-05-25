@@ -2,9 +2,9 @@
 
 namespace Modules\DominicanaProperties\Models;
 
-use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
+use Modules\Common\Models\Region as CommonRegion;
 
-class Region extends Moloquent
+class Region extends CommonRegion
 {
     /**
      * @var string

@@ -3,14 +3,14 @@
 namespace Modules\PeruProperties\Repositories;
 
 use Modules\Common\Repositories\Repository;
-use Modules\PeruProperties\Models\PropertyType;
+use Modules\PeruProperties\Models\PublicationType;
 
 /**
- * Class PropertyTypeRepository
+ * Class PublicationTypeRepository
  * @package Modules\PeruProperties\Repositories
- * @version Ago 22, 2019, 2:19 am UTC
+ * @version May 25, 2020, 22:02 UTC
 */
-class PropertyTypeRepository extends Repository
+class PublicationTypeRepository extends Repository
 {
     /**
      * Configure the Model
@@ -19,6 +19,6 @@ class PropertyTypeRepository extends Repository
      */
     public function model()
     {
-        return PropertyType::class;
+        return PublicationType::class;
     }
 }

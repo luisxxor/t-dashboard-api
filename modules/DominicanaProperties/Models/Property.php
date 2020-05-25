@@ -2,9 +2,9 @@
 
 namespace Modules\DominicanaProperties\Models;
 
-use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
+use Modules\Common\Models\Property as CommonProperty;
 
-class Property extends Moloquent
+class Property extends CommonProperty
 {
     /**
      * @var string

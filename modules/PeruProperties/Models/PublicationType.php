@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\DominicanaProperties\Models;
+namespace Modules\PeruProperties\Models;
 
 use Modules\Common\Models\PublicationType as CommonPublicationType;
 
@@ -9,7 +9,7 @@ class PublicationType extends CommonPublicationType
     /**
      * @var string
      */
-    protected $connection = 'do-properties';
+    protected $connection = 'pe-properties';
 
     /**
      * @var string

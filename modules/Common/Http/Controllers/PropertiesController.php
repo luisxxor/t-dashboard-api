@@ -15,10 +15,10 @@ use Modules\Common\Repositories\PropertyTypeRepository;
 use Modules\Common\Repositories\SearchRepository;
 
 /**
- * Class CommonPropertiesController
+ * Class PropertiesController
  * @package Modules\Common\Http\Controllers
  */
-class CommonPropertiesController extends AppBaseController
+class PropertiesController extends AppBaseController
 {
     /**
      * @var PropertyTypeRepository

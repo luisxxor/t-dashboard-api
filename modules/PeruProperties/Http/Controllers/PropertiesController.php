@@ -5,9 +5,10 @@ namespace Modules\PeruProperties\Http\Controllers;
 use App\Lib\Handlers\GoogleStorageHandler;
 use App\Repositories\Dashboard\OrderRepository;
 use Illuminate\Http\Request;
-use Modules\Common\Http\Controllers\CommonPropertiesController;
+use Modules\Common\Http\Controllers\PropertiesController as CommonPropertiesController;
 use Modules\PeruProperties\Repositories\PropertyRepository;
 use Modules\PeruProperties\Repositories\PropertyTypeRepository;
+use Modules\PeruProperties\Repositories\PublicationTypeRepository;
 use Modules\PeruProperties\Repositories\SearchRepository;
 
 /**
@@ -42,7 +43,7 @@ class PropertiesController extends CommonPropertiesController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
-     *     path="/api/peru_properties/filters",
+     *     path="/api/pe-properties/filters",
      *     operationId="filters",
      *     tags={"Peru Properties"},
      *     summary="Return the necessary data for filters.",
@@ -75,17 +76,23 @@ class PropertiesController extends CommonPropertiesController
      *     security={ { "": {} } }
      * )
      */
-    public function filters()
+    public function filters( PublicationTypeRepository $publicationTypeRepo )
     {
         // select property types
         $propertyTypes = $this->propertyTypeRepository->distinct( 'owner_name' );
         $propertyTypes = array_column( $propertyTypes->toArray(), 0 );
 
+        // select publication types
+        $publicationTypes = $publicationTypeRepo->distinct( 'name' );
+        $publicationTypes = array_column( $publicationTypes->toArray(), 0 );
+
         // sort
         sort( $propertyTypes );
+        sort( $publicationTypes );
 
         $data = [
-            config( 'multi-api.pe-properties.constants.FILTER_FIELD_PROPERTY_TYPE' ) => $propertyTypes
+            config( 'multi-api.pe-properties.constants.FILTER_FIELD_PROPERTY_TYPE' ) => $propertyTypes,
+            config( 'multi-api.do-properties.constants.FILTER_FIELD_PUBLICATION_TYPE' ) => $publicationTypes,
         ];
 
         return $this->sendResponse( $data, 'Data retrieved.' );
@@ -96,7 +103,7 @@ class PropertiesController extends CommonPropertiesController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Post(
-     *     path="/api/peru_properties/search",
+     *     path="/api/pe-properties/search",
      *     operationId="searchProperties",
      *     tags={"Peru Properties"},
      *     summary="Return the properties that math with given filters",
@@ -147,7 +154,7 @@ class PropertiesController extends CommonPropertiesController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
-     *     path="/api/peru_properties/count",
+     *     path="/api/pe-properties/count",
      *     operationId="countSearch",
      *     tags={"Peru Properties"},
      *     summary="Return the search count",
@@ -188,7 +195,7 @@ class PropertiesController extends CommonPropertiesController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
-     *     path="/api/peru_properties/paginate",
+     *     path="/api/pe-properties/paginate",
      *     operationId="paginateSearch",
      *     tags={"Peru Properties"},
      *     summary="Return the properties that math with given search id",
@@ -239,7 +246,7 @@ class PropertiesController extends CommonPropertiesController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Post(
-     *     path="/api/peru_properties/order",
+     *     path="/api/pe-properties/order",
      *     operationId="order",
      *     tags={"Peru Properties"},
      *     summary="Order items",
@@ -290,7 +297,7 @@ class PropertiesController extends CommonPropertiesController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
-     *     path="/api/peru_properties/generate_file",
+     *     path="/api/pe-properties/generate_file",
      *     operationId="generatePropertiesFile",
      *     tags={"Peru Properties"},
      *     summary="Build the order files",
