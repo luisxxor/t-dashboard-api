@@ -115,12 +115,6 @@ class PropertyRepository extends CommonPropertyRepository
                 ],
             ],
             'numericFields' => [
-                $this->constants[ 'FILTER_FIELD_ANTIQUITY_YEARS' ] => [
-                    'name' => 'antiquity_years',
-                    'clousure' => function ( $field ) {
-                        return (int)$field;
-                    }
-                ],
                 $this->constants[ 'FILTER_FIELD_TOTAL_AREA_M2' ] => [
                     'name' => 'total_area_m2',
                     'clousure' => function ( $field ) {

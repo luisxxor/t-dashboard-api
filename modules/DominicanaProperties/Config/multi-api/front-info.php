@@ -191,14 +191,6 @@ return [
             ],
 
             [
-                'field' => $constants[ 'FILTER_FIELD_ANTIQUITY_YEARS' ],
-                'label' => 'Antigüedad (años)',
-                'type' => 'numerical_range',
-                'step' => 1,
-                'minValue' => 0,
-                'maxValue' => null,
-            ],
-            [
                 'field' => $constants[ 'FILTER_FIELD_TOTAL_AREA_M2' ],
                 'label' => 'Área exclusiva (m2)',
                 'type' => 'numerical_range',

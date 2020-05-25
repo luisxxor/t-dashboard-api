@@ -13,7 +13,6 @@ return [
     'FILTER_FIELD_BATHROOMS' => 'bathrooms_interval',
     'FILTER_FIELD_PARKINGS' => 'parkings_interval',
 
-    'FILTER_FIELD_ANTIQUITY_YEARS' => 'antiquity_years_interval',
     'FILTER_FIELD_TOTAL_AREA_M2' => 'total_area_m2_interval',
     'FILTER_FIELD_BUILD_AREA_M2' => 'build_area_m2_interval',
     'FILTER_FIELD_PUBLICATION_DATE' => 'publication_date',
