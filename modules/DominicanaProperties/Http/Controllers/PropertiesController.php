@@ -5,9 +5,10 @@ namespace Modules\DominicanaProperties\Http\Controllers;
 use App\Lib\Handlers\GoogleStorageHandler;
 use App\Repositories\Dashboard\OrderRepository;
 use Illuminate\Http\Request;
-use Modules\Common\Http\Controllers\PropertiesController as CommonPropertiesController;
+use Modules\Common\Http\Controllers\CommonPropertiesController;
 use Modules\DominicanaProperties\Repositories\PropertyRepository;
 use Modules\DominicanaProperties\Repositories\PropertyTypeRepository;
+use Modules\DominicanaProperties\Repositories\PublicationTypeRepository;
 use Modules\DominicanaProperties\Repositories\SearchRepository;
 
 /**
@@ -42,10 +43,10 @@ class PropertiesController extends CommonPropertiesController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
-     *     path="/api/do-properties/filters/property_type",
-     *     operationId="getPropertyTypeFilterData",
+     *     path="/api/do-properties/filters",
+     *     operationId="filters",
      *     tags={"Dominicana Properties"},
-     *     summary="Return the necessary data for property type filter",
+     *     summary="Return the necessary data for filters.",
      *     @OA\Response(
      *         response=200,
      *         description="Data retrieved.",
@@ -75,18 +76,26 @@ class PropertiesController extends CommonPropertiesController
      *     security={ { "": {} } }
      * )
      */
-    public function getPropertyTypeFilterData()
+    public function filters( PublicationTypeRepository $publicationTypeRepo )
     {
-        // select
+        // select property types
         $propertyTypes = $this->propertyTypeRepository->distinct( 'name' );
-
-        // property types
         $propertyTypes = array_column( $propertyTypes->toArray(), 0 );
+
+        // select publication types
+        $publicationTypes = $publicationTypeRepo->distinct( 'name' );
+        $publicationTypes = array_column( $publicationTypes->toArray(), 0 );
 
         // sort
         sort( $propertyTypes );
+        sort( $publicationTypes );
 
-        return $this->sendResponse( $propertyTypes, 'Data retrieved.' );
+        $data = [
+            config( 'multi-api.do-properties.constants.FILTER_FIELD_PROPERTY_TYPE' ) => $propertyTypes,
+            config( 'multi-api.do-properties.constants.FILTER_FIELD_PUBLICATION_TYPE' ) => $publicationTypes,
+        ];
+
+        return $this->sendResponse( $data, 'Data retrieved.' );
     }
 
     /**

@@ -183,6 +183,10 @@ class ProjectsAccessAPIController extends AppBaseController
         foreach ( $accessibleProjects as $accessibleProject ) {
             $partnerProject = $this->partnerProjectRepository->getPartnerProject( $accessibleProject[ 'partner' ], $accessibleProject[ 'project' ] );
 
+            if ( empty( $partnerProject ) === true ) {
+                continue;
+            }
+
             $accessibleProjectList[] = [
                 'partner' => $partnerProject->partner,
                 'project' => $partnerProject->project,

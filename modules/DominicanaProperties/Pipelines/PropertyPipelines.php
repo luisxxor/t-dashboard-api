@@ -180,6 +180,16 @@ trait PropertyPipelines
             ]
         ];
 
+        // join con publication_types ($lookup)
+        $pipeline[] = [
+            '$lookup' => [
+                'from' => 'publication_types',
+                'localField' => 'publication_type_id',
+                'foreignField' => '_id',
+                'as' => 'publication_types_docs'
+            ]
+        ];
+
         // fields ($addFields)
         $pipeline[] = [
             '$addFields' => [
@@ -196,6 +206,10 @@ trait PropertyPipelines
                         [ '$arrayElemAt' => [ '$regions_docs.sub_reg3', 0 ] ]
                     ]
                 ],
+                'publication_type' => [ '$ifNull' => [
+                    [ '$arrayElemAt' => [ '$publication_types_docs.name', 0 ] ],
+                    null
+                ] ],
             ]
         ];
 
@@ -206,6 +220,8 @@ trait PropertyPipelines
                 'property_types_docs' => 0,
                 'region_id' => 0,
                 'regions_docs' => 0,
+                'publication_type_id' => 0,
+                'publication_types_docs' => 0,
             ]
         ];
 

@@ -13,7 +13,7 @@
 
 Route::prefix( 'do-properties' )->middleware( 'auth:api', 'verified', 'scopes:access-do-properties' )->group( function () {
 
-    Route::get( 'filters/property_type', 'PropertiesController@getPropertyTypeFilterData' )->name( 'do-properties.filters.propertyType' )
+    Route::get( 'filters', 'PropertiesController@filters' )->name( 'do-properties.filters' )
         ->middleware( 'can:search.properties' );
 
     Route::post( 'search', 'PropertiesController@searchProperties' )->name( 'do-properties.searchProperties' )

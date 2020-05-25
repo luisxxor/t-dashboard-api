@@ -1,39 +1,45 @@
 <?php
 
 $constants = config( 'multi-api.do-properties.constants' );
+$baseUrl = env( 'APP_URL' ) . '/api/do-properties';
 
 return [
 
     /*
     |--------------------------------------------------------------------------
-    | Peru Properties Front-End Info Config
+    | Dominicana Properties Front-End Info Config
     |--------------------------------------------------------------------------
     |
     */
 
+    'filtersURL' => [
+        'method' => 'get',
+        'path' => $baseUrl . '/filters',
+    ],
+
     'searchURL' => [
         'method' => 'post',
-        'path' => env( 'APP_URL' ) . '/api/do-properties/search',
+        'path' => $baseUrl . '/search',
     ],
 
     'countSearchURL' => [
         'method' => 'get',
-        'path' => env( 'APP_URL' ) . '/api/do-properties/count',
+        'path' => $baseUrl . '/count',
     ],
 
     'paginationURL' => [
         'method' => 'get',
-        'path' => env( 'APP_URL' ) . '/api/do-properties/paginate',
+        'path' => $baseUrl . '/paginate',
     ],
 
     'processOrderURL' => [
         'method' => 'post',
-        'path' => env( 'APP_URL' ) . '/api/do-properties/order',
+        'path' => $baseUrl . '/order',
     ],
 
     'paymentTypes' => [
         [
-            'paymentType' => config( 'constants.payment_gateways.MERCADOPAGO' ),
+            'paymentType' => config( 'constants.payment_gateways.MERCADOPAGO' ), # TODO: metodo de pago para dominicana
             'currency' => config( 'constants.payment_currencies.PEN' )
         ],
     ],
@@ -44,8 +50,8 @@ return [
         'settings' => [
             'initialState' => [
                 'coordinates' => [
-                    -9.189966999999998, // lat
-                    -75.015152 // lng
+                    18.65657, // lat
+                    -72.3743431, // lng
                 ],
                 'baseZoom' => 5,
                 'searchZoom' => 15,
@@ -55,16 +61,14 @@ return [
 
     'currencies' => [
         [
-            'currency'=> 'Dolar Americanos',
-            'symbol'=> '$',
-            'field'=> 'dollars_price'
-
+            'currency' => 'Dolar Americanos',
+            'symbol' => '$',
+            'field' => 'dollars_price'
         ],
         [
-            'currency'=> 'Soles Peruanos',
-            'symbol'=> 'S',
-            'field'=> 'others_price'
-
+            'currency' => 'Pesos Dominicanos',
+            'symbol' => 'DOP',
+            'field' => 'others_price'
         ]
     ],
 
@@ -81,7 +85,7 @@ return [
                 'label' => 'Tipo',
                 'type' => 'dropdown',
                 'placeholder' => 'Seleccione el tipo de propiedad',
-                'valuesURL' => env( 'APP_URL' ) . '/api/do-properties/filters/property_type',
+                'values' => [ 'serverside' ],
             ],
             [
                 'field' => $constants[ 'FILTER_FIELD_PUBLICATION_DATE' ],
@@ -118,7 +122,7 @@ return [
                         'label' => '4',
                     ],
                     [
-                        'value' => 5.1,
+                        'value' => 5,
                         'label' => '5 a más',
                     ],
                 ],
@@ -149,7 +153,7 @@ return [
                         'label' => '4',
                     ],
                     [
-                        'value' => 5.1,
+                        'value' => 5,
                         'label' => '5 a más',
                     ],
                 ],
@@ -180,7 +184,7 @@ return [
                         'label' => '4',
                     ],
                     [
-                        'value' => 5.1,
+                        'value' => 5,
                         'label' => '5 a más',
                     ],
                 ],
@@ -215,17 +219,7 @@ return [
                 'label' => 'Tipo publicación',
                 'type' => 'dropdown',
                 'placeholder' => 'Seleccione el tipo de publicación',
-                'values' =>
-                [
-                    [
-                        'value' => 'venta',
-                        'text' => 'Venta',
-                    ],
-                    [
-                        'value' => 'alquiler',
-                        'text' => 'Alquiler',
-                    ],
-                ],
+                'values' => [ 'serverside' ],
             ],
             [
                 'field' => $constants[ 'FILTER_FIELD_IS_NEW' ],

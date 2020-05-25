@@ -15,10 +15,10 @@ use Modules\Common\Repositories\PropertyTypeRepository;
 use Modules\Common\Repositories\SearchRepository;
 
 /**
- * Class PropertiesController
+ * Class CommonPropertiesController
  * @package Modules\Common\Http\Controllers
  */
-class PropertiesController extends AppBaseController
+class CommonPropertiesController extends AppBaseController
 {
     /**
      * @var PropertyTypeRepository
@@ -302,7 +302,7 @@ class PropertiesController extends AppBaseController
             // create xlsx data file
             $xlsxDataFile = FileWriterFactory::createWriter( 'xlsx' )
                 ->openToFile( $orderCode . '.xlsx' );
-            $xlsxDataFile->addRow( $this->propertyRepository->header, true );
+            $xlsxDataFile->addRow( $this->propertyRepository->flattenedHeader(), true );
 
             $perpage = 25;
             $lastItem = [];
@@ -368,12 +368,21 @@ class PropertiesController extends AppBaseController
      */
     protected function createXLSXRow( array $item ): array
     {
+        $xlsxFields = collect( $item );
+
+        // flatten nested values
+        foreach ( $xlsxFields as $key => $value ) {
+            if ( is_object( $value ) === true ) {
+                $xlsxFields = $xlsxFields->merge( collect( $value ) )->forget( $key );
+            }
+        }
+
         // discrimination of fields to xlsx file
-        $xlsxFields = collect( $item )->only( array_keys( $this->propertyRepository->header ) )->toArray();
+        $xlsxFields = $xlsxFields->only( array_keys( $this->propertyRepository->flattenedHeader() ) );
 
         // merge to avoid non-existent values
-        $dictionary = array_fill_keys( array_keys( $this->propertyRepository->header ), null );
-        $xlsxRow = array_merge( $dictionary, $xlsxFields );
+        $dictionary = array_fill_keys( array_keys( $this->propertyRepository->flattenedHeader() ), null );
+        $xlsxRow = array_merge( $dictionary, $xlsxFields->toArray() );
 
         // formatting that needs to be done
         $formatting = [

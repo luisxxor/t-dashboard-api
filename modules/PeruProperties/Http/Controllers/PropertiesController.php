@@ -5,7 +5,7 @@ namespace Modules\PeruProperties\Http\Controllers;
 use App\Lib\Handlers\GoogleStorageHandler;
 use App\Repositories\Dashboard\OrderRepository;
 use Illuminate\Http\Request;
-use Modules\Common\Http\Controllers\PropertiesController as CommonPropertiesController;
+use Modules\Common\Http\Controllers\CommonPropertiesController;
 use Modules\PeruProperties\Repositories\PropertyRepository;
 use Modules\PeruProperties\Repositories\PropertyTypeRepository;
 use Modules\PeruProperties\Repositories\SearchRepository;
@@ -42,10 +42,10 @@ class PropertiesController extends CommonPropertiesController
      * @return \Illuminate\Http\JsonResponse
      *
      * @OA\Get(
-     *     path="/api/peru_properties/filters/property_type",
-     *     operationId="getPropertyTypeFilterData",
+     *     path="/api/peru_properties/filters",
+     *     operationId="filters",
      *     tags={"Peru Properties"},
-     *     summary="Return the necessary data for property type filter",
+     *     summary="Return the necessary data for filters.",
      *     @OA\Response(
      *         response=200,
      *         description="Data retrieved.",
@@ -75,18 +75,20 @@ class PropertiesController extends CommonPropertiesController
      *     security={ { "": {} } }
      * )
      */
-    public function getPropertyTypeFilterData()
+    public function filters()
     {
-        // select
+        // select property types
         $propertyTypes = $this->propertyTypeRepository->distinct( 'owner_name' );
-
-        // property types
         $propertyTypes = array_column( $propertyTypes->toArray(), 0 );
 
         // sort
         sort( $propertyTypes );
 
-        return $this->sendResponse( $propertyTypes, 'Data retrieved.' );
+        $data = [
+            config( 'multi-api.pe-properties.constants.FILTER_FIELD_PROPERTY_TYPE' ) => $propertyTypes
+        ];
+
+        return $this->sendResponse( $data, 'Data retrieved.' );
     }
 
     /**
