@@ -11,10 +11,10 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 /**
- * Class SubscriptionsPaymentAPIController
+ * Class SubscriptionPaymentsAPIController
  * @package App\Http\Controllers\API\Subscriptions
  */
-class SubscriptionsPaymentAPIController extends AppBaseController
+class SubscriptionPaymentsAPIController extends AppBaseController
 {
     /**
      * @var  ReceiptRepository

@@ -8,10 +8,10 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 /**
- * Class ProjectsAccessAPIController
+ * Class ProjectAccessesAPIController
  * @package App\Http\Controllers\API\Admin
  */
-class ProjectsAccessAPIController extends AppBaseController
+class ProjectAccessesAPIController extends AppBaseController
 {
     /**
      * @var  ProjectAccessRequestRepository

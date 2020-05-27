@@ -11,10 +11,10 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 /**
- * Class OrdersPaymentAPIController
+ * Class OrderPaymentsAPIController
  * @package App\Http\Controllers\API\Dashboard
  */
-class OrdersPaymentAPIController extends AppBaseController
+class OrderPaymentsAPIController extends AppBaseController
 {
     /**
      * @const float

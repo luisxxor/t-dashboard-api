@@ -8,10 +8,10 @@ use App\Repositories\Dashboard\PartnerRepository;
 use Illuminate\Http\Request;
 
 /**
- * Class ProjectsAccessAPIController
+ * Class ProjectAccessesAPIController
  * @package App\Http\Controllers\API\Dashboard
  */
-class ProjectsAccessAPIController extends AppBaseController
+class ProjectAccessesAPIController extends AppBaseController
 {
     /**
      * @var  PartnerRepository

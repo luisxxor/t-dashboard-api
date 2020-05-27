@@ -52,15 +52,15 @@ Route::prefix( 'dashboard' )->middleware( 'auth:api', 'verified' )->group( funct
 
     // payments
 
-    Route::post( 'payments/process', 'API\Dashboard\OrdersPaymentAPIController@pay' )->name( 'dashboard.payments.pay' )
+    Route::post( 'payments/process', 'API\Dashboard\OrderPaymentsAPIController@pay' )->name( 'dashboard.payments.pay' )
         ->middleware( 'can:pay.own.order' );
 
     // projects access
 
-    Route::get( 'projects_access', 'API\Dashboard\ProjectsAccessAPIController@index' )->name( 'dashboard.projects_access.index' )
+    Route::get( 'projects_access', 'API\Dashboard\ProjectAccessesAPIController@index' )->name( 'dashboard.projects_access.index' )
         ->middleware( 'can:manage.own.projects.access' );
 
-    Route::post( 'projects_access/request', 'API\Dashboard\ProjectsAccessAPIController@request' )->name( 'dashboard.projects_access.request' )
+    Route::post( 'projects_access/request', 'API\Dashboard\ProjectAccessesAPIController@request' )->name( 'dashboard.projects_access.request' )
         ->middleware( 'can:manage.own.projects.access' );
 } );
 
@@ -79,7 +79,7 @@ Route::prefix( 'subscriptions' )->middleware( 'auth:api', 'verified' )->group( f
 
     // payments
 
-    Route::post( 'payments/process', 'API\Subscriptions\SubscriptionsPaymentAPIController@pay' )->name( 'subscriptions..payments.pay' )
+    Route::post( 'payments/process', 'API\Subscriptions\SubscriptionPaymentsAPIController@pay' )->name( 'subscriptions..payments.pay' )
         ->middleware( 'can:manage.own.subscriptions' );
 } );
 
@@ -98,10 +98,10 @@ Route::prefix( 'admin' )->middleware( 'auth:api', 'verified' )->group( function 
 
     // projects access
 
-    Route::get( 'projects_access', 'API\Admin\ProjectsAccessAPIController@index' )->name( 'admin.projects_access.index' )
+    Route::get( 'projects_access', 'API\Admin\ProjectAccessesAPIController@index' )->name( 'admin.projects_access.index' )
         ->middleware( 'can:manage.projects.access' );
 
-    Route::put( 'projects_access/{projectAccessRequestId}', 'API\Admin\ProjectsAccessAPIController@update' )->name( 'admin.projects_access.update' )
+    Route::put( 'projects_access/{projectAccessRequestId}', 'API\Admin\ProjectAccessesAPIController@update' )->name( 'admin.projects_access.update' )
         ->middleware( 'can:manage.projects.access' );
 } );
 
