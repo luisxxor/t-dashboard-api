@@ -172,7 +172,8 @@ class SubscriptionsPaymentAPIController extends AppBaseController
                 $amount,
                 [ 'title' => 'TASING SAC | Pago de subscription al ' . $subscription->realPlan->name . '' ]
             );
-        } catch ( \Exception $e ) {
+        }
+        catch ( \Exception $e ) {
             \Log::error( 'Error at payment.', [ $subscription, $e->getMessage() ] );
 
             return $this->sendError( $e->getMessage(), [], 400 );

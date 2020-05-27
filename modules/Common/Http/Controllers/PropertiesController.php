@@ -45,6 +45,11 @@ class PropertiesController extends AppBaseController
      */
     protected $googleStorageHandler;
 
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
     public function __construct( PropertyTypeRepository $propertyTypeRepo,
         PropertyRepository $propertyRepo,
         SearchRepository $searchRepo,
@@ -57,6 +62,11 @@ class PropertiesController extends AppBaseController
         $this->orderRepository = $orderRepo;
     }
 
+    /**
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function searchProperties( Request $request )
     {
         $request->validate( [
@@ -113,6 +123,11 @@ class PropertiesController extends AppBaseController
         return $this->sendResponse( compact( 'data', 'searchId' ), 'Properties retrieved successfully.' );
     }
 
+    /**
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function countSearch( Request $request )
     {
         $request->validate( [
@@ -127,13 +142,19 @@ class PropertiesController extends AppBaseController
             $search = $this->searchRepository->findOrFail( $searchId );
 
             $total = $this->propertyRepository->countSearchedProperties( $search );
-        } catch ( \Exception $e ) {
+        }
+        catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage() );
         }
 
         return $this->sendResponse( $total, 'Search count retrieved successfully.' );
     }
 
+    /**
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function paginateSearch( Request $request )
     {
         $request->validate( [
@@ -162,7 +183,8 @@ class PropertiesController extends AppBaseController
 
             // construct and execute query
             $data = $this->propertyRepository->searchPropertiesReturnOutputFields( $search, compact( 'perpage', 'field', 'sort', 'lastItem' ) );
-        } catch ( \Exception $e ) {
+        }
+        catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage(), [], 404 );
         }
 
@@ -173,6 +195,11 @@ class PropertiesController extends AppBaseController
         return $this->sendResponse( compact( 'data', 'searchId' ), 'Properties retrieved successfully.' );
     }
 
+    /**
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function order( Request $request )
     {
         $request->validate( [
@@ -200,7 +227,8 @@ class PropertiesController extends AppBaseController
         try {
             // get search model
             $search = $this->searchRepository->findOrFail( $searchId );
-        } catch ( \Exception $e ) {
+        }
+        catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage(), [], 404 );
         }
 
@@ -254,6 +282,11 @@ class PropertiesController extends AppBaseController
         return $this->sendResponse( $order, 'Ordered successfully.' );
     }
 
+    /**
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function generatePropertiesFile( Request $request )
     {
         $request->validate( [
@@ -332,7 +365,8 @@ class PropertiesController extends AppBaseController
             unset( $ndjsonDataFile );
             unset( $xlsxDataFile );
             gc_collect_cycles();
-        } catch ( \Exception $e ) {
+        }
+        catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage() );
         }
 

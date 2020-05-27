@@ -20,7 +20,12 @@ use MongoDB\BSON\UTCDateTime;
 class PropertyRepository extends CommonPropertyRepository
 {
     /**
-     * Fields and its order to sort the properties.
+     * @var string The project in app
+     */
+    protected $projectCode = 'do-properties';
+
+    /**
+     * Fields and its order to sort the results.
      *
      * @var string
      */
@@ -66,10 +71,13 @@ class PropertyRepository extends CommonPropertyRepository
     ];
 
     /**
-     * @var string The project in app
+     * Create a new repository instance.
+     *
+     * @param Application $app
+     * @param Search $searchMod
+     *
+     * @return void
      */
-    protected $projectCode = 'do-properties';
-
     public function __construct( Application $app, Search $searchMod )
     {
         parent::__construct( $app, $searchMod );

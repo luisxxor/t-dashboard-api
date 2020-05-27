@@ -314,7 +314,8 @@ class OrdersAPIController extends AppBaseController
             }
 
             $fileReader->close();
-        } catch ( \Exception $e ) {
+        }
+        catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage() );
         }
 
@@ -433,7 +434,8 @@ class OrdersAPIController extends AppBaseController
 
             // path to download the file
             $routeFilePath = route( 'downloadFiles', [ 'fileName' => basename( $filePath ) ] );
-        } catch ( \Exception $e ) {
+        }
+        catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage() );
         }
 

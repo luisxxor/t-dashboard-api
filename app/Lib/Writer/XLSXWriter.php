@@ -50,7 +50,8 @@ class XLSXWriter implements WriterContract
             $this->isWriterOpened = true;
 
             return $this;
-        } catch ( \Exception $e ) {
+        }
+        catch ( \Exception $e ) {
             throw $e; # TODO
         }
     }
@@ -74,7 +75,8 @@ class XLSXWriter implements WriterContract
                         ? SpoutHandler::getBodyStyle()
                         : SpoutHandler::getHeaderStyle()
                 ) );
-            } catch ( \Exception $e ) {
+            }
+            catch ( \Exception $e ) {
                 throw $e; # TODO
             }
 

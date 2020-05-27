@@ -20,6 +20,21 @@ class PropertyRepository extends Repository
     use FilterPipelines, PropertyPipelines;
 
     /**
+     * @var string The project in app
+     */
+    protected $projectCode;
+
+    /**
+     * Fields and its order to sort the results.
+     *
+     * @var string
+     */
+    protected $sortFields = [
+        'publication_date' => -1,
+        '_id' => 1,
+    ];
+
+    /**
      * @var array
      */
     protected $constants;
@@ -28,11 +43,6 @@ class PropertyRepository extends Repository
      * @var Search
      */
     protected $searchModel;
-
-    /**
-     * @var string The project in app
-     */
-    protected $projectCode;
 
     /**
      * Header for export files (with nested values, if any).
@@ -50,15 +60,13 @@ class PropertyRepository extends Repository
     protected $flattenedHeader = [];
 
     /**
-     * Fields and its order to sort the properties.
+     * Create a new repository instance.
      *
-     * @var string
+     * @param Application $app
+     * @param Search $searchMod
+     *
+     * @return void
      */
-    protected $sortFields = [
-        'publication_date' => -1,
-        '_id' => 1,
-    ];
-
     public function __construct( Application $app, Search $searchMod )
     {
         parent::__construct( $app );
@@ -313,7 +321,8 @@ class PropertyRepository extends Repository
 
         try {
             return $query->toArray()[ 0 ][ 'total' ];
-        } catch ( \ErrorException $e ) {
+        }
+        catch ( \ErrorException $e ) {
             return 0;
         }
     }

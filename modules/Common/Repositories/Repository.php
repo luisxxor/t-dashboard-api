@@ -24,9 +24,11 @@ abstract class Repository
     protected $app;
 
     /**
+     * Create a new repository instance.
+     *
      * @param Application $app
      *
-     * @throws \Exception
+     * @return void
      */
     public function __construct( Application $app )
     {
