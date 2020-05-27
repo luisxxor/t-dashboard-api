@@ -14,7 +14,17 @@ trait FilterPipelines
     /**
      * @var array
      */
-    protected $filterFields = [];
+    protected $filterSliderFields = [];
+
+    /**
+     * @var array
+     */
+    protected $filterNumericFields = [];
+
+    /**
+     * @var array
+     */
+    protected $filterDropdownFields = [];
 
     /**
      * Return the content of $geoNear pipeline stage,
@@ -90,21 +100,43 @@ trait FilterPipelines
      */
     protected function pipelineFiltersToQuery( array $filters ): array
     {
+        $this->initFilterFields();
+
         $output = [];
-
         foreach ( $filters as $field => $value ) {
-            if ( array_key_exists( $field, $this->getFilterFields()[ 'slidersFields' ] ) === true ) {
-                $output[ $this->getFilterFields()[ 'slidersFields' ][ $field ][ 'name' ] ] = $this->getSliderFilter( $field, $value );
+            if ( array_key_exists( $field, $this->filterSliderFields ) === true ) {
+                $fieldName = $this->filterSliderFields[ $field ][ 'name' ];
+
+                $fieldValue = $this->getSliderFilter( $field, $value );
+
+                if ( empty( $fieldValue ) !== true ) {
+                    $output[ $fieldName ] = $fieldValue;
+                }
+
                 continue;
             }
 
-            if ( array_key_exists( $field, $this->getFilterFields()[ 'numericFields' ] ) === true ) {
-                $output[ $this->getFilterFields()[ 'numericFields' ][ $field ][ 'name' ] ] = $this->getNumericFields( $field, $value );
+            if ( array_key_exists( $field, $this->filterNumericFields ) === true ) {
+                $fieldName = $this->filterNumericFields[ $field ][ 'name' ];
+
+                $fieldValue = $this->getNumericFields( $field, $value );
+
+                if ( empty( $fieldValue ) !== true ) {
+                    $output[ $fieldName ] = $fieldValue;
+                }
+
                 continue;
             }
 
-            if ( array_key_exists( $field, $this->getFilterFields()[ 'dropdownFields' ] ) === true ) {
-                $output[ $this->getFilterFields()[ 'dropdownFields' ][ $field ][ 'name' ] ] = $this->getDropdownFilter( $field, $value );
+            if ( array_key_exists( $field, $this->filterDropdownFields ) === true ) {
+                $fieldName = $this->filterDropdownFields[ $field ][ 'name' ];
+
+                $fieldValue = $this->getDropdownFilter( $field, $value );
+
+                if ( empty( $fieldValue ) !== true ) {
+                    $output[ $fieldName ] = $fieldValue;
+                }
+
                 continue;
             }
         }
@@ -113,29 +145,45 @@ trait FilterPipelines
     }
 
     /**
-     * Return filter fields and its settings once.
+     * Init filter fields with config values.
      *
-     * @return array
+     * @return void
      */
-    protected function getFilterFields(): array
+    protected function initFilterFields(): void
     {
-        if ( empty( $this->filterFields ) !== true ) {
-            return $this->filterFields;
-        }
-
-        $this->filterFields = $this->filterFields();
-
-        return $this->filterFields;
+        $this->filterSliderFields = $this->filterSliderFields();
+        $this->filterNumericFields = $this->filterNumericFields();
+        $this->filterDropdownFields = $this->filterDropdownFields();
     }
 
     /**
-     * Return filter fields (for $match aggregation pipeline operators).
+     * Return filter slider fields.
      *
      * @return array
      */
-    protected function filterFields(): array
+    protected function filterSliderFields(): array
     {
-        throw new Exception( 'should implement filterFields() method.' );
+        return [];
+    }
+
+    /**
+     * Return filter numeric fields.
+     *
+     * @return array
+     */
+    protected function filterNumericFields(): array
+    {
+        return [];
+    }
+
+    /**
+     * Return filter dropdown fields.
+     *
+     * @return array
+     */
+    protected function filterDropdownFields(): array
+    {
+        return [];
     }
 
     /**
@@ -149,13 +197,18 @@ trait FilterPipelines
      */
     protected function getSliderFilter( string $field, $value ): array
     {
-        // helper dictionary
-        $dict = $this->filterFields[ 'slidersFields' ][ $field ];
+        try {
+            // get mix and max values
+            $arrayValue = explode( '--', $value );
+            $minValue = (string)$arrayValue[ 0 ];
+            $maxValue = (string)$arrayValue[ 1 ];
+        }
+        catch ( Exception $e ) {
+            return [];
+        }
 
-        // get mix and max values
-        $arrayValue = explode( '--', $value );
-        $minValue = (string)$arrayValue[ 0 ];
-        $maxValue = (string)$arrayValue[ 1 ];
+        // helper dictionary
+        $dict = $this->filterSliderFields[ $field ];
 
         // callback
         if ( isset( $dict[ 'clousure' ] ) === true ) {
@@ -165,7 +218,9 @@ trait FilterPipelines
 
         // $match aggregation pipeline operators
         if ( $minValue === $maxValue ) {
-            return [ '$eq' => $minValue ];
+            return is_float( $maxValue ) === true
+                ? [ '$gte' => $maxValue, ]
+                : [ '$eq' => $maxValue ];
         }
         if ( is_float( $maxValue ) === true ) {
             return [ '$gte' => $minValue, ];
@@ -184,16 +239,21 @@ trait FilterPipelines
      */
     protected function getNumericFields( string $field, $value ): array
     {
-        // helper dictionary
-        $dict = $this->filterFields[ 'numericFields' ][ $field ];
+        try {
+            // get mix and max values
+            $arrayValue = explode( '--', $value );
+            $minValue = (string)$arrayValue[ 0 ];
+            $maxValue = (string)$arrayValue[ 1 ];
+        }
+        catch ( Exception $e ) {
+            return [];
+        }
 
-        // get mix and max values
-        $arrayValue = explode( '--', $value );
-        $minValue = (string)$arrayValue[ 0 ];
-        $maxValue = (string)$arrayValue[ 1 ];
+        // helper dictionary
+        $dict = $this->filterNumericFields[ $field ];
 
         // callback
-        if ( isset( $dict[ 'clousure' ] ) ) {
+        if ( isset( $dict[ 'clousure' ] ) === true ) {
             $minValue = $dict[ 'clousure' ]( $minValue );
             $maxValue = $dict[ 'clousure' ]( $maxValue );
         }
@@ -217,22 +277,22 @@ trait FilterPipelines
     protected function getDropdownFilter( string $field, $value ): array
     {
         // helper dictionary
-        $dict = $this->filterFields[ 'dropdownFields' ][ $field ];
+        $dict = $this->filterDropdownFields[ $field ];
 
         // callback
         if ( isset( $dict[ 'clousure' ] ) ) {
-            $finalValue = $dict[ 'clousure' ]( $finalValue );
+            $value = $dict[ 'clousure' ]( $value );
         }
 
         // mask (ILIKE or LIKE)
         if ( isset( $dict[ 'mask' ] ) ) {
-            $finalValue = $dict[ 'mask' ]( $finalValue );
+            $value = $dict[ 'mask' ]( $value );
         }
 
         // $match aggregation pipeline operators
-        if ( is_array( $finalValue ) === true ) {
-            return [ '$in' => $finalValue ];
+        if ( is_array( $value ) === true ) {
+            return [ '$in' => $value ];
         }
-        return [ '$eq' => $finalValue ];
+        return [ '$eq' => $value ];
     }
 }

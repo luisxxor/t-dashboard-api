@@ -9,6 +9,7 @@ use Modules\DominicanaProperties\Models\Property;
 use Modules\DominicanaProperties\Models\PropertyType;
 use Modules\DominicanaProperties\Models\PublicationType;
 use Modules\DominicanaProperties\Models\Search;
+use MongoDB\BSON\ObjectID;
 use MongoDB\BSON\UTCDateTime;
 
 /**
@@ -18,11 +19,6 @@ use MongoDB\BSON\UTCDateTime;
 */
 class PropertyRepository extends CommonPropertyRepository
 {
-    /**
-     * @var array
-     */
-    protected $constants;
-
     /**
      * Fields and its order to sort the properties.
      *
@@ -69,6 +65,11 @@ class PropertyRepository extends CommonPropertyRepository
         'distance'              => 'Distancia (m)',
     ];
 
+    /**
+     * @var string The project in app
+     */
+    protected $projectCode = 'do-properties';
+
     public function __construct( Application $app, Search $searchMod )
     {
         parent::__construct( $app, $searchMod );
@@ -87,75 +88,99 @@ class PropertyRepository extends CommonPropertyRepository
     }
 
     /**
-     * Return filter fields (for $match aggregation pipeline operators).
+     * Return filter slider fields.
      *
      * @return array
      */
-    protected function filterFields(): array
+    protected function filterSliderFields(): array
     {
         return [
-            'slidersFields' => [
-                $this->constants[ 'FILTER_FIELD_BEDROOMS' ] => [
-                    'name' => 'bedrooms',
-                    'clousure' => function ( $field ) {
-                        return $field === '5' ? (float)$field : (int)$field;
-                    }
-                ],
-                $this->constants[ 'FILTER_FIELD_BATHROOMS' ] => [
-                    'name' => 'bathrooms',
-                    'clousure' => function ( $field ) {
-                        return $field === '5' ? (float)$field : (int)$field;
-                    }
-                ],
-                $this->constants[ 'FILTER_FIELD_PARKINGS' ] => [
-                    'name' => 'parkings',
-                    'clousure' => function ( $field ) {
-                        return $field === '5' ? (float)$field : (int)$field;
-                    }
-                ],
+            $this->constants[ 'FILTER_FIELD_BEDROOMS' ] => [
+                'name' => 'bedrooms',
+                'clousure' => function ( $field ) {
+                    return $field === '5' ? (float)$field : (int)$field;
+                }
             ],
-            'numericFields' => [
-                $this->constants[ 'FILTER_FIELD_TOTAL_AREA_M2' ] => [
-                    'name' => 'total_area_m2',
-                    'clousure' => function ( $field ) {
-                        return (float)$field;
-                    }
-                ],
-                $this->constants[ 'FILTER_FIELD_BUILD_AREA_M2' ] => [
-                    'name' => 'build_area_m2',
-                    'clousure' => function ( $field ) {
-                        return (float)$field;
-                    }
-                ],
-                $this->constants[ 'FILTER_FIELD_PUBLICATION_DATE' ] => [
-                    'name' => 'publication_date',
-                    'clousure' => function ( $field ) {
-                        $carbonDate = Carbon::createFromFormat( 'd/m/Y', trim( $field ) );
-                        return new UTCDateTime( $carbonDate );
-                    },
-                ],
+            $this->constants[ 'FILTER_FIELD_BATHROOMS' ] => [
+                'name' => 'bathrooms',
+                'clousure' => function ( $field ) {
+                    return $field === '5' ? (float)$field : (int)$field;
+                }
             ],
-            'dropdownFields' => [
-                $this->constants[ 'FILTER_FIELD_PROPERTY_TYPE' ] => [
-                    'name' => 'property_type_id',
-                    'clousure' => function ( $field ) {
-                        $results = PropertyType::where( 'name', $field )->get();
-                        return array_column( $results->toArray(), '_id' );
-                    },
-                ],
-                $this->constants[ 'FILTER_FIELD_PUBLICATION_TYPE' ] => [
-                    'name' => 'publication_type_id',
-                    'clousure' => function ( $field ) {
-                        $results = PublicationType::where( 'name', $field )->get();
-                        return array_column( $results->toArray(), '_id' );
-                    },
-                ],
-                $this->constants[ 'FILTER_FIELD_IS_NEW' ] => [
-                    'name' => 'is_new',
-                    'clousure' => function ( $field ) {
-                        return (bool)$field;
-                    },
-                ],
+            $this->constants[ 'FILTER_FIELD_PARKINGS' ] => [
+                'name' => 'parkings',
+                'clousure' => function ( $field ) {
+                    return $field === '5' ? (float)$field : (int)$field;
+                }
+            ],
+        ];
+    }
+
+    /**
+     * Return filter numeric fields.
+     *
+     * @return array
+     */
+    protected function filterNumericFields(): array
+    {
+        return [
+            $this->constants[ 'FILTER_FIELD_TOTAL_AREA_M2' ] => [
+                'name' => 'total_area_m2',
+                'clousure' => function ( $field ) {
+                    return (float)$field;
+                }
+            ],
+            $this->constants[ 'FILTER_FIELD_BUILD_AREA_M2' ] => [
+                'name' => 'build_area_m2',
+                'clousure' => function ( $field ) {
+                    return (float)$field;
+                }
+            ],
+            $this->constants[ 'FILTER_FIELD_PUBLICATION_DATE' ] => [
+                'name' => 'publication_date',
+                'clousure' => function ( $field ) {
+                    $carbonDate = Carbon::createFromFormat( 'd/m/Y', trim( $field ) );
+                    return new UTCDateTime( $carbonDate );
+                },
+            ],
+        ];
+    }
+
+    /**
+     * Return filter dropdown fields.
+     *
+     * @return array
+     */
+    protected function filterDropdownFields(): array
+    {
+        return [
+            $this->constants[ 'FILTER_FIELD_PROPERTY_TYPE' ] => [
+                'name' => 'property_type_id',
+                'clousure' => function ( $field ) {
+                    $results = PropertyType::where( 'name', $field )->get();
+                    $results = array_column( $results->toArray(), '_id' );
+                    foreach ( $results as $key => $value ) {
+                        $results[ $key ] = new ObjectID( $value );
+                    }
+                    return $results;
+                },
+            ],
+            $this->constants[ 'FILTER_FIELD_PUBLICATION_TYPE' ] => [
+                'name' => 'publication_type_id',
+                'clousure' => function ( $field ) {
+                    $results = PublicationType::where( 'name', $field )->get();
+                    $results = array_column( $results->toArray(), '_id' );
+                    foreach ( $results as $key => $value ) {
+                        $results[ $key ] = new ObjectID( $value );
+                    }
+                    return $results;
+                },
+            ],
+            $this->constants[ 'FILTER_FIELD_IS_NEW' ] => [
+                'name' => 'is_new',
+                'clousure' => function ( $field ) {
+                    return (bool)$field;
+                },
             ],
         ];
     }

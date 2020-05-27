@@ -30,6 +30,11 @@ class PropertyRepository extends Repository
     protected $searchModel;
 
     /**
+     * @var string The project in app
+     */
+    protected $projectCode;
+
+    /**
      * Header for export files (with nested values, if any).
      *
      * @var array
@@ -64,11 +69,21 @@ class PropertyRepository extends Repository
     /**
      * Configure the Model
      *
-     * @return Property
+     * @return string
      */
     public function model()
     {
         return Property::class;
+    }
+
+    /**
+     * Configure the Project
+     *
+     * @return string
+     */
+    public function projectCode()
+    {
+        return $this->projectCode;
     }
 
     /**
