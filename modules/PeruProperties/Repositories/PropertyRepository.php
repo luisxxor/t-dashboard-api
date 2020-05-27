@@ -9,20 +9,16 @@ use Modules\PeruProperties\Models\Property;
 use Modules\PeruProperties\Models\PropertyType;
 use Modules\PeruProperties\Models\PublicationType;
 use Modules\PeruProperties\Models\Search;
+use MongoDB\BSON\ObjectID;
 use MongoDB\BSON\UTCDateTime;
 
 /**
  * Class PropertyRepository
  * @package Modules\PeruProperties\Repositories
- * @version May 31, 2019, 5:17 am UTC
+ * @version May 31, 2019, 09:17 UTC
 */
 class PropertyRepository extends CommonPropertyRepository
 {
-    /**
-     * @var array
-     */
-    protected $constants;
-
     /**
      * Fields and its order to sort the properties.
      *
@@ -67,9 +63,14 @@ class PropertyRepository extends CommonPropertyRepository
         'distance'              => 'Distancia (m)',
     ];
 
+    /**
+     * @var string The project in app
+     */
+    protected $projectCode = 'pe-properties';
+
     public function __construct( Application $app, Search $searchMod )
     {
-        parent::__construct( $app, $searchModp );
+        parent::__construct( $app, $searchMod );
 
         $this->constants = config( 'multi-api.pe-properties.constants' );
     }
@@ -85,81 +86,105 @@ class PropertyRepository extends CommonPropertyRepository
     }
 
     /**
-     * Return filter fields (for $match aggregation pipeline operators).
+     * Return filter slider fields.
      *
      * @return array
      */
-    protected function filterFields(): array
+    protected function filterSliderFields(): array
     {
         return [
-            'slidersFields' => [
-                $this->constants[ 'FILTER_FIELD_BEDROOMS' ] => [
-                    'name' => 'bedrooms',
-                    'clousure' => function ( $field ) {
-                        return $field === '5' ? (float)$field : (int)$field;
-                    }
-                ],
-                $this->constants[ 'FILTER_FIELD_BATHROOMS' ] => [
-                    'name' => 'bathrooms',
-                    'clousure' => function ( $field ) {
-                        return $field === '5' ? (float)$field : (int)$field;
-                    }
-                ],
-                $this->constants[ 'FILTER_FIELD_PARKINGS' ] => [
-                    'name' => 'parkings',
-                    'clousure' => function ( $field ) {
-                        return $field === '5' ? (float)$field : (int)$field;
-                    }
-                ],
+            $this->constants[ 'FILTER_FIELD_BEDROOMS' ] => [
+                'name' => 'bedrooms',
+                'clousure' => function ( $field ) {
+                    return $field === '5' ? (float)$field : (int)$field;
+                }
             ],
-            'numericFields' => [
-                $this->constants[ 'FILTER_FIELD_ANTIQUITY_YEARS' ] => [
-                    'name' => 'antiquity_years',
-                    'clousure' => function ( $field ) {
-                        return (int)$field;
-                    }
-                ],
-                $this->constants[ 'FILTER_FIELD_TOTAL_AREA_M2' ] => [
-                    'name' => 'total_area_m2',
-                    'clousure' => function ( $field ) {
-                        return (float)$field;
-                    }
-                ],
-                $this->constants[ 'FILTER_FIELD_BUILD_AREA_M2' ] => [
-                    'name' => 'build_area_m2',
-                    'clousure' => function ( $field ) {
-                        return (float)$field;
-                    }
-                ],
-                $this->constants[ 'FILTER_FIELD_PUBLICATION_DATE' ] => [
-                    'name' => 'publication_date',
-                    'clousure' => function ( $field ) {
-                        $carbonDate = Carbon::createFromFormat( 'd/m/Y', trim( $field ) );
-                        return new UTCDateTime( $carbonDate );
-                    },
-                ],
+            $this->constants[ 'FILTER_FIELD_BATHROOMS' ] => [
+                'name' => 'bathrooms',
+                'clousure' => function ( $field ) {
+                    return $field === '5' ? (float)$field : (int)$field;
+                }
             ],
-            'dropdownFields' => [
-                $this->constants[ 'FILTER_FIELD_PROPERTY_TYPE' ] => [
-                    'name' => 'property_type_id',
-                    'clousure' => function ( $field ) {
-                        $results = PropertyType::where( 'owner_name', $field )->get();
-                        return array_column( $results->toArray(), '_id' );
-                    },
-                ],
-                $this->constants[ 'FILTER_FIELD_PUBLICATION_TYPE' ] => [
-                    'name' => 'publication_type_id',
-                    'clousure' => function ( $field ) {
-                        $results = PublicationType::where( 'name', $field )->get();
-                        return array_column( $results->toArray(), '_id' );
-                    },
-                ],
-                $this->constants[ 'FILTER_FIELD_IS_NEW' ] => [
-                    'name' => 'is_new',
-                    'clousure' => function ( $field ) {
-                        return (bool)$field;
-                    },
-                ],
+            $this->constants[ 'FILTER_FIELD_PARKINGS' ] => [
+                'name' => 'parkings',
+                'clousure' => function ( $field ) {
+                    return $field === '5' ? (float)$field : (int)$field;
+                }
+            ],
+        ];
+    }
+
+    /**
+     * Return filter numeric fields.
+     *
+     * @return array
+     */
+    protected function filterNumericFields(): array
+    {
+        return [
+            $this->constants[ 'FILTER_FIELD_ANTIQUITY_YEARS' ] => [
+                'name' => 'antiquity_years',
+                'clousure' => function ( $field ) {
+                    return (int)$field;
+                }
+            ],
+            $this->constants[ 'FILTER_FIELD_TOTAL_AREA_M2' ] => [
+                'name' => 'total_area_m2',
+                'clousure' => function ( $field ) {
+                    return (float)$field;
+                }
+            ],
+            $this->constants[ 'FILTER_FIELD_BUILD_AREA_M2' ] => [
+                'name' => 'build_area_m2',
+                'clousure' => function ( $field ) {
+                    return (float)$field;
+                }
+            ],
+            $this->constants[ 'FILTER_FIELD_PUBLICATION_DATE' ] => [
+                'name' => 'publication_date',
+                'clousure' => function ( $field ) {
+                    $carbonDate = Carbon::createFromFormat( 'd/m/Y', trim( $field ) );
+                    return new UTCDateTime( $carbonDate );
+                },
+            ],
+        ];
+    }
+
+    /**
+     * Return filter dropdown fields.
+     *
+     * @return array
+     */
+    protected function filterDropdownFields(): array
+    {
+        return [
+            $this->constants[ 'FILTER_FIELD_PROPERTY_TYPE' ] => [
+                'name' => 'property_type_id',
+                'clousure' => function ( $field ) {
+                    $results = PropertyType::where( 'owner_name', $field )->get();
+                    $results = array_column( $results->toArray(), '_id' );
+                    // foreach ( $results as $key => $value ) {
+                    //     $results[ $key ] = new ObjectID( $value );
+                    // }
+                    return $results;
+                },
+            ],
+            $this->constants[ 'FILTER_FIELD_PUBLICATION_TYPE' ] => [
+                'name' => 'publication_type_id',
+                'clousure' => function ( $field ) {
+                    $results = PublicationType::where( 'name', $field )->get();
+                    $results = array_column( $results->toArray(), '_id' );
+                    foreach ( $results as $key => $value ) {
+                        $results[ $key ] = new ObjectID( $value );
+                    }
+                    return $results;
+                },
+            ],
+            $this->constants[ 'FILTER_FIELD_IS_NEW' ] => [
+                'name' => 'is_new',
+                'clousure' => function ( $field ) {
+                    return (bool)$field;
+                },
             ],
         ];
     }

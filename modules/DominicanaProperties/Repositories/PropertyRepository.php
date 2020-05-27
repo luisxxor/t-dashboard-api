@@ -15,7 +15,7 @@ use MongoDB\BSON\UTCDateTime;
 /**
  * Class PropertyRepository
  * @package Modules\DominicanaProperties\Repositories
- * @version May 31, 2019, 5:17 am UTC
+ * @version May 27, 2020, 17:41 UTC
 */
 class PropertyRepository extends CommonPropertyRepository
 {

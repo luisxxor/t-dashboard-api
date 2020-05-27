@@ -8,7 +8,7 @@ use Modules\PeruProperties\Models\PropertyType;
 /**
  * Class PropertyTypeRepository
  * @package Modules\PeruProperties\Repositories
- * @version Ago 22, 2019, 2:19 am UTC
+ * @version Ago 22, 2019, 06:19 UTC
 */
 class PropertyTypeRepository extends Repository
 {

@@ -85,13 +85,13 @@ return [
                 'label' => 'Tipo',
                 'type' => 'dropdown',
                 'placeholder' => 'Seleccione el tipo de propiedad',
-                'values' => [ 'serverside' ],
+                'values' => [ 'remote' ],
             ],
             [
                 'field' => $constants[ 'FILTER_FIELD_PUBLICATION_DATE' ],
                 'label' => 'Fecha',
                 'type' => 'date',
-                'placeholder' => 'Seleccione el tipo de propiedad',
+                'placeholder' => 'Seleccione un rango de fechas',
                 'minDate' => null,
                 'maxDate' => now()->toDateString(),
             ],
@@ -219,24 +219,14 @@ return [
                 'label' => 'Tipo publicación',
                 'type' => 'dropdown',
                 'placeholder' => 'Seleccione el tipo de publicación',
-                'values' => [
-                    [
-                        'value' => 'venta',
-                        'text' => 'Venta',
-                    ],
-                    [
-                        'value' => 'alquiler',
-                        'text' => 'Alquiler',
-                    ],
-                ],
+                'values' => [ 'remote' ],
             ],
             [
                 'field' => $constants[ 'FILTER_FIELD_IS_NEW' ],
                 'label' => 'Nuevo/Usado',
                 'type' => 'dropdown',
                 'placeholder' => 'Seleccione la condición',
-                'values' =>
-                [
+                'values' => [
                     [
                         'value' => true,
                         'text' => 'Nuevo',

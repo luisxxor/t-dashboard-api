@@ -16,16 +16,16 @@ Route::prefix( 'do-properties' )->middleware( 'auth:api', 'verified', 'scopes:ac
     Route::get( 'filters', 'PropertiesController@filters' )->name( 'do-properties.filters' )
         ->middleware( 'can:search.properties' );
 
-    Route::post( 'search', 'PropertiesController@searchProperties' )->name( 'do-properties.searchProperties' )
+    Route::post( 'search', 'PropertiesController@searchProperties' )->name( 'do-properties.search' )
         ->middleware( 'can:search.properties' );
 
-    Route::get( 'paginate', 'PropertiesController@paginateSearch' )->name( 'do-properties.paginateSearch' )
+    Route::get( 'paginate', 'PropertiesController@paginateSearch' )->name( 'do-properties.paginate' )
         ->middleware( 'can:search.properties' );
 
-    Route::get( 'count', 'PropertiesController@countSearch' )->name( 'do-properties.countSearch' )
+    Route::get( 'count', 'PropertiesController@countSearch' )->name( 'do-properties.count' )
         ->middleware( 'can:search.properties' );
 
-    Route::post( 'order', 'PropertiesController@order' )->name( 'do-properties.processOrder' )
+    Route::post( 'order', 'PropertiesController@order' )->name( 'do-properties.order' )
         ->middleware( 'can:order.properties' );
 } );
 

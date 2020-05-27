@@ -8,7 +8,7 @@ use Modules\DominicanaProperties\Models\PropertyType;
 /**
  * Class PropertyTypeRepository
  * @package Modules\DominicanaProperties\Repositories
- * @version Ago 22, 2019, 2:19 am UTC
+ * @version May 27, 2020, 17:49 UTC
 */
 class PropertyTypeRepository extends Repository
 {

@@ -8,7 +8,7 @@ use Modules\DominicanaProperties\Models\Search;
 /**
  * Class SearchRepository
  * @package Modules\DominicanaProperties\Repositories
- * @version Jun 28, 2019, 2:34 pm UTC
+ * @version May 25, 2020, 04:58 UTC
 */
 class SearchRepository extends Repository
 {

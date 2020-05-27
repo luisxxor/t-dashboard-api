@@ -18,11 +18,6 @@ use Modules\DominicanaProperties\Repositories\SearchRepository;
 class PropertiesController extends CommonPropertiesController
 {
     /**
-     * @var string The project in app
-     */
-    protected $projectCode = 'do-properties';
-
-    /**
      * Create a new controller instance.
      *
      * @return void

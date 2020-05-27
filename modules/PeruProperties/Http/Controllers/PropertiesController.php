@@ -18,11 +18,6 @@ use Modules\PeruProperties\Repositories\SearchRepository;
 class PropertiesController extends CommonPropertiesController
 {
     /**
-     * @var string The project in app
-     */
-    protected $projectCode = 'pe-properties';
-
-    /**
      * Create a new controller instance.
      *
      * @return void

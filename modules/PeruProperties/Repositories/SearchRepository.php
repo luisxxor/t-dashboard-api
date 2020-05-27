@@ -8,7 +8,7 @@ use Modules\PeruProperties\Models\Search;
 /**
  * Class SearchRepository
  * @package Modules\PeruProperties\Repositories
- * @version Jun 28, 2019, 2:34 pm UTC
+ * @version Jun 28, 2019, 06:34 UTC
 */
 class SearchRepository extends Repository
 {
