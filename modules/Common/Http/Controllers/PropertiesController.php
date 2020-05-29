@@ -317,7 +317,7 @@ class PropertiesController extends AppBaseController
                 ->openToFile( $orderCode . '.metadata.json' )
                 ->addRow( json_encode( $search->toArray() ) );
             $path = $jsonMetadataFile->close();
-            $filesInfo[] = $this->googleStorageHandler->uploadFile( config( 'app.pe_export_file_bucket' ), $path, $order->total_rows_quantity );
+            $filesInfo[] = $this->googleStorageHandler->uploadFile( config( 'app.export_file_buckets.' . $this->propertyRepository->projectCode() ), $path, $order->total_rows_quantity );
 
             // free memory
             unset( $jsonMetadataFile );
