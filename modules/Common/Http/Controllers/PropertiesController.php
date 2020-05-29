@@ -8,6 +8,7 @@ use App\Lib\Writer\Common\FileWriterFactory;
 use App\Repositories\Dashboard\OrderRepository;
 use Carbon\Carbon;
 use DateTime;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Modules\Common\Repositories\PropertyRepository;
@@ -143,7 +144,7 @@ class PropertiesController extends AppBaseController
 
             $total = $this->propertyRepository->countSearchedProperties( $search );
         }
-        catch ( \Exception $e ) {
+        catch ( Exception $e ) {
             return $this->sendError( $e->getMessage() );
         }
 
@@ -184,7 +185,7 @@ class PropertiesController extends AppBaseController
             // construct and execute query
             $data = $this->propertyRepository->searchPropertiesReturnOutputFields( $search, compact( 'perpage', 'field', 'sort', 'lastItem' ) );
         }
-        catch ( \Exception $e ) {
+        catch ( Exception $e ) {
             return $this->sendError( $e->getMessage(), [], 404 );
         }
 
@@ -228,7 +229,7 @@ class PropertiesController extends AppBaseController
             // get search model
             $search = $this->searchRepository->findOrFail( $searchId );
         }
-        catch ( \Exception $e ) {
+        catch ( Exception $e ) {
             return $this->sendError( $e->getMessage(), [], 404 );
         }
 
@@ -309,6 +310,11 @@ class PropertiesController extends AppBaseController
         $filesInfo = [];
 
         try {
+            $bucketName = config( 'app.export_file_buckets.' . $this->propertyRepository->projectCode() );
+            if ( empty( $bucketName ) === true ) {
+                throw new Exception( 'bucket not defined for project: ' . $this->propertyRepository->projectCode() );
+            }
+
             // get search
             $search = $this->searchRepository->findOrFail( $order->search_id );
 
@@ -317,7 +323,7 @@ class PropertiesController extends AppBaseController
                 ->openToFile( $orderCode . '.metadata.json' )
                 ->addRow( json_encode( $search->toArray() ) );
             $path = $jsonMetadataFile->close();
-            $filesInfo[] = $this->googleStorageHandler->uploadFile( config( 'app.export_file_buckets.' . $this->propertyRepository->projectCode() ), $path, $order->total_rows_quantity );
+            $filesInfo[] = $this->googleStorageHandler->uploadFile( $bucketName, $path, $order->total_rows_quantity );
 
             // free memory
             unset( $jsonMetadataFile );
@@ -353,11 +359,11 @@ class PropertiesController extends AppBaseController
 
             // close json data file
             $path = $ndjsonDataFile->close();
-            $filesInfo[] = $this->googleStorageHandler->uploadFile( config( 'app.pe_export_file_bucket' ), $path, $order->total_rows_quantity );
+            $filesInfo[] = $this->googleStorageHandler->uploadFile( $bucketName, $path, $order->total_rows_quantity );
 
             // close xslx data file
             $path = $xlsxDataFile->close();
-            $filesInfo[] = $this->googleStorageHandler->uploadFile( config( 'app.pe_export_file_bucket' ), $path, $order->total_rows_quantity );
+            $filesInfo[] = $this->googleStorageHandler->uploadFile( $bucketName, $path, $order->total_rows_quantity );
 
             // free memory
             unset( $search );
@@ -366,7 +372,7 @@ class PropertiesController extends AppBaseController
             unset( $xlsxDataFile );
             gc_collect_cycles();
         }
-        catch ( \Exception $e ) {
+        catch ( Exception $e ) {
             return $this->sendError( $e->getMessage() );
         }
 
