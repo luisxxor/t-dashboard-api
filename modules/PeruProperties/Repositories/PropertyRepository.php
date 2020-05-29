@@ -171,9 +171,9 @@ class PropertyRepository extends CommonPropertyRepository
                 'clousure' => function ( $field ) {
                     $results = PropertyType::where( 'owner_name', $field )->get();
                     $results = array_column( $results->toArray(), '_id' );
-                    // foreach ( $results as $key => $value ) {
-                    //     $results[ $key ] = new ObjectID( $value );
-                    // }
+                    foreach ( $results as $key => $value ) {
+                        $results[ $key ] = new ObjectID( $value );
+                    }
                     return $results;
                 },
             ],

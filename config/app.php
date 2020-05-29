@@ -263,11 +263,17 @@ return [
 
     'google_key_file_path' => env( 'GOOGLE_KEY_FILE_PATH', null ),
 
-    'pe_export_file_bucket' => env( 'PE_EXPORT_FILE_BUCKET', null ),
+    'export_file_buckets' => [
 
-    'ec_export_file_bucket' => env( 'EC_EXPORT_FILE_BUCKET', null ),
+        'pe-properties' => env( 'PE_EXPORT_FILE_BUCKET', null ),
 
-    'cl_export_file_bucket' => env( 'CL_EXPORT_FILE_BUCKET', null ),
+        'ec-properties' => env( 'EC_EXPORT_FILE_BUCKET', null ),
+
+        'cl-properties' => env( 'CL_EXPORT_FILE_BUCKET', null ),
+
+        'do-properties' => env( 'DO_EXPORT_FILE_BUCKET', null ),
+    ],
+
 
     /*
     |--------------------------------------------------------------------------
