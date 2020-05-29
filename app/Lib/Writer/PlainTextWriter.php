@@ -38,7 +38,7 @@ class PlainTextWriter implements WriterContract
     public function openToFile( string $fileName ): WriterContract
     {
         try {
-            $this->filePath = config( 'app.file_path' ) . $fileName;
+            $this->filePath = config( 'app.temp_path' ) . $fileName;
 
             $this->fh = fopen( $this->filePath, 'w' );
 
