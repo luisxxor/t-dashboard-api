@@ -1,14 +1,14 @@
 <?php
 
-namespace Modules\PeruProperties\Pipelines;
+namespace Modules\Common\Pipelines;
 
-use Modules\PeruProperties\Models\Search;
+use Modules\Common\Models\Search;
 use MongoDB\BSON\ObjectID;
 
 /**
  * Trait PropertyPipelines
- * @package Modules\PeruProperties\Pipelines
- * @version Dec 24, 2019, 15:31 UTC
+ * @package Modules\Common\Pipelines
+ * @version May 25, 2020, 18:42 UTC
 */
 trait PropertyPipelines
 {
@@ -100,26 +100,6 @@ trait PropertyPipelines
     }
 
     /**
-     * Returns the fields with which the response will be sorted.
-     *
-     * @param string $field The field needed to be sorted.
-     * @param int $sort The 'asc' (1) or 'desc' (-1) to be sorted.
-     *
-     * @return array
-     */
-    protected function mergeSortFields( string $field, int $sort )
-    {
-        if ( array_key_exists( $field, $this->sortFields ) === true ) {
-            $sortFields = array_merge( $this->sortFields, [ $field => $sort ] );
-        }
-        else {
-            $sortFields = array_merge( [ $field => $sort ], $this->sortFields );
-        }
-
-        return $sortFields;
-    }
-
-    /**
      * Return pipeline to retrive selected properties
      * for given search.
      *
@@ -200,6 +180,16 @@ trait PropertyPipelines
             ]
         ];
 
+        // join con publication_types ($lookup)
+        $pipeline[] = [
+            '$lookup' => [
+                'from' => 'publication_types',
+                'localField' => 'publication_type_id',
+                'foreignField' => '_id',
+                'as' => 'publication_types_docs'
+            ]
+        ];
+
         // fields ($addFields)
         $pipeline[] = [
             '$addFields' => [
@@ -216,6 +206,10 @@ trait PropertyPipelines
                         [ '$arrayElemAt' => [ '$regions_docs.sub_reg3', 0 ] ]
                     ]
                 ],
+                'publication_type' => [ '$ifNull' => [
+                    [ '$arrayElemAt' => [ '$publication_types_docs.name', 0 ] ],
+                    null
+                ] ],
             ]
         ];
 
@@ -226,9 +220,31 @@ trait PropertyPipelines
                 'property_types_docs' => 0,
                 'region_id' => 0,
                 'regions_docs' => 0,
+                'publication_type_id' => 0,
+                'publication_types_docs' => 0,
             ]
         ];
 
         return $pipeline;
+    }
+
+    /**
+     * Returns the fields with which the response will be sorted.
+     *
+     * @param string $field The field needed to be sorted.
+     * @param int $sort The 'asc' (1) or 'desc' (-1) to be sorted.
+     *
+     * @return array
+     */
+    protected function mergeSortFields( string $field, int $sort )
+    {
+        if ( array_key_exists( $field, $this->sortFields ) === true ) {
+            $sortFields = array_merge( $this->sortFields, [ $field => $sort ] );
+        }
+        else {
+            $sortFields = array_merge( [ $field => $sort ], $this->sortFields );
+        }
+
+        return $sortFields;
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Common\Providers;
+namespace Modules\DominicanaProperties\Providers;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
@@ -12,7 +12,7 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @var string
      */
-    protected $moduleNamespace = 'Modules\Common\Http\Controllers';
+    protected $moduleNamespace = 'Modules\DominicanaProperties\Http\Controllers';
 
     /**
      * Called before routes are registered.
@@ -45,9 +45,10 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function mapApiRoutes()
     {
-        Route::prefix('api')
-            ->middleware('api')
-            ->namespace($this->moduleNamespace)
-            ->group(module_path('Common', '/Routes/api.php'));
+        Route::prefix( 'api' )
+            ->middleware( 'api' )
+            ->as( 'api.' )
+            ->namespace( $this->moduleNamespace )
+            ->group( module_path( 'DominicanaProperties', '/Routes/api.php' ) );
     }
 }

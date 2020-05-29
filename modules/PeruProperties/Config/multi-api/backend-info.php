@@ -10,6 +10,6 @@ return [
     */
 
     'code' => 'pe-properties',
-    'generate_file_url' => 'peru_properties.generatePropertiesFile',
+    'generate_file_url' => 'pe-properties.generatePropertiesFile',
 
 ];

@@ -2,25 +2,23 @@
 
 namespace Modules\PeruProperties\Repositories;
 
+use Modules\Common\Repositories\Repository;
 use Modules\PeruProperties\Models\PropertyType;
-use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Class PropertyTypeRepository
  * @package Modules\PeruProperties\Repositories
- * @version Ago 22, 2019, 2:19 am UTC
+ * @version Ago 22, 2019, 06:19 UTC
 */
-class PropertyTypeRepository
+class PropertyTypeRepository extends Repository
 {
     /**
-     * Save a new document in collection
-     *
-     * @param array $attributes
+     * Configure the Model
      *
      * @return string
      */
-    public function distinct( string $field ): Collection
+    public function model()
     {
-        return PropertyType::distinct( 'owner_name' )->get();
+        return PropertyType::class;
     }
 }

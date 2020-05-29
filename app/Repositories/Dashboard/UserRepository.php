@@ -75,7 +75,8 @@ class UserRepository extends BaseRepository
             $project = $user->accessible_projects[ 0 ][ 'project' ];
             $defaultPlanFeature = PlanFeature::bySlug( config( 'rinvex.subscriptions.features.pay-per-download' ) )->first();
             $defaultPlanProject = $defaultPlanFeature->plan->planProjects->where( 'project_code', $project )->first();
-        } catch ( \Exception $e ) {
+        }
+        catch ( \Exception $e ) {
             return null;
         }
 

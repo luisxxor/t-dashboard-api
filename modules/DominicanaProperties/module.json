@@ -1,0 +1,13 @@
+{
+    "name": "DominicanaProperties",
+    "alias": "dominicanaproperties",
+    "description": "",
+    "keywords": [],
+    "order": 0,
+    "providers": [
+        "Modules\\DominicanaProperties\\Providers\\DominicanaPropertiesServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

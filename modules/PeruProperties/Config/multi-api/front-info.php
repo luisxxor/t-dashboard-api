@@ -1,6 +1,7 @@
 <?php
 
 $constants = config( 'multi-api.pe-properties.constants' );
+$baseUrl = env( 'APP_URL' ) . '/api/pe-properties';
 
 return [
 
@@ -11,24 +12,29 @@ return [
     |
     */
 
+    'filtersURL' => [
+        'method' => 'get',
+        'path' => $baseUrl . '/filters',
+    ],
+
     'searchURL' => [
         'method' => 'post',
-        'path' => env( 'APP_URL' ) . '/api/peru_properties/search',
+        'path' => $baseUrl . '/search',
     ],
 
     'countSearchURL' => [
         'method' => 'get',
-        'path' => env( 'APP_URL' ) . '/api/peru_properties/count',
+        'path' => $baseUrl . '/count',
     ],
 
     'paginationURL' => [
         'method' => 'get',
-        'path' => env( 'APP_URL' ) . '/api/peru_properties/paginate',
+        'path' => $baseUrl . '/paginate',
     ],
 
     'processOrderURL' => [
         'method' => 'post',
-        'path' => env( 'APP_URL' ) . '/api/peru_properties/order',
+        'path' => $baseUrl . '/order',
     ],
 
     'paymentTypes' => [
@@ -55,16 +61,14 @@ return [
 
     'currencies' => [
         [
-            'currency'=> 'Dolar Americanos',
-            'symbol'=> '$',
-            'field'=> 'dollars_price'
-
+            'currency' => 'Dolar Americanos',
+            'symbol' => '$',
+            'field' => 'dollars_price'
         ],
         [
-            'currency'=> 'Soles Peruanos',
-            'symbol'=> 'S',
-            'field'=> 'others_price'
-
+            'currency' => 'Soles Peruanos',
+            'symbol' => 'S/.',
+            'field' => 'others_price'
         ]
     ],
 
@@ -81,13 +85,13 @@ return [
                 'label' => 'Tipo',
                 'type' => 'dropdown',
                 'placeholder' => 'Seleccione el tipo de propiedad',
-                'valuesURL' => env( 'APP_URL' ) . '/api/peru_properties/filters/property_type',
+                'values' => [ 'remote' ],
             ],
             [
                 'field' => $constants[ 'FILTER_FIELD_PUBLICATION_DATE' ],
                 'label' => 'Fecha',
                 'type' => 'date',
-                'placeholder' => 'Seleccione el tipo de propiedad',
+                'placeholder' => 'Seleccione un rango de fechas',
                 'minDate' => null,
                 'maxDate' => now()->toDateString(),
             ],
@@ -118,7 +122,7 @@ return [
                         'label' => '4',
                     ],
                     [
-                        'value' => 5.1,
+                        'value' => 5,
                         'label' => '5 a más',
                     ],
                 ],
@@ -149,7 +153,7 @@ return [
                         'label' => '4',
                     ],
                     [
-                        'value' => 5.1,
+                        'value' => 5,
                         'label' => '5 a más',
                     ],
                 ],
@@ -180,7 +184,7 @@ return [
                         'label' => '4',
                     ],
                     [
-                        'value' => 5.1,
+                        'value' => 5,
                         'label' => '5 a más',
                     ],
                 ],
@@ -215,25 +219,14 @@ return [
                 'label' => 'Tipo publicación',
                 'type' => 'dropdown',
                 'placeholder' => 'Seleccione el tipo de publicación',
-                'values' =>
-                [
-                    [
-                        'value' => 'venta',
-                        'text' => 'Venta',
-                    ],
-                    [
-                        'value' => 'alquiler',
-                        'text' => 'Alquiler',
-                    ],
-                ],
+                'values' => [ 'remote' ],
             ],
             [
                 'field' => $constants[ 'FILTER_FIELD_IS_NEW' ],
                 'label' => 'Nuevo/Usado',
                 'type' => 'dropdown',
                 'placeholder' => 'Seleccione la condición',
-                'values' =>
-                [
+                'values' => [
                     [
                         'value' => true,
                         'text' => 'Nuevo',

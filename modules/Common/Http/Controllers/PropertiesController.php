@@ -41,15 +41,15 @@ class PropertiesController extends AppBaseController
     protected $orderRepository;
 
     /**
-     * @var string The project in app
-     */
-    protected $projectCode;
-
-    /**
      * @var GoogleStorageHandler
      */
     protected $googleStorageHandler;
 
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
     public function __construct( PropertyTypeRepository $propertyTypeRepo,
         PropertyRepository $propertyRepo,
         SearchRepository $searchRepo,
@@ -62,6 +62,11 @@ class PropertiesController extends AppBaseController
         $this->orderRepository = $orderRepo;
     }
 
+    /**
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function searchProperties( Request $request )
     {
         $request->validate( [
@@ -118,6 +123,11 @@ class PropertiesController extends AppBaseController
         return $this->sendResponse( compact( 'data', 'searchId' ), 'Properties retrieved successfully.' );
     }
 
+    /**
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function countSearch( Request $request )
     {
         $request->validate( [
@@ -132,13 +142,19 @@ class PropertiesController extends AppBaseController
             $search = $this->searchRepository->findOrFail( $searchId );
 
             $total = $this->propertyRepository->countSearchedProperties( $search );
-        } catch ( \Exception $e ) {
+        }
+        catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage() );
         }
 
         return $this->sendResponse( $total, 'Search count retrieved successfully.' );
     }
 
+    /**
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function paginateSearch( Request $request )
     {
         $request->validate( [
@@ -167,7 +183,8 @@ class PropertiesController extends AppBaseController
 
             // construct and execute query
             $data = $this->propertyRepository->searchPropertiesReturnOutputFields( $search, compact( 'perpage', 'field', 'sort', 'lastItem' ) );
-        } catch ( \Exception $e ) {
+        }
+        catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage(), [], 404 );
         }
 
@@ -178,6 +195,11 @@ class PropertiesController extends AppBaseController
         return $this->sendResponse( compact( 'data', 'searchId' ), 'Properties retrieved successfully.' );
     }
 
+    /**
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function order( Request $request )
     {
         $request->validate( [
@@ -193,19 +215,20 @@ class PropertiesController extends AppBaseController
         $user = auth()->user();
 
         // check if user has active subscriptions for this project
-        if ( $user->hasActiveSubscriptionsForProject( $this->projectCode ) === false && $user->hasPermissionTo( 'release.order.without.paying' ) === false ) { # cambiar rol 'release.order.without.paying' por uno nuevo
+        if ( $user->hasActiveSubscriptionsForProject( $this->propertyRepository->projectCode() ) === false && $user->hasPermissionTo( 'release.order.without.paying' ) === false ) { # cambiar rol 'release.order.without.paying' por uno nuevo
             return $this->sendError( 'Cannot create order because user has no subscription or is expired.', [], 402 );
         }
 
         // check if user can make an order for given project
-        if ( $user->canOrderBySubscription( $this->projectCode ) === false && $user->hasPermissionTo( 'release.order.without.paying' ) === false ) { # cambiar rol 'release.order.without.paying' por uno nuevo
+        if ( $user->canOrderBySubscription( $this->propertyRepository->projectCode() ) === false && $user->hasPermissionTo( 'release.order.without.paying' ) === false ) { # cambiar rol 'release.order.without.paying' por uno nuevo
             return $this->sendError( 'User subscription has exhausted the download quota.', [], 409 );
         }
 
         try {
             // get search model
             $search = $this->searchRepository->findOrFail( $searchId );
-        } catch ( \Exception $e ) {
+        }
+        catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage(), [], 404 );
         }
 
@@ -226,7 +249,7 @@ class PropertiesController extends AppBaseController
             $order = $this->orderRepository->create( [
                 'user_id'               => $user->id,
                 'search_id'             => $searchId,
-                'project'               => config( 'multi-api.' . $this->projectCode . '.backend-info.code' ),
+                'project'               => config( 'multi-api.' . $this->propertyRepository->projectCode() . '.backend-info.code' ),
                 'total_rows_quantity'   => $total,
                 'status'                => config( 'constants.ORDERS.STATUS.OPENED' ),
             ] );
@@ -249,7 +272,7 @@ class PropertiesController extends AppBaseController
         $this->propertyRepository->updateSelectedPropertiesInSearch( $search, $ids );
 
         // check if user can release order whether by subscription or by permission
-        if ( $user->canReleaseOrderBySubscription( $this->projectCode ) === true || $user->hasPermissionTo( 'release.order.without.paying' ) === true ) {
+        if ( $user->canReleaseOrderBySubscription( $this->propertyRepository->projectCode() ) === true || $user->hasPermissionTo( 'release.order.without.paying' ) === true ) {
             $order = $order->setReleasedStatus();
 
             return $this->sendResponse( $order, 'Ordered successfully, file generated.', 201 );
@@ -259,6 +282,11 @@ class PropertiesController extends AppBaseController
         return $this->sendResponse( $order, 'Ordered successfully.' );
     }
 
+    /**
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function generatePropertiesFile( Request $request )
     {
         $request->validate( [
@@ -302,7 +330,7 @@ class PropertiesController extends AppBaseController
             // create xlsx data file
             $xlsxDataFile = FileWriterFactory::createWriter( 'xlsx' )
                 ->openToFile( $orderCode . '.xlsx' );
-            $xlsxDataFile->addRow( $this->propertyRepository->header, true );
+            $xlsxDataFile->addRow( $this->propertyRepository->flattenedHeader(), true );
 
             $perpage = 25;
             $lastItem = [];
@@ -337,7 +365,8 @@ class PropertiesController extends AppBaseController
             unset( $ndjsonDataFile );
             unset( $xlsxDataFile );
             gc_collect_cycles();
-        } catch ( \Exception $e ) {
+        }
+        catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage() );
         }
 
@@ -368,12 +397,21 @@ class PropertiesController extends AppBaseController
      */
     protected function createXLSXRow( array $item ): array
     {
+        $xlsxFields = collect( $item );
+
+        // flatten nested values
+        foreach ( $xlsxFields as $key => $value ) {
+            if ( is_object( $value ) === true ) {
+                $xlsxFields = $xlsxFields->merge( collect( $value ) )->forget( $key );
+            }
+        }
+
         // discrimination of fields to xlsx file
-        $xlsxFields = collect( $item )->only( array_keys( $this->propertyRepository->header ) )->toArray();
+        $xlsxFields = $xlsxFields->only( array_keys( $this->propertyRepository->flattenedHeader() ) );
 
         // merge to avoid non-existent values
-        $dictionary = array_fill_keys( array_keys( $this->propertyRepository->header ), null );
-        $xlsxRow = array_merge( $dictionary, $xlsxFields );
+        $dictionary = array_fill_keys( array_keys( $this->propertyRepository->flattenedHeader() ), null );
+        $xlsxRow = array_merge( $dictionary, $xlsxFields->toArray() );
 
         // formatting that needs to be done
         $formatting = [
