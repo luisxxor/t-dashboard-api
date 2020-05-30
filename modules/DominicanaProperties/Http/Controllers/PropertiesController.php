@@ -76,10 +76,22 @@ class PropertiesController extends CommonPropertiesController
         // select property types
         $propertyTypes = $this->propertyTypeRepository->distinct( 'name' );
         $propertyTypes = array_column( $propertyTypes->toArray(), 0 );
+        $propertyTypes = array_map( function ( $value ) {
+            return [
+                'text' => $value,
+                'value' => $value,
+            ];
+        }, $propertyTypes );
 
         // select publication types
         $publicationTypes = $publicationTypeRepo->distinct( 'name' );
         $publicationTypes = array_column( $publicationTypes->toArray(), 0 );
+        $publicationTypes = array_map( function ( $value ) {
+            return [
+                'text' => $value,
+                'value' => $value,
+            ];
+        }, $publicationTypes );
 
         // sort
         sort( $propertyTypes );
