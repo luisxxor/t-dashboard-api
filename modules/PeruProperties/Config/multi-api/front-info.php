@@ -53,7 +53,7 @@ return [
                     -9.189966999999998, // lat
                     -75.015152 // lng
                 ],
-                'baseZoom' => 7,
+                'baseZoom' => 6,
                 'searchZoom' => 15,
             ]
         ]
