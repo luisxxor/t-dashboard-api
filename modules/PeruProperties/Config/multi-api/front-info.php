@@ -53,7 +53,7 @@ return [
                     -9.189966999999998, // lat
                     -75.015152 // lng
                 ],
-                'baseZoom' => 5,
+                'baseZoom' => 7,
                 'searchZoom' => 15,
             ]
         ]
@@ -61,13 +61,15 @@ return [
 
     'currencies' => [
         [
-            'currency' => 'Dolar Americanos',
+            'label' => 'Dolares Americanos',
             'symbol' => '$',
+            'code' => 'USD',
             'field' => 'dollars_price'
         ],
         [
-            'currency' => 'Soles Peruanos',
+            'label' => 'Soles Peruanos',
             'symbol' => 'S/.',
+            'code' => 'PEN',
             'field' => 'others_price'
         ]
     ],
