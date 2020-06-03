@@ -53,7 +53,7 @@ return [
                     18.65657, // lat
                     -72.3743431, // lng
                 ],
-                'baseZoom' => 5,
+                'baseZoom' => 8,
                 'searchZoom' => 15,
             ]
         ]
@@ -61,13 +61,15 @@ return [
 
     'currencies' => [
         [
-            'currency' => 'Dolar Americanos',
+            'label' => 'Dolares Americanos',
             'symbol' => '$',
+            'code' => 'USD',
             'field' => 'dollars_price'
         ],
         [
-            'currency' => 'Pesos Dominicanos',
-            'symbol' => 'DOP',
+            'label' => 'Pesos Dominicanos',
+            'symbol' => 'RD$',
+            'code' => 'DOP',
             'field' => 'others_price'
         ]
     ],
