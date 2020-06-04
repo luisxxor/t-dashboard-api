@@ -69,7 +69,10 @@ class Order extends Model
 
     ];
 
-    protected $appends = [ 'init_point_address' ];
+    protected $appends = [
+        'init_point_address',
+        'status_label',
+    ];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -108,9 +111,9 @@ class Order extends Model
      * @param  string  $value
      * @return string
      */
-    public function getStatusAttribute( $value ): string
+    public function getStatusLabelAttribute()
     {
-        return config( 'constants.STATUS_LABELS.' . $value, $value );
+        return config( 'constants.STATUS_LABELS.' . $this->status, $this->status );
     }
 
     /**

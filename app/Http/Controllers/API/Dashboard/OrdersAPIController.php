@@ -132,7 +132,7 @@ class OrdersAPIController extends AppBaseController
         $user = auth()->user();
 
         // if user has permission to see foreign orders list
-        if ( $userId !== null && $user->hasPermissionTo( 'see.foreign.orders.list' ) === false ) {
+        if ( $userId !== null && $user->hasPermissionTo( 'see.foreign.orders.list' ) === true ) {
             $user = $this->userRepository->find( $userId );
 
             if ( empty( $user ) === true ) {
@@ -142,15 +142,13 @@ class OrdersAPIController extends AppBaseController
             }
         }
 
-        $orders = $user->orders()->get()->sortByDesc( 'created_at' );
-
         // only consistent orders and from given project
-        $orders = $orders->filter( function ( $item, $index ) use ( $projectCode ) {
-            return $item->status !== null
-                && $item->project === $projectCode;
-        } );
+        $orders = $user->orders()->where( 'project', $projectCode )
+            ->whereNotNull( 'status' )
+            ->orderByDesc( 'created_at' )
+            ->get();
 
-        return $this->sendResponse( array_values( $orders->toArray() ), 'Order retrived successfully.' );
+        return $this->sendResponse( $orders, 'Order retrived successfully.' );
     }
 
     /**
