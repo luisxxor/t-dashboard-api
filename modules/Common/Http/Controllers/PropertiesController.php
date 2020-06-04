@@ -253,6 +253,7 @@ class PropertiesController extends AppBaseController
                 'project'               => config( 'multi-api.' . $this->propertyRepository->projectCode() . '.backend-info.code' ),
                 'total_rows_quantity'   => $total,
                 'status'                => config( 'constants.ORDERS.STATUS.OPENED' ),
+                'metadata_info'         => $search->metadata,
             ] );
 
             // record subscription usage

@@ -30,6 +30,7 @@ class Order extends Model
         'project',
         'total_rows_quantity',
         'status',
+        'metadata_info',
     ];
 
     protected $hidden = [
@@ -37,6 +38,7 @@ class Order extends Model
         'search_id',
         'project',
         'files_info',
+        'metadata_info',
         'updated_at',
         'deleted_at',
     ];
@@ -54,6 +56,7 @@ class Order extends Model
         'search_id' => 'string',
         'project' => 'string',
         'files_info' => 'array',
+        'metadata_info' => 'array',
         'total_rows_quantity' => 'integer',
     ];
 
@@ -65,6 +68,8 @@ class Order extends Model
     public static $rules = [
 
     ];
+
+    protected $appends = [ 'init_point_address' ];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -85,6 +90,27 @@ class Order extends Model
         $prefix = config( 'app.env' ) !== 'production' ? 'dev.' : '';
 
         $this->attributes[ 'code' ] = $prefix . 'orden-' . str_pad( $value, 8, '0', STR_PAD_LEFT );
+    }
+
+    /**
+     * Get the init point address.
+     *
+     * @return string
+     */
+    public function getInitPointAddressAttribute(): string
+    {
+        return $this->metadata_info[ 'initPoint' ][ 'address' ] ?? '';
+    }
+
+    /**
+     * Get the status translation.
+     *
+     * @param  string  $value
+     * @return string
+     */
+    public function getStatusAttribute( $value ): string
+    {
+        return config( 'constants.STATUS_LABELS.' . $value, $value );
     }
 
     /**
