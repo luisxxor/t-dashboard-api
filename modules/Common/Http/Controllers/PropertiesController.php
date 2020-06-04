@@ -253,6 +253,7 @@ class PropertiesController extends AppBaseController
                 'project'               => config( 'multi-api.' . $this->propertyRepository->projectCode() . '.backend-info.code' ),
                 'total_rows_quantity'   => $total,
                 'status'                => config( 'constants.ORDERS.STATUS.OPENED' ),
+                'metadata_info'         => $search->metadata,
             ] );
 
             // record subscription usage
@@ -321,7 +322,7 @@ class PropertiesController extends AppBaseController
             // create json metadata file
             $jsonMetadataFile = FileWriterFactory::createWriter( 'json' )
                 ->openToFile( $orderCode . '.metadata.json' )
-                ->addRow( json_encode( $search->toArray() ) );
+                ->addRow( $this->createJSONRow( $search->toArray() ) );
             $path = $jsonMetadataFile->close();
             $filesInfo[] = $this->googleStorageHandler->uploadFile( $bucketName, $path, $order->total_rows_quantity );
 
@@ -340,15 +341,20 @@ class PropertiesController extends AppBaseController
 
             $perpage = 25;
             $lastItem = [];
+            $customId = 1;
             do {
                 $selectedSearchedProperties = $this->propertyRepository->getSelectedPropertiesFromProperties( $search, compact( 'perpage', 'lastItem' ) );
 
                 foreach ( $selectedSearchedProperties as $item ) {
+                    $item[ 'customId' ] = $customId;
+
                     // add json data row
                     $ndjsonDataFile->addRow( $this->createJSONRow( $item ) . PHP_EOL );
 
                     // add xlsx data row
                     $xlsxDataFile->addRow( $this->createXLSXRow( $item ) );
+
+                    $customId++;
                 }
 
                 $lastItem = [

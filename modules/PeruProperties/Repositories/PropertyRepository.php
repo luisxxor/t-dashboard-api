@@ -40,6 +40,7 @@ class PropertyRepository extends CommonPropertyRepository
      * @var array
      */
     protected $header = [
+        'customId'              => 'Índice',
         '_id'                   => 'Código',
         'link'                  => 'Enlace',
         'antiquity_years'       => 'Antigüedad',

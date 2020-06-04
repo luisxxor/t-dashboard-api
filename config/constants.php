@@ -51,4 +51,13 @@ return [
         'ECS' => 'ECS',
         'CLP' => 'CLP',
     ],
+
+    'STATUS_LABELS' => [
+            'opened' => 'Abierto',
+            'to_pay' => 'Por pagar',
+            'pending' => 'Pendiente',
+            'released' => 'Liberado',
+            'approved' => 'Aprovado',
+            'denied' => 'Denegado',
+    ],
 ];
