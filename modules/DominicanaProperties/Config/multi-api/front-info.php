@@ -50,10 +50,10 @@ return [
         'settings' => [
             'initialState' => [
                 'coordinates' => [
-                    18.462702015722094, // lat
-                    -69.94687995, // lng
+                    18.81411, // lat
+                    -69.78369, // lng
                 ],
-                'baseZoom' => 9,
+                'baseZoom' => 8,
                 'searchZoom' => 15,
             ]
         ]
