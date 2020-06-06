@@ -397,7 +397,18 @@ class PropertiesController extends AppBaseController
      */
     protected function createJSONRow( array $item ): string
     {
-        return json_encode( $item, JSON_UNESCAPED_SLASHES );
+        $jsonRow = json_encode( $item, JSON_UNESCAPED_SLASHES );
+
+        if ( $jsonRow === false ) {
+            foreach ( $item as $key => $value ) {
+                if ( is_float( $value ) === true && is_nan( $value ) === true ) {
+                    $item[ $key ] = 'NaN';
+                }
+            }
+            return json_encode( $item, JSON_UNESCAPED_SLASHES );
+        }
+
+        return $jsonRow;
     }
 
     /**
