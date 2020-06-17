@@ -45,8 +45,7 @@ class PlainTextWriter implements WriterContract
             if ( empty( $this->fh ) === true ) {
                 throw new \Exception( 'Error opening the file: ' . $this->filePath );
             }
-        }
-        catch ( \Exception $e ) {
+        } catch ( \Exception $e ) {
             throw $e; # TODO
         }
 
@@ -72,14 +71,12 @@ class PlainTextWriter implements WriterContract
                 if ( empty( $written ) === true ) {
                     throw new \Exception( 'Error writing the file: ' . $this->filePath );
                 }
-            }
-            catch ( \Exception $e ) {
+            } catch ( \Exception $e ) {
                 throw $e; # TODO
             }
 
             return $this;
-        }
-        else {
+        } else {
             throw new \Exception( 'The writer needs to be opened before adding row.' );
         }
     }

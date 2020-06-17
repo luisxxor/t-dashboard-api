@@ -202,8 +202,7 @@ trait FilterPipelines
             $arrayValue = explode( '--', $value );
             $minValue = (string)$arrayValue[ 0 ];
             $maxValue = (string)$arrayValue[ 1 ];
-        }
-        catch ( Exception $e ) {
+        } catch ( Exception $e ) {
             return [];
         }
 
@@ -244,8 +243,7 @@ trait FilterPipelines
             $arrayValue = explode( '--', $value );
             $minValue = (string)$arrayValue[ 0 ];
             $maxValue = (string)$arrayValue[ 1 ];
-        }
-        catch ( Exception $e ) {
+        } catch ( Exception $e ) {
             return [];
         }
 

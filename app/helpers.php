@@ -9,8 +9,7 @@ function delete_col( &$array, $offset ) {
 function is_decimal( $value ) {
     if( $value - (int)$value === 0.0 ) {
        return false;
-    }
-    else {
+    } else {
        return true;
     }
 }

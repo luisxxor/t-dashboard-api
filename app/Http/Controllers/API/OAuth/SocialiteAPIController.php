@@ -188,8 +188,7 @@ class SocialiteAPIController extends AppBaseController
         // if linked account exists
         if ( empty( $linkedSocialAccount ) === false ) {
             $user = $linkedSocialAccount->user;
-        }
-        else {
+        } else {
             // get user if exists
             $user = $this->userRepository->findByField( 'email', $userProvider->getEmail() )->first();
 

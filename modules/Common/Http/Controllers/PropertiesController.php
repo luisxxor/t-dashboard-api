@@ -6,6 +6,7 @@ use App\Http\Controllers\AppBaseController;
 use App\Lib\Handlers\GoogleStorageHandler;
 use App\Lib\Writer\Common\FileWriterFactory;
 use App\Repositories\Dashboard\OrderRepository;
+use App\Repositories\Dashboard\ProjectRepository;
 use Carbon\Carbon;
 use DateTime;
 use Exception;
@@ -47,20 +48,28 @@ class PropertiesController extends AppBaseController
     protected $googleStorageHandler;
 
     /**
+     * @var ProjectRepository
+     */
+    protected $projectRepository;
+
+    /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct( PropertyTypeRepository $propertyTypeRepo,
+    public function __construct(
+        PropertyTypeRepository $propertyTypeRepo,
         PropertyRepository $propertyRepo,
         SearchRepository $searchRepo,
-        OrderRepository $orderRepo )
-    {
+        OrderRepository $orderRepo,
+        ProjectRepository $projectRepo
+    ) {
         $this->googleStorageHandler = new GoogleStorageHandler();
         $this->propertyTypeRepository = $propertyTypeRepo;
         $this->propertyRepository = $propertyRepo;
         $this->searchRepository = $searchRepo;
         $this->orderRepository = $orderRepo;
+        $this->projectRepository = $projectRepo;
     }
 
     /**
@@ -143,8 +152,7 @@ class PropertiesController extends AppBaseController
             $search = $this->searchRepository->findOrFail( $searchId );
 
             $total = $this->propertyRepository->countSearchedProperties( $search );
-        }
-        catch ( Exception $e ) {
+        } catch ( Exception $e ) {
             return $this->sendError( $e->getMessage() );
         }
 
@@ -184,8 +192,7 @@ class PropertiesController extends AppBaseController
 
             // construct and execute query
             $data = $this->propertyRepository->searchPropertiesReturnOutputFields( $search, compact( 'perpage', 'field', 'sort', 'lastItem' ) );
-        }
-        catch ( Exception $e ) {
+        } catch ( Exception $e ) {
             return $this->sendError( $e->getMessage(), [], 404 );
         }
 
@@ -215,29 +222,38 @@ class PropertiesController extends AppBaseController
         // get user
         $user = auth()->user();
 
+        // get if project is free
+        $projectIsFree = $this->projectRepository->isFree( $this->propertyRepository->projectCode() );
+
         // check if user has active subscriptions for this project
-        if ( $user->hasActiveSubscriptionsForProject( $this->propertyRepository->projectCode() ) === false && $user->hasPermissionTo( 'release.order.without.paying' ) === false ) { # cambiar rol 'release.order.without.paying' por uno nuevo
+        if (
+            $user->hasActiveSubscriptionsForProject( $this->propertyRepository->projectCode() ) === false
+            && $user->hasPermissionTo( 'release.order.without.paying' ) === false
+            && $projectIsFree === false
+        ) {
             return $this->sendError( 'Cannot create order because user has no subscription or is expired.', [], 402 );
         }
 
         // check if user can make an order for given project
-        if ( $user->canOrderBySubscription( $this->propertyRepository->projectCode() ) === false && $user->hasPermissionTo( 'release.order.without.paying' ) === false ) { # cambiar rol 'release.order.without.paying' por uno nuevo
+        if (
+            $user->canOrderBySubscription( $this->propertyRepository->projectCode() ) === false
+            && $user->hasPermissionTo( 'release.order.without.paying' ) === false
+            && $projectIsFree === false
+        ) {
             return $this->sendError( 'User subscription has exhausted the download quota.', [], 409 );
         }
 
         try {
             // get search model
             $search = $this->searchRepository->findOrFail( $searchId );
-        }
-        catch ( Exception $e ) {
+        } catch ( Exception $e ) {
             return $this->sendError( $e->getMessage(), [], 404 );
         }
 
         // get selected ids by user
         if ( $ids === [ '*' ] ) {
             $total = $this->propertyRepository->countSearchedProperties( $search ); # esto hace una consulta
-        }
-        else {
+        } else {
             $total = count( $ids );
         }
 
@@ -258,8 +274,7 @@ class PropertiesController extends AppBaseController
 
             // record subscription usage
             $user->recordSubscriptionUsage();
-        }
-        else {
+        } else {
             // if order is already processed
             if ( $order->status !== config( 'constants.ORDERS.STATUS.OPENED' ) ) {
                 return $this->sendError( 'The order is already created and has already been processed.', [], 400 );
@@ -274,7 +289,11 @@ class PropertiesController extends AppBaseController
         $this->propertyRepository->updateSelectedPropertiesInSearch( $search, $ids );
 
         // check if user can release order whether by subscription or by permission
-        if ( $user->canReleaseOrderBySubscription( $this->propertyRepository->projectCode() ) === true || $user->hasPermissionTo( 'release.order.without.paying' ) === true ) {
+        if (
+            $user->canReleaseOrderBySubscription( $this->propertyRepository->projectCode() ) === true
+            || $user->hasPermissionTo( 'release.order.without.paying' ) === true
+            && $projectIsFree === false
+        ) {
             $order = $order->setReleasedStatus();
 
             return $this->sendResponse( $order, 'Ordered successfully, file generated.', 201 );
@@ -377,8 +396,7 @@ class PropertiesController extends AppBaseController
             unset( $ndjsonDataFile );
             unset( $xlsxDataFile );
             gc_collect_cycles();
-        }
-        catch ( Exception $e ) {
+        } catch ( Exception $e ) {
             return $this->sendError( $e->getMessage() );
         }
 

@@ -350,8 +350,7 @@ class User extends Authenticatable implements MustVerifyEmail
                 $this->currentSubscription = $userSubscription;
                 $this->canReleaseOrderBySubscription = true;
                 break;
-            }
-            else {
+            } else {
                 // ask if the user can order by pay-per-download subscription
                 $canOrderByPayPerDownloadSubscription = $userSubscription->canUseFeature( config( 'rinvex.subscriptions.features.pay-per-download' ) );
                 if ( $canOrderByPayPerDownloadSubscription === true ) {

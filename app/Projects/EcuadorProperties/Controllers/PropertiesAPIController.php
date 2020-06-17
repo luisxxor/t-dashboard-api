@@ -588,8 +588,7 @@ class PropertiesAPIController extends AppBaseController
         // get selected ids by user
         if ( $ids === [ '*' ] ) {
             $total = $this->propertyRepository->countSearchedProperties( $searchId );
-        }
-        else {
+        } else {
             $total = count( $ids );
         }
 
@@ -603,8 +602,7 @@ class PropertiesAPIController extends AppBaseController
                 'total_rows_quantity'   => $total,
                 'status'                => config( 'constants.ORDERS.STATUS.OPENED' ),
             ] );
-        }
-        else {
+        } else {
             // update order
             $order->total_rows_quantity = $total;
             $order->save();

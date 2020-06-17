@@ -4,6 +4,7 @@ namespace App\Repositories\Dashboard;
 
 use App\Models\Dashboard\Project;
 use App\Repositories\BaseRepository;
+use Exception;
 
 /**
  * Class ProjectRepository
@@ -37,4 +38,18 @@ class ProjectRepository extends BaseRepository
         return Project::class;
     }
 
+    /**
+     * Return is_free value of given project.
+     *
+     * @param string $projectCode
+     * @return bool
+     */
+    public function isFree( string $projectCode ): bool
+    {
+        try {
+            return (bool)Project::find( $projectCode )->is_free;
+        } catch ( Exception $e ) {
+            return false;
+        }
+    }
 }

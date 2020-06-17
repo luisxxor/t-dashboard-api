@@ -240,8 +240,7 @@ trait PropertyPipelines
     {
         if ( array_key_exists( $field, $this->sortFields ) === true ) {
             $sortFields = array_merge( $this->sortFields, [ $field => $sort ] );
-        }
-        else {
+        } else {
             $sortFields = array_merge( [ $field => $sort ], $this->sortFields );
         }
 

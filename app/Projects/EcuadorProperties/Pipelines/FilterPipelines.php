@@ -80,13 +80,13 @@ trait FilterPipelines
                     'clousure' => function ( $field ) {
                         // select
                         $results = PropertyType::where( 'name', $field )->get();
-                        
+
                         $ids = array_column( $results->toArray(), '_id' );
 
                         foreach ($ids as $key => $id) {
                            $ids[$key] =  new ObjectID( $id );
                         }
-                        
+
                         return $ids;
                     },
                 ],
@@ -95,13 +95,13 @@ trait FilterPipelines
                     'clousure' => function ( $field ) {
                         // select
                         $results = PublicationType::where( 'name', $field )->get();
-                        
+
                         $ids = array_column( $results->toArray(), '_id' );
 
                         foreach ($ids as $key => $id) {
                            $ids[$key] =  new ObjectID( $id );
                         }
-                        
+
                         return $ids;
                     },
                 ],
@@ -139,12 +139,10 @@ trait FilterPipelines
                     //se realiza where
                     if ( $min_field === $max_field ) {
                         $output[ $key ] = [ '$eq' => $min_field ];
-                    }
-                    else {
+                    } else {
                         if ( is_decimal( $max_field ) === true ) {
                             $output[ $key ] = [ '$gte' => $min_field, ];
-                        }
-                        else {
+                        } else {
                             $output[ $key ] = [ '$gte' => $min_field, '$lte' => $max_field ];
                         }
                     }
@@ -175,8 +173,7 @@ trait FilterPipelines
                     //se realiza where
                     if ( $min_field === $max_field ) {
                         $output[ $key ] = [ '$eq' => $min_field ];
-                    }
-                    else {
+                    } else {
                         $output[ $key ] = [ '$gte' => $min_field, '$lte' => $max_field ];
                     }
                 }
@@ -208,8 +205,7 @@ trait FilterPipelines
                     //se realiza where considerando si incluye operador espedifico
                     if ( is_array( $finalField ) === true ) {
                         $output[ $key ] = [ '$in' => $finalField ];
-                    }
-                    else {
+                    } else {
                         $output[ $key ] = [ '$eq' => $finalField ];
                     }
                 }

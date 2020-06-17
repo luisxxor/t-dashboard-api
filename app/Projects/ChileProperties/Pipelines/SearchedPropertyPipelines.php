@@ -36,8 +36,7 @@ trait SearchedPropertyPipelines
         // sort array
         if ( array_key_exists( $pagination[ 'field' ], $this->sortFields ) === true ) {
             $sortFields = array_merge( $this->sortFields, [ $pagination[ 'field' ] => $pagination[ 'sort' ] ] );
-        }
-        else {
+        } else {
             $sortFields = array_merge( [ $pagination[ 'field' ] => $pagination[ 'sort' ] ], $this->sortFields );
         }
 

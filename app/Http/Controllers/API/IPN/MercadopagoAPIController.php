@@ -98,8 +98,7 @@ class MercadopagoAPIController extends AppBaseController
                 // merchantOrder's amount then release item
                 if ( $paidAmount >= $merchantOrderInfo->total_amount ) {
                     $receipt->setReleasedStatus();
-                }
-                else {
+                } else {
                     // not paid yet. Do not release the item.
                     if ( $receipt->isReleasedStatus() === false ) {
                         $receipt->setPendingStatus();
