@@ -50,4 +50,14 @@ class Project extends Model
     {
         return $this->hasMany( \App\Models\Dashboard\Order::class, 'project', 'code' );
     }
+
+    /**
+     * Return is_free value.
+     *
+     * @return bool
+     */
+    public function isFree(): bool
+    {
+        return (bool)$this->is_free;
+    }
 }

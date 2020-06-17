@@ -47,7 +47,7 @@ class ProjectRepository extends BaseRepository
     public function isFree( string $projectCode ): bool
     {
         try {
-            return (bool)Project::find( $projectCode )->is_free;
+            return Project::find( $projectCode )->isFree();
         } catch ( Exception $e ) {
             return false;
         }

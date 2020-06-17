@@ -252,7 +252,7 @@ class PropertiesController extends AppBaseController
 
         // get selected ids by user
         if ( $ids === [ '*' ] ) {
-            $total = $this->propertyRepository->countSearchedProperties( $search ); # esto hace una consulta
+            $total = $this->propertyRepository->countSearchedProperties( $search );
         } else {
             $total = count( $ids );
         }
@@ -292,7 +292,7 @@ class PropertiesController extends AppBaseController
         if (
             $user->canReleaseOrderBySubscription( $this->propertyRepository->projectCode() ) === true
             || $user->hasPermissionTo( 'release.order.without.paying' ) === true
-            && $projectIsFree === false
+            || $projectIsFree === true
         ) {
             $order = $order->setReleasedStatus();
 
