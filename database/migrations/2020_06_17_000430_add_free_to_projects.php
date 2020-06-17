@@ -26,7 +26,7 @@ class AddFreeToProjects extends Migration
     public function down()
     {
         Schema::table( 'projects', function ( Blueprint $table ) {
-            $table->dropColumn( 'status' );
+            $table->dropColumn( 'is_free' );
         } );
     }
 }
