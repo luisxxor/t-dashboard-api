@@ -2,8 +2,10 @@
 
 namespace Modules\Common\Pipelines;
 
+use DateTime;
 use Modules\Common\Models\Search;
 use MongoDB\BSON\ObjectID;
+use MongoDB\BSON\UTCDateTime;
 
 /**
  * Trait PropertyPipelines
@@ -65,29 +67,15 @@ trait PropertyPipelines
             '$match' => $this->pipelinePropertiesWithinToQuery( $search->metadata[ 'vertices' ] ) + $this->pipelineFiltersToQuery( (array)$search->metadata[ 'filters' ] )
         ];
 
+        // order by ($sort)
+        $pipeline[] = [
+            '$sort' => $this->sortFields
+        ];
+
+        // pagination
         if ( empty( $pagination ) === false ) {
-            // order by ($sort)
-            $pipeline[] = [
-                '$sort' => $this->mergeSortFields( $pagination[ 'field' ], $pagination[ 'sort' ] )
-            ];
-
-            // pagination
-            if ( isset( $pagination[ 'lastItem' ] ) === true ) {
-                $lastPublicationDate = new \MongoDB\BSON\UTCDateTime( strtotime( $pagination[ 'lastItem' ][ 'publication_date' ] ) * 1000 );
-
-                $pipeline[] = [
-                    '$match' => [
-                        '$or' => [
-                            [
-                                'publication_date' => [ '$lt' => $lastPublicationDate ],
-                            ],
-                            [
-                                '_id' => [ '$gt' => $pagination[ 'lastItem' ][ '_id' ] ],
-                                'publication_date' => $lastPublicationDate,
-                            ],
-                        ],
-                    ]
-                ];
+            if ( isset( $pagination[ 'lastItem' ] ) === true && empty( $pagination[ 'lastItem' ] ) === false ) {
+                $pipeline[] = $this->customPagination( $pagination[ 'lastItem' ] );
             }
 
             // limit ($limit)
@@ -138,21 +126,7 @@ trait PropertyPipelines
 
         // pagination
         if ( isset( $pagination[ 'lastItem' ] ) === true && empty( $pagination[ 'lastItem' ] ) === false ) {
-            $lastPublicationDate = new \MongoDB\BSON\UTCDateTime( strtotime( $pagination[ 'lastItem' ][ 'publication_date' ] ) * 1000 );
-
-            $pipeline[] = [
-                '$match' => [
-                    '$or' => [
-                        [
-                            'publication_date' => [ '$lt' => $lastPublicationDate ],
-                        ],
-                        [
-                            '_id' => [ '$gt' => $pagination[ 'lastItem' ][ '_id' ] ],
-                            'publication_date' => $lastPublicationDate,
-                        ],
-                    ],
-                ]
-            ];
+            $pipeline[] = $this->customPagination( $pagination[ 'lastItem' ] );
         }
 
         // limit ($limit)
@@ -229,21 +203,34 @@ trait PropertyPipelines
     }
 
     /**
-     * Returns the fields with which the response will be sorted.
+     * Custom pagination through last paginated value.
      *
-     * @param string $field The field needed to be sorted.
-     * @param int $sort The 'asc' (1) or 'desc' (-1) to be sorted.
+     * @param array $lastItem {
+     *     Last paginated value.
+     *
+     *     @type string $publication_date [required]
+     *     @type int $_id [required]
+     * }
      *
      * @return array
      */
-    protected function mergeSortFields( string $field, int $sort )
+    protected function customPagination( array $lastItem )
     {
-        if ( array_key_exists( $field, $this->sortFields ) === true ) {
-            $sortFields = array_merge( $this->sortFields, [ $field => $sort ] );
-        } else {
-            $sortFields = array_merge( [ $field => $sort ], $this->sortFields );
-        }
+        $lastPublicationDate = new UTCDateTime( DateTime::createFromFormat( config( 'app.datetime_format' ), $lastItem[ 'publication_date' ] ) );
+        $lastId = $lastItem[ '_id' ];
 
-        return $sortFields;
+        return [
+            '$match' => [
+                '$or' => [
+                    [
+                        'publication_date' => [ '$lt' => $lastPublicationDate ],
+                    ],
+                    [
+                        '_id' => [ '$gt' => $lastId ],
+                        'publication_date' => [ '$eq' => $lastPublicationDate ],
+                    ],
+                ],
+            ]
+        ];
     }
 }

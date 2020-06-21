@@ -25,16 +25,6 @@ class PropertyRepository extends CommonPropertyRepository
     protected $projectCode = 'pe-properties';
 
     /**
-     * Fields and its order to sort the results.
-     *
-     * @var string
-     */
-    protected $sortFields = [
-        'publication_date' => -1,
-        '_id' => 1,
-    ];
-
-    /**
      * Header for export files (with nested values, if any).
      *
      * @var array

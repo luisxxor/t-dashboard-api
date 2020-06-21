@@ -170,7 +170,7 @@ class PropertiesController extends AppBaseController
             'searchId'                  => [ 'required', 'string' ],
             'lastItem'                  => [ 'required', 'array', 'filled' ],
             'lastItem._id'              => [ 'required', 'integer', 'filled' ],
-            'lastItem.publication_date' => [ 'required', 'date_format:Y-m-d H:i:s', 'filled' ],
+            'lastItem.publication_date' => [ 'required', 'date_format:' . config( 'app.datetime_format' ), 'filled' ],
             'perpage'                   => [ 'required', 'integer', 'min:1', 'max:500' ],
             'field'                     => [ 'nullable', 'string', Rule::notIn( [ 'distance', '_id' ] ) ],
             'sort'                      => [ 'nullable', 'integer', 'in:1,-1' ],
