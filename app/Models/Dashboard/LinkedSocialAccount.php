@@ -2,10 +2,10 @@
 
 namespace App\Models\Dashboard;
 
-use Eloquent as Model;
+use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class LinkedSocialAccount extends Model
+class LinkedSocialAccount extends BaseModel
 {
     use SoftDeletes;
 

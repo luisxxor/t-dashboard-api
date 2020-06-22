@@ -2,9 +2,7 @@
 
 namespace Modules\Common\Models;
 
-use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
-
-class PropertyType extends Moloquent
+class PropertyType extends BaseModel
 {
     //
 }

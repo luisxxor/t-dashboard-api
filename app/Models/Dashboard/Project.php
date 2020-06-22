@@ -2,9 +2,9 @@
 
 namespace App\Models\Dashboard;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class Project extends Model
+class Project extends BaseModel
 {
     public $table = 'projects';
 

@@ -457,7 +457,7 @@ class PropertiesController extends AppBaseController
         // formatting that needs to be done
         $formatting = [
             'publication_date' => function ( $value ) {
-                return Carbon::createFromFormat( 'Y-m-d H:i:s', $value )->format( 'd-m-Y' );
+                return Carbon::createFromFormat( config( 'app.datetime_format' ), $value )->format( 'd-m-Y' );
             },
             'distance' => function ( $value ) {
                 return (int)round( $value, 0 );

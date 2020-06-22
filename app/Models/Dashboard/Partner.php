@@ -2,10 +2,10 @@
 
 namespace App\Models\Dashboard;
 
+use App\Models\BaseModel;
 use App\Models\Dashboard\Project;
-use Illuminate\Database\Eloquent\Model;
 
-class Partner extends Model
+class Partner extends BaseModel
 {
     public $table = 'partners';
 

@@ -2,9 +2,9 @@
 
 namespace App\Models\Tokens;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class DataToken extends Model
+class DataToken extends BaseModel
 {
     public $table = 'data_tokens';
 

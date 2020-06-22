@@ -2,10 +2,10 @@
 
 namespace App\Models\Dashboard;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class ProjectAccessRequest extends Model
+class ProjectAccessRequest extends BaseModel
 {
     use SoftDeletes;
 

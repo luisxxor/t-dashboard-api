@@ -2,8 +2,8 @@
 
 namespace App\Models\Dashboard;
 
+use App\Models\BaseModel;
 use App\Traits\Dashboard\HasReceipt;
-use Eloquent as Model;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @package App\Models\Dashboard
  * @version February 5, 2019, 4:16 am UTC
  */
-class Order extends Model
+class Order extends BaseModel
 {
     use SoftDeletes, HasReceipt;
 
