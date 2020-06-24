@@ -200,8 +200,7 @@ class OrderPaymentsAPIController extends AppBaseController
                 $amount,
                 [ 'title' => 'Información de ' . $order->total_rows_quantity . ' registros de Tasing!' ]
             );
-        }
-        catch ( \Exception $e ) {
+        } catch ( \Exception $e ) {
             \Log::error( 'Error at payment.', [ $order, $e->getMessage() ] );
 
             return $this->sendError( $e->getMessage(), [], 400 );

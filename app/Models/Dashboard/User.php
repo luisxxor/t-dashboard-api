@@ -5,11 +5,11 @@ namespace App\Models\Dashboard;
 use App\Models\Dashboard\Project;
 use App\Notifications\ResetPassword as ResetPasswordNotification;
 use App\Notifications\VerifyEmail as VerifyEmailNotification;
+use App\Models\BaseUser as Authenticatable;
 use App\Traits\Subscriptions\HasSubscriptions;
 use Caffeinated\Shinobi\Concerns\HasRolesAndPermissions;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
@@ -19,6 +19,11 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     use Notifiable, HasRolesAndPermissions, SoftDeletes, HasApiTokens, HasSubscriptions;
 
+    /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var array
+     */
     protected $dates = [ 'deleted_at' ];
 
     /**
@@ -28,7 +33,9 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $fillable = [
         'name', 'lastname', 'email',
-        'phone_number1', 'address_line1', 'address_line2',
+        'phone_number1',
+        'address_line1',
+        'address_line2',
         'password',
         'email_verified_at',
         'accessible_projects',
@@ -49,6 +56,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'address_line2' => 'string',
         'password' => 'string',
         'accessible_projects' => 'array',
+        'email_verified_at' => 'date',
     ];
 
     /**
@@ -57,7 +65,11 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token', 'updated_at', 'created_at', 'deleted_at'
+        'password',
+        'remember_token',
+        'updated_at',
+        'created_at',
+        'deleted_at'
     ];
 
     /**
@@ -350,8 +362,7 @@ class User extends Authenticatable implements MustVerifyEmail
                 $this->currentSubscription = $userSubscription;
                 $this->canReleaseOrderBySubscription = true;
                 break;
-            }
-            else {
+            } else {
                 // ask if the user can order by pay-per-download subscription
                 $canOrderByPayPerDownloadSubscription = $userSubscription->canUseFeature( config( 'rinvex.subscriptions.features.pay-per-download' ) );
                 if ( $canOrderByPayPerDownloadSubscription === true ) {

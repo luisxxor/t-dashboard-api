@@ -25,25 +25,15 @@ class PropertyRepository extends CommonPropertyRepository
     protected $projectCode = 'do-properties';
 
     /**
-     * Fields and its order to sort the results.
-     *
-     * @var string
-     */
-    protected $sortFields = [
-        'publication_date' => -1,
-        '_id' => 1,
-    ];
-
-    /**
      * Header for export files (with nested values, if any).
      *
      * @var array
      */
     protected $header = [
         'customId'              => 'Índice',
+        'webpage'               => 'Fuente',
         '_id'                   => 'Código',
         'link'                  => 'Enlace',
-        'antiquity_years'       => 'Antigüedad',
         'bedrooms'              => 'Habitaciones',
         'bathrooms'             => 'Baños',
         'parkings'              => 'Cocheras',
@@ -55,10 +45,6 @@ class PropertyRepository extends CommonPropertyRepository
         'others_price'          => 'Precio (DOP)',
         'region'                => 'Región',
         'publication_type'      => 'Tipo de publicación',
-        'urbanization'          => 'Urbanización',
-        'location'              => 'Locación',
-        'reference_place'       => 'Lugar de referencia',
-        'comment_subtitle'      => 'Resumen',
         'comment_description'   => 'Descripción',
         'extra_fields'          => [
             'piscina' => 'Piscina',

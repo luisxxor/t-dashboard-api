@@ -11,8 +11,7 @@ class Util
         if ( $returnFloat === false ) {
             $first_value  = (int)$array[ 0 ];
             $second_value = (int)$array[ 1 ];
-        }
-        else {
+        } else {
             $first_value  = (float)$array[ 0 ];
             $second_value = (float)$array[ 1 ];
         }

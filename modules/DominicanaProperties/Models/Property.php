@@ -2,6 +2,7 @@
 
 namespace Modules\DominicanaProperties\Models;
 
+use Carbon\Carbon;
 use Modules\Common\Models\Property as CommonProperty;
 
 class Property extends CommonProperty

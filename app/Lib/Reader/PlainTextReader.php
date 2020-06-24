@@ -37,8 +37,7 @@ class PlainTextReader implements ReaderContract
             if ( empty( $this->fh ) === true ) {
                 throw new Exception( 'Error opening the file: ' . $this->filePath );
             }
-        }
-        catch ( Exception $e ) {
+        } catch ( Exception $e ) {
             throw $e; # TODO
         }
 
@@ -63,14 +62,12 @@ class PlainTextReader implements ReaderContract
                 if ( empty( $read ) === true ) {
                     throw new Exception( 'Error reading the file: ' . $this->filePath );
                 }
-            }
-            catch ( Exception $e ) {
+            } catch ( Exception $e ) {
                 throw $e; # TODO
             }
 
             return $read;
-        }
-        else {
+        } else {
             throw new Exception( 'The reader needs to be opened before get content.' );
         }
     }

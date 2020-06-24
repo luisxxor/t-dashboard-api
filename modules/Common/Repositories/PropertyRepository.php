@@ -201,8 +201,7 @@ class PropertyRepository extends Repository
         if ( $ids !== [ '*' ] ) {
             // set selected properties
             $this->setSelectedPropertiesInSearch( $search->id, $ids );
-        }
-        else {
+        } else {
             // pipeline
             $pipeline = $this->pipelineSearchProperties( $search );
 
@@ -321,8 +320,7 @@ class PropertyRepository extends Repository
 
         try {
             return $query->toArray()[ 0 ][ 'total' ];
-        }
-        catch ( \ErrorException $e ) {
+        } catch ( \ErrorException $e ) {
             return 0;
         }
     }

@@ -2,14 +2,16 @@
 
 namespace App\Models\Dashboard;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class Receipt extends Model
+class Receipt extends BaseModel
 {
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
     public $table = 'receipts';
-
-    const CREATED_AT = 'created_at';
-    const UPDATED_AT = 'updated_at';
 
     /**
      * The attributes that should be hidden for arrays.
@@ -20,6 +22,11 @@ class Receipt extends Model
         'updated_at', 'created_at', 'deleted_at', 'payment_info', 'payment_type', 'currency',
     ];
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
     public $fillable = [
         'payment_info->payment',
         'status',

@@ -4,6 +4,7 @@ namespace Modules\PeruProperties\Http\Controllers;
 
 use App\Lib\Handlers\GoogleStorageHandler;
 use App\Repositories\Dashboard\OrderRepository;
+use App\Repositories\Dashboard\ProjectRepository;
 use Illuminate\Http\Request;
 use Modules\Common\Http\Controllers\PropertiesController as CommonPropertiesController;
 use Modules\PeruProperties\Repositories\PropertyRepository;
@@ -22,16 +23,19 @@ class PropertiesController extends CommonPropertiesController
      *
      * @return void
      */
-    public function __construct( PropertyTypeRepository $propertyTypeRepo,
+    public function __construct(
+        PropertyTypeRepository $propertyTypeRepo,
         PropertyRepository $propertyRepo,
         SearchRepository $searchRepo,
-        OrderRepository $orderRepo )
-    {
+        OrderRepository $orderRepo,
+        ProjectRepository $projectRepo
+    ) {
         $this->googleStorageHandler = new GoogleStorageHandler();
         $this->propertyTypeRepository = $propertyTypeRepo;
         $this->propertyRepository = $propertyRepo;
         $this->searchRepository = $searchRepo;
         $this->orderRepository = $orderRepo;
+        $this->projectRepository = $projectRepo;
     }
 
     /**

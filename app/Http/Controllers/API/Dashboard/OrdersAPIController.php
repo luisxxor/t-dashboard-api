@@ -312,8 +312,7 @@ class OrdersAPIController extends AppBaseController
             }
 
             $fileReader->close();
-        }
-        catch ( \Exception $e ) {
+        } catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage() );
         }
 
@@ -389,6 +388,10 @@ class OrdersAPIController extends AppBaseController
      *         response=422,
      *         description="The given data was invalid."
      *     ),
+     *     @OA\Response(
+     *         response=409,
+     *         description="Files have not been generated for the given order."
+     *     ),
      *     security={
      *         {"": {}}
      *     }
@@ -424,7 +427,10 @@ class OrdersAPIController extends AppBaseController
             return $item[ 'type' ] === $format;
         } )->first();
 
-        # TODO: validar si $fileInfo esta vacio
+        // validate fileInfo
+        if ( empty( $fileInfo ) === true ) {
+            return $this->sendError( 'Files have not been generated for the given order.', [], 409 );
+        }
 
         try {
             // get file
@@ -432,8 +438,7 @@ class OrdersAPIController extends AppBaseController
 
             // path to download the file
             $routeFilePath = route( 'downloadFiles', [ 'fileName' => basename( $filePath ) ] );
-        }
-        catch ( \Exception $e ) {
+        } catch ( \Exception $e ) {
             return $this->sendError( $e->getMessage() );
         }
 

@@ -2,15 +2,17 @@
 
 namespace App\Models\Dashboard;
 
+use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 
-class PartnerProject extends Model
+class PartnerProject extends BaseModel
 {
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
     public $table = 'partner_project';
-
-    const CREATED_AT = 'created_at';
-    const UPDATED_AT = 'updated_at';
 
     /**
      * The attributes that should be hidden for arrays.

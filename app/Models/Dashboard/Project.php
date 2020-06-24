@@ -2,14 +2,16 @@
 
 namespace App\Models\Dashboard;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class Project extends Model
+class Project extends BaseModel
 {
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
     public $table = 'projects';
-
-    const CREATED_AT = 'created_at';
-    const UPDATED_AT = 'updated_at';
 
     /**
      * The primary key for the model.
@@ -49,5 +51,15 @@ class Project extends Model
     public function orders()
     {
         return $this->hasMany( \App\Models\Dashboard\Order::class, 'project', 'code' );
+    }
+
+    /**
+     * Return is_free value.
+     *
+     * @return bool
+     */
+    public function isFree(): bool
+    {
+        return (bool)$this->is_free;
     }
 }

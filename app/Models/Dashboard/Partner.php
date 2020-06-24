@@ -2,15 +2,17 @@
 
 namespace App\Models\Dashboard;
 
+use App\Models\BaseModel;
 use App\Models\Dashboard\Project;
-use Illuminate\Database\Eloquent\Model;
 
-class Partner extends Model
+class Partner extends BaseModel
 {
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
     public $table = 'partners';
-
-    const CREATED_AT = 'created_at';
-    const UPDATED_AT = 'updated_at';
 
     /**
      * The primary key for the model.
@@ -32,7 +34,8 @@ class Partner extends Model
      * @var array
      */
     protected $hidden = [
-        'updated_at', 'created_at',
+        'updated_at',
+        'created_at',
     ];
 
     /**

@@ -109,8 +109,7 @@ class DataTokensAPIController extends AppBaseController
                 'project' => $default->project_code,
                 'partner' => $default->partner_code,
             ];
-        }
-        else {
+        } else {
             // validate that the partner-project is valid
             $partnerProject = $this->partnerProjectRepository->getPartnerProject( $data[ 'partner' ], $data[ 'project' ] );
             if ( empty( $partnerProject ) === true ) {
