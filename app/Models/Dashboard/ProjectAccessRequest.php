@@ -9,13 +9,25 @@ class ProjectAccessRequest extends BaseModel
 {
     use SoftDeletes;
 
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
     public $table = 'project_access_requests';
 
-    const CREATED_AT = 'created_at';
-    const UPDATED_AT = 'updated_at';
-
+    /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var array
+     */
     protected $dates = [ 'deleted_at' ];
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
     public $fillable = [
         'user_id',
         'status',

@@ -7,11 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class PlanProject extends Model
 {
+    /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var array
+     */
     public $table = 'plan_project';
 
-    const CREATED_AT = 'created_at';
-    const UPDATED_AT = 'updated_at';
-
+    /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var array
+     */
     protected $dates = [ 'deleted_at' ];
 
     /**

@@ -11,19 +11,31 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * Class Order
  * @package App\Models\Dashboard
- * @version February 5, 2019, 4:16 am UTC
+ * @version February 5, 2019, 00:16 UTC
  */
 class Order extends BaseModel
 {
     use SoftDeletes, HasReceipt;
 
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
     public $table = 'orders';
 
-    const CREATED_AT = 'created_at';
-    const UPDATED_AT = 'updated_at';
+    /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var array
+     */
+    protected $dates = [ 'deleted_at' ];
 
-    protected $dates = ['deleted_at'];
-
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
     public $fillable = [
         'user_id',
         'search_id',
@@ -33,6 +45,11 @@ class Order extends BaseModel
         'metadata_info',
     ];
 
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array
+     */
     protected $hidden = [
         'user_id',
         'search_id',
@@ -65,10 +82,13 @@ class Order extends BaseModel
      *
      * @var array
      */
-    public static $rules = [
+    public static $rules = [];
 
-    ];
-
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
     protected $appends = [
         'init_point_address',
         'status_label',

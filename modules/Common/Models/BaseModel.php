@@ -2,19 +2,19 @@
 
 namespace Modules\Common\Models;
 
+use DateTimeInterface;
 use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
 
 class BaseModel extends Moloquent
 {
     /**
-     * Create a new class instance.
+     * Prepare a date for array / JSON serialization.
      *
-     * @param  array  $attributes
-     * @return void
+     * @param  \DateTimeInterface  $date
+     * @return string
      */
-    public function __construct( array $attributes = [] )
+    protected function serializeDate( DateTimeInterface $date )
     {
-        parent::__construct( $attributes );
-        $this->setDateFormat( config( 'app.datetime_format' ) );
+        return $date->format( config( 'app.datetime_format' ) );
     }
 }

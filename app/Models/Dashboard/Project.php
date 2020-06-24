@@ -6,10 +6,12 @@ use App\Models\BaseModel;
 
 class Project extends BaseModel
 {
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
     public $table = 'projects';
-
-    const CREATED_AT = 'created_at';
-    const UPDATED_AT = 'updated_at';
 
     /**
      * The primary key for the model.
